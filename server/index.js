@@ -1,9 +1,21 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
+
 const app = express();
 
 // Middleware
 app.use(express.json()); // Parses incoming JSON requests
+
+// To Allow cross origin requests originating from selected origins
+var corsOptions = {
+  origin:  'http://localhost:5173', 
+  methods: ['GET, POST, OPTIONS, PUT, DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}
+
+app.use(cors(corsOptions));
 
 // Import Routes
 const hotelRoutes = require('./routes/hotelRoutes');
