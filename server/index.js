@@ -1,13 +1,30 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-
+const { v4: uuidv4 } = require('uuid');
+const connectRedis = require('connect-redis');
+const redis = require('redis');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 
 const bodyParser = require('body-parser');
 
 const app = express();
+
+/******************************************* Redis **********************************************/
+// Redis client for Redis Cloud
+const RedisStore = connectRedis(session);
+// Connect to Redis Cloud
+const redisClient  = redis.createClient({
+    password: process.env.REDIS_PASSWORD,
+    socket: {
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT
+    }
+});
+
+redisClient.on('error', err => console.log('Redis Client Error', err))
+// await client.connect();
 
 /******************************************* Middleware **********************************************/
 
@@ -28,7 +45,11 @@ app.use(bodyParser.urlencoded({ extended: false })); // create application/x-www
 
 // Configure Session
 app.use(session({
-  secret: 'your-secret-key', // A secret key to sign the session ID
+  genid: (req) => {
+    return uuidv4() // Use UUIDs for session IDs
+  },
+  store: new RedisStore({ client: redisClient }),
+  secret: process.env.SESSION_SECRET_KEY, // A secret key to sign the session ID
   resave: false,             // Prevents session being saved back to the session store if nothing changed
   saveUninitialized: false,  // Prevents uninitialized sessions (without changes) from being saved
   cookie: { 
