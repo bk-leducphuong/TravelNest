@@ -1,181 +1,254 @@
 <!-- src/views/Login.vue -->
 <template>
-    <div class="container">
-        <div class="login-box">
-            <h2>Đăng nhập hoặc tạo tài khoản</h2>
-            <div class="input-group">
-                <label for="email">Địa chỉ email</label>
-                <input type="email" id="email" placeholder="Nhập địa chỉ email của bạn">
-            </div>
-            <button class="btn-primary">Tiếp tục với email</button>
-            <div class="divider">
-                <span>hoặc sử dụng một trong các lựa chọn này</span>
-            </div>
-            <div class="social-login">
-                <button class="social-btn facebook">Facebook</button>
-                <button class="social-btn google">Google</button>
-                <button class="social-btn apple">Apple</button>
-            </div>
-            <p class="terms">
-                Qua việc đăng nhập hoặc tạo tài khoản, bạn đồng ý với các <a href="#">Điều khoản</a> và <a href="#">Chính sách An toàn và Bảo mật</a> của chúng tôi.
-            </p>
+    <header class="header">
+        <div class="logo">Booking.com</div>
+        <div class="header-right">
+            <div class="flag"></div>
+            <span>?</span>
+        </div>
+    </header>
+
+    <div class="container" v-if="step === 1">
+        <h1>Đăng nhập hoặc tạo tài khoản</h1>
+        <p>Bạn có thể đăng nhập tài khoản Booking.com của mình để truy cập các dịch vụ của chúng tôi.</p>
+        <form  @submit.prevent="checkEmail">
+            <label for="email">Địa chỉ email</label>
+            <input type="email" id="email" name="email"  v-model="email" placeholder="Nhập địa chỉ email của bạn" required>
+            <button type="submit" class="btn">Tiếp tục với email</button>
+        </form>
+        <p>hoặc sử dụng một trong các lựa chọn này</p>
+        <div class="social-login">
+            <button @click="socialLogin('facebook')" class="social-btn" >
+                <img src="../assets/icons/facebook.png" alt="Facebook">
+            </button>
+            <button @click="socialLogin('google')" class="social-btn">
+                <img src="../assets/icons/search.png" alt="Google">
+            </button>
+            <button @click="socialLogin('twitter')" class="social-btn">
+                <img src="../assets/icons/twitter.png" alt="Twitter">
+            </button>
         </div>
     </div>
 
-  <!-- <div class="login-container">
-    <h1>Login</h1>
-    <form @submit.prevent="submitLogin">
-      <div class="form-group">
-        <label for="email">Email:</label>
-        <input v-model="email" type="email" id="email" required />
-      </div>
-      
-      <div class="form-group">
-        <label for="password">Password:</label>
-        <input v-model="password" type="password" id="password" required />
-      </div>
+    <div class="container" v-if="step === 2">
+        <div>
+            <h1>{{ isNewUser ? 'Tạo mật khẩu' : 'Nhập mật khẩu của bạn' }}</h1>
+            <p>{{ isNewUser ? 'Dùng ít nhất 10 ký tự, trong đó có chữ hoa, chữ thường và số.' : 'Vui lòng nhập mật khẩu Booking.com của bạn cho' }}</p>
+        </div>
+        <form @submit.prevent="registerOrLogin">
+            <div>
+                <label for="password">Mật khẩu</label>
+                <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" v-model="password" required >
+            </div>
 
-      <button type="submit">Login</button>
-    </form>
-  </div> -->
+            <div v-if="isNewUser">
+                <label for="confirm password">Xác nhận mật khẩu</label>
+                <input type="password" id="confirm password" name="confirm password" v-model="confirmPassword"  placeholder="Nhập mật khẩu" required>
+                <p v-if="passwordMismatch" class="error">Mật khẩu không khớp!</p>
+            </div>
+
+            <button type="submit" class="btn" >{{ isNewUser ? 'Tạo tài khoản' : 'Đăng nhập' }}</button>
+        </form>
+    </div>
+
+    <div class="footer">
+            <p>Qua việc đăng nhập hoặc tạo tài khoản, bạn đồng ý với các <a href="#">Điều khoản và Điều kiện</a> cũng như <a href="#">Chính sách An toàn và Bảo mật</a> của chúng tôi</p>
+            <p>Bảo lưu mọi quyền.<br>Bản quyền (2006 - 2024) - Booking.com™</p>
+    </div>
 </template>
 
 <script>
 export default {
   data() {
     return {
+      step: 1, // Step 1: Email, Step 2: Password
       email: '',
-      password: ''
+      password: '',
+      confirmPassword: '',
+      isNewUser: false,
     };
   },
+  computed: {
+    passwordMismatch() {
+        if (this.isNewUser) {
+            // Kiểm tra xem password và confirmPassword có giống nhau không
+            return this.password !== this.confirmPassword;
+        }else {
+            return false;
+        }
+    },
+  },
   methods: {
-    submitLogin() {
-      // Perform login logic (you can call your backend API here)
-      if (this.email && this.password) {
-        alert(`Logging in with ${this.email}`);
-        // You can use Vuex or emit events to handle login here.
+    checkEmail() {
+      // Call to API to check if email exists
+      fetch('http://localhost:3000/api/auth/check-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: this.email }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.exists) {
+            // Email exists, proceed to login
+            this.isNewUser = false;
+            
+          } else {
+            // Email doesn't exist, register new user
+            this.isNewUser = true;
+          }
+          this.step = 2;
+        });
+    },
+    registerOrLogin() {
+      if (this.passwordMismatch) {
+        return; // Ngăn không cho tiếp tục nếu mật khẩu không khớp
       }
-    }
-  }
+      if (this.isNewUser) {
+        // Call API to register new user
+        fetch('http://localhost:3000/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: this.email,
+            password: this.password
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+           if (data.success) {
+                if (data.success) {
+                    // save data into store
+                    this.$store.dispatch('login', { email: this.email, isAuthenticated: true});
+                    // redirect to home
+                    this.$router.push('/');
+                }
+            }
+          });
+      } else {
+        // Call API to log in
+        fetch('http://localhost:3000/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: this.email,
+            password: this.password,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+                // redirect to home
+                this.$router.push('/');
+                // save data into store
+                this.$store.dispatch('login', { email: this.email, isAuthenticated: true});
+            }
+          });
+      }
+    },
+    socialLogin(provider) {
+      // Handle social login (Facebook, Google, Apple)
+      
+    },
+  },
 };
 </script>
 
 <style scoped>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
-
-body {
-    background-color: #f0f0f0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-
-.container {
-    width: 100%;
-    max-width: 500px;
-    padding: 20px;
-}
-
-.login-box {
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
-    padding: 40px;
-    text-align: center;
-}
-
-h2 {
-    color: #003580;
-    font-size: 24px;
-    margin-bottom: 20px;
-}
-
-.input-group {
-    margin-bottom: 20px;
-}
-
-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-input {
-    width: 100%;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-}
-
-.btn-primary {
-    background-color: #0071c2;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    width: 100%;
-}
-
-.btn-primary:hover {
-    background-color: #005fa3;
-}
-
-.divider {
-    margin: 20px 0;
-    color: #666;
-    font-size: 14px;
-}
-
-.social-login {
-    display: flex;
-    justify-content: space-between;
-}
-
-.social-btn {
-    width: 30%;
-    padding: 10px;
-    border-radius: 5px;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.facebook {
-    background-color: #4267B2;
-    color: white;
-}
-
-.google {
-    background-color: #DB4437;
-    color: white;
-}
-
-.apple {
-    background-color: #000;
-    color: white;
-}
-
-.terms {
-    margin-top: 20px;
-    color: #666;
-    font-size: 12px;
-}
-
-.terms a {
-    color: #0071c2;
-    text-decoration: none;
-}
-
-.terms a:hover {
-    text-decoration: underline;
-}
-
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: white;
+    }
+    .header {
+        background-color: #003580;
+        color: white;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .logo {
+        font-weight: bold;
+        font-size: 24px;
+    }
+    .header-right {
+        display: flex;
+        align-items: center;
+    }
+    .flag {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: #ff0000;
+        display: inline-block;
+        margin-right: 10px;
+    }
+    .container {
+        max-width: 400px;
+        margin: 40px auto;
+        padding: 20px;
+        background-color: white;
+        border-radius: 4px;
+    }
+    h1 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+    p {
+        color: #666;
+        line-height: 1.5;
+    }
+    input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .btn {
+        width: 100%;
+        padding: 10px;
+        background-color: #0071c2;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .social-login {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+    .social-btn {
+        width: 30%;
+        height: 40px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+    .social-btn img {
+        width: 20px;
+        height: 20px;
+    }
+    .footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 12px;
+        color: #666;
+    }
+    .footer a {
+        color: #0071c2;
+        text-decoration: none;
+    }
 </style>

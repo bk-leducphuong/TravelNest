@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
-const connectRedis = require('connect-redis');
+const RedisStore = require("connect-redis").default
 const redis = require('redis');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
@@ -12,8 +12,6 @@ const bodyParser = require('body-parser');
 const app = express();
 
 /******************************************* Redis **********************************************/
-// Redis client for Redis Cloud
-const RedisStore = connectRedis(session);
 // Connect to Redis Cloud
 const redisClient  = redis.createClient({
     password: process.env.REDIS_PASSWORD,
@@ -23,8 +21,7 @@ const redisClient  = redis.createClient({
     }
 });
 
-redisClient.on('error', err => console.log('Redis Client Error', err))
-// await client.connect();
+redisClient.connect().catch(console.error)
 
 /******************************************* Middleware **********************************************/
 
