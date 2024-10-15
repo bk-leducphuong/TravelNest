@@ -7,7 +7,7 @@ const queryAsync = promisify(connection.query).bind(connection);
 
 // get recent viewed hotels
 const getRecentViewHotels = async (req, res) => {
-    const {user_id} = req.body;
+    const user_id = req.session.user.user_id;
 
     const query = `
         SELECT hotel_id
@@ -19,11 +19,11 @@ const getRecentViewHotels = async (req, res) => {
     if (results.length < 0) {
         return res.status(400).json({ success: false});
     }
-    res.status(200).json(results[0]); 
+    res.status(200).json(results); 
 }
 
 const getRecentSearchs = async (req, res) => {
-    const {user_id} = req.body;
+    const user_id = req.session.user.user_id;
 
     const query = `
         SELECT location, booking_schedule, booking_options
@@ -35,36 +35,45 @@ const getRecentSearchs = async (req, res) => {
     if (results.length < 0) {
         return res.status(400).json({ success: false});
     }
-    res.status(200).json(results[0]); 
+    res.status(200).json(results); 
 }
 
 // get top 10 most searched places 
 const getPopularPlaces = async (req, res) => {
-    redisClient.get('popular_places', async (err, cachedPopularPlaces) => {
+    try {
+        // Check Redis cache for popular places (using Promise to handle Redis client)
+        const cachedPopularPlaces = await redisClient.get('popular_places');
+
         if (cachedPopularPlaces) {
-            // Return from cache
+            // Return cached data if it exists
             return res.json(JSON.parse(cachedPopularPlaces));
         }
 
         // If cache miss, query the database
         const query = `
-        SELECT location, COUNT(*) AS search_count
-        FROM search_logs
-        GROUP BY location
-        ORDER BY search_count DESC
-        LIMIT 10;  -- Get top 10 most searched places
+            SELECT location, COUNT(*) AS search_count
+            FROM search_logs
+            GROUP BY location
+            ORDER BY search_count DESC
+            LIMIT 10;
         `;
 
+        // Query the database
         const results = await queryAsync(query);
-        if (results.length < 0) {
-            return res.status(400).json({ success: false});
+
+        if (results.length === 0) {
+            return res.status(404).json({ success: false, message: 'No popular places found' });
         }
 
-        // Store in Redis with TTL (e.g., cache for 1 hour)
-        redisClient.setex('popular_places', 3600, JSON.stringify(results[0]));
+        // Store results in Redis with TTL (1 hour)
+        await redisClient.set('popular_places', JSON.stringify(results), 'EX', 3600);
 
-        res.json(results[0]); // return 
-    });
-}
+        // Return the results
+        res.json(results);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
 
 module.exports = {getRecentViewHotels, getRecentSearchs, getPopularPlaces};

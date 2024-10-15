@@ -63,8 +63,7 @@ const loginUser = async (req, res) => {
 
     // Create session if password matches
     req.session.user = {
-      id: user.user_id,
-      email: user.email, // Optionally include more user details in the session if needed
+      id: user.user_id
     };
 
     // Respond with success message

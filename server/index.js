@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
 const RedisStore = require("connect-redis").default
-const redisClient = require('./config/redis')
+const redisClient = require('./config/redis') // connect to redis cloud
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 
@@ -13,10 +13,6 @@ const app = express();
 
 // Allow nginx proxy
 app.set('trust proxy', true);
-
-/******************************************* Redis **********************************************/
-
-redisClient.connect().catch(console.error)
 
 /******************************************* Middleware **********************************************/
 
