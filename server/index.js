@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
 const RedisStore = require("connect-redis").default
-const redis = require('redis');
+const redisClient = require('./config/redis')
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
 
@@ -11,21 +11,19 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
+// Allow nginx proxy
+app.set('trust proxy', true);
+
 /******************************************* Redis **********************************************/
-// Connect to Redis Cloud
-const redisClient  = redis.createClient({
-    password: process.env.REDIS_PASSWORD,
-    socket: {
-        host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT
-    }
-});
 
 redisClient.connect().catch(console.error)
 
 /******************************************* Middleware **********************************************/
 
 app.use(express.json()); // Parses incoming JSON requests
+
+// Serve static files from the 'public' directory
+app.use(express.static('public'));
 
 // To Allow cross origin requests originating from selected origins
 var corsOptions = {
@@ -60,10 +58,14 @@ app.use(session({
 
 const hotelRoutes = require('./routes/hotelRoutes');
 const authRoutes = require('./routes/authRoutes');
+const homeRoutes = require('./routes/homeRoutes');
+const hostRoutes = require('./routes/hostRoutes');
 
 // Use Routes
+app.use('/api/home', homeRoutes);
 app.use('/api/hotels', hotelRoutes);
 app.use('/api/auth', authRoutes); // Login route
+app.use('/api/host', hostRoutes); // Become a host route
 
 // Default route
 app.get('/', (req, res) => {
