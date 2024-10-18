@@ -24,7 +24,7 @@ const checkEmail = async (req, res) => {
       return res.status(200).json({ exists: true, message: 'Email is already registered' });
     } else {
       // Email does not exist
-      return res.status(200).json({ exists: false, message: 'Email is available' });
+      return res.status(200).json({ exists: false, message: 'Email is not available' });
     }
 
   } catch (error) {
@@ -118,5 +118,10 @@ const logoutUser = (req, res) => {
   });
 }
 
-module.exports = { checkEmail, loginUser, registerUser, logoutUser };
+const loginGoogle = (req, res) => {
+//....
+
+}
+
+module.exports = { checkEmail, loginUser, registerUser, logoutUser, loginGoogle };
 

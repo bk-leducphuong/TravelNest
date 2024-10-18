@@ -44,7 +44,7 @@ app.use(session({
   resave: false,             // Prevents session being saved back to the session store if nothing changed
   saveUninitialized: false,  // Prevents uninitialized sessions (without changes) from being saved
   cookie: { 
-    maxAge: 1000 * 60 * 60 * 2, // 2 hours session expiration
+    maxAge: 1000 * 60 * 60 * 365 * 24, // one year session expiration
     httpOnly: true,             // Protects against XSS attacks
     secure: false               // Set to true if you're using HTTPS
   }
