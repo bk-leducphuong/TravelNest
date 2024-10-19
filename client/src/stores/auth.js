@@ -1,31 +1,29 @@
-// store/modules/auth.js
+// store/auth.js
 export default {
   state: {
-    email: null,
-    isAuthenticated: false
+    email: '',
+    isAuthenticated: false,
   },
   mutations: {
-    SET_USER(state, user) {
-      state.user = user;
-      state.isAuthenticated = true;
+    setEmail(state, email) {
+      state.email = email;
     },
-    LOGOUT(state) {
-      state.user = null;
-      state.isAuthenticated = false;
-    }
+    setAuthentication(state, status) {
+      state.isAuthenticated = status;
+    },
   },
   actions: {
-    login({ commit }, userData) {
-      // Make API call to login and then commit the user
-      commit('SET_USER', userData);
+    login({ commit }, { email, isAuthenticated }) {
+      commit('setEmail', email);
+      commit('setAuthentication', isAuthenticated);
     },
-    logout({ commit }) {
-      // Call API to log out, then clear user state
-      commit('LOGOUT');
-    }
   },
   getters: {
-    isAuthenticated: (state) => state.isAuthenticated,
-    user: (state) => state.user
-  }
+    getEmail(state) {
+      return state.email;
+    },
+    isAuthenticated(state) {
+      return state.isAuthenticated;
+    },
+  },
 };

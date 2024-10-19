@@ -9,7 +9,7 @@
     </header>
 
     <div class="container" v-if="step === 1">
-        <h1>Đăng nhập hoặc tạo tài khoản</h1>
+        <h1>{{ $t('loginHeader') }}</h1>
         <p>Bạn có thể đăng nhập tài khoản Booking.com của mình để truy cập các dịch vụ của chúng tôi.</p>
         <form  @submit.prevent="checkEmail">
             <label for="email">Địa chỉ email</label>
@@ -58,6 +58,9 @@
 </template>
 
 <script>
+import axios from 'axios'; // Import Axios
+import { mapActions } from 'vuex';
+
 export default {
   data() {
     return {
@@ -70,86 +73,56 @@ export default {
   },
   computed: {
     passwordMismatch() {
-        if (this.isNewUser) {
-            // Kiểm tra xem password và confirmPassword có giống nhau không
-            return this.password !== this.confirmPassword;
-        }else {
-            return false;
-        }
+      return this.isNewUser && this.password !== this.confirmPassword;
     },
   },
   methods: {
+    ...mapActions('auth', ['login']), // Map the login action
+
     checkEmail() {
       // Call to API to check if email exists
-      fetch('http://localhost:3000/api/auth/check-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: this.email }),
+      axios.post('http://localhost:3000/api/auth/check-email', {
+        email: this.email,
       })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.exists) {
+        .then((response) => {
+          if (response.data.exists) {
             // Email exists, proceed to login
             this.isNewUser = false;
-            
           } else {
             // Email doesn't exist, register new user
             this.isNewUser = true;
           }
           this.step = 2;
+        })
+        .catch((error) => {
+          console.error("Error checking email:", error);
         });
     },
-    registerOrLogin() {
+     registerOrLogin() {
       if (this.passwordMismatch) {
-        return; // Ngăn không cho tiếp tục nếu mật khẩu không khớp
+        return; // Prevent proceeding if passwords do not match
       }
-      if (this.isNewUser) {
-        // Call API to register new user
-        fetch('http://localhost:3000/api/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: this.email,
-            password: this.password
-          }),
+      const apiUrl = this.isNewUser 
+        ? 'http://localhost:3000/api/auth/register' 
+        : 'http://localhost:3000/api/auth/login';
+
+      const payload = this.isNewUser 
+        ? { email: this.email, password: this.password } 
+        : { email: this.email, password: this.password };
+
+      // Call API to register or log in
+      axios.post(apiUrl, payload)
+        .then((response) => {
+          if (response.data.success) {
+            // Save data into store
+            this.login({ email: this.email, isAuthenticated: true });
+            // Redirect to home
+            this.$router.push('/');
+          }
         })
-          .then((response) => response.json())
-          .then((data) => {
-           if (data.success) {
-                if (data.success) {
-                    // save data into store
-                    this.$store.dispatch('login', { email: this.email, isAuthenticated: true});
-                    // redirect to home
-                    this.$router.push('/');
-                }
-            }
-          });
-      } else {
-        // Call API to log in
-        fetch('http://localhost:3000/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: this.email,
-            password: this.password,
-          }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.success) {
-                // redirect to home
-                this.$router.push('/');
-                // save data into store
-                this.$store.dispatch('login', { email: this.email, isAuthenticated: true});
-            }
-          });
-      }
+        .catch((error) => {
+          console.error("Error during login or registration:", error);
+        });
     },
     socialLogin(provider) {
       // Handle social login (Facebook, Google, Apple)

@@ -76,4 +76,8 @@ const getPopularPlaces = async (req, res) => {
     }
 };
 
-module.exports = {getRecentViewHotels, getRecentSearchs, getPopularPlaces};
+const getNearByHotels = (req, res) => {
+    const { location} = req.body;
+}
+
+module.exports = {getRecentViewHotels, getRecentSearchs, getPopularPlaces, getNearByHotels};

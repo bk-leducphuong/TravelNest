@@ -1,0 +1,9 @@
+{
+  "welcomeMessage": "Welcome to the booking website!",
+  "selectLanguage": "Select Language",
+  "search": "Search",
+  "hotel": "Hotel",
+  "room": "Room",
+  "bookNow": "Book Now",
+  "loginHeader": "Login or create account"
+}
