@@ -76,8 +76,53 @@ const getPopularPlaces = async (req, res) => {
     }
 };
 
-const getNearByHotels = (req, res) => {
-    const { location} = req.body;
-}
+// Get nearby hotels based on location (latitude, longitude)
+const getNearByHotels = async (req, res) => {
+    const { location } = req.body; // location.longitude, location.latitude
+    const { longitude, latitude } = location;
+
+    // Validate that both longitude and latitude are provided
+    if (!longitude || !latitude) {
+        return res.status(400).json({ success: false, message: 'Longitude and latitude are required.' });
+    }
+
+    // Define the search radius (in kilometers)
+    const searchRadius = 5; // Example: find hotels within 10 kilometers
+
+    // MySQL query to find hotels within the radius using the Haversine formula
+    const query = `
+        SELECT *, 
+        (
+            6371 * acos(
+                cos(radians(?)) * cos(radians(latitude)) * 
+                cos(radians(longitude) - radians(?)) + 
+                sin(radians(?)) * sin(radians(latitude))
+            )
+        ) AS distance
+        FROM hotels
+        HAVING distance < ?
+        ORDER BY distance ASC;
+    `;
+    
+    // Query parameters (latitude, longitude, latitude again for the Haversine formula, and the search radius)
+    const queryParams = [latitude, longitude, latitude, searchRadius];
+
+    try {
+        // Execute the query
+        const results = await queryAsync(query, queryParams);
+
+        if (results.length === 0) {
+            return res.status(404).json({ success: false, message: 'No nearby hotels found.' });
+        }
+
+        // Return the list of nearby hotels
+        res.json({ success: true, data: results });
+
+    } catch (error) {
+        console.error('Error fetching nearby hotels:', error);
+        res.status(500).json({ success: false, message: 'Server error.' });
+    }
+};
+
 
 module.exports = {getRecentViewHotels, getRecentSearchs, getPopularPlaces, getNearByHotels};

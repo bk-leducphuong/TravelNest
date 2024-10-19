@@ -43,14 +43,12 @@ export default {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude
             };
-           
+            this.updateUserLocation(this.userLocation); // Dispatch the action to update user location
           },
           error => {
             console.error("Error getting user location:", error);
           }
         );
-        
-        this.updateUserLocation(this.userLocation); // Dispatch the action to update user location
       } else {
         console.error("Geolocation is not supported by this browser.");
       }

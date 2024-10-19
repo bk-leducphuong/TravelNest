@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "author": "Le Duc Phuong & Manh Xuan Thai",
   "license": "ISC",
@@ -23,5 +25,8 @@
     "redis": "^4.7.0",
     "sharp": "^0.33.5",
     "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
   }
 }
