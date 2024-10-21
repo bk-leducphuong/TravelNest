@@ -6,9 +6,9 @@ const RedisStore = require("connect-redis").default
 const redisClient = require('./config/redis') // connect to redis cloud
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
-
+const passport = require('passport');
 const bodyParser = require('body-parser');
-
+require('./config/passportConfig.js');
 const app = express();
 
 // Allow nginx proxy
@@ -49,6 +49,10 @@ app.use(session({
     secure: false               // Set to true if you're using HTTPS
   }
 }));
+
+// Khởi tạo passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 /******************************************* Import Routes **********************************************/
 
