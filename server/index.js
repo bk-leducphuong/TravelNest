@@ -52,12 +52,14 @@ app.use(session({
 
 /******************************************* Import Routes **********************************************/
 
+const searchRoutes = require('./routes/searchRoutes')
 const hotelRoutes = require('./routes/hotelRoutes');
 const authRoutes = require('./routes/authRoutes');
 const homeRoutes = require('./routes/homeRoutes');
 const hostRoutes = require('./routes/hostRoutes');
 
 // Use Routes
+app.use('/api/search', searchRoutes);
 app.use('/api/home', homeRoutes);
 app.use('/api/hotels', hotelRoutes);
 app.use('/api/auth', authRoutes); // Login route

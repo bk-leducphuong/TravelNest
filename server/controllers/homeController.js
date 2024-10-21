@@ -5,6 +5,10 @@ const {promisify} = require('util');
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
 
+const postRecentViewHotels = (req, res) => {
+    // save recently viewed hotels
+}
+
 // get recent viewed hotels
 const getRecentViewHotels = async (req, res) => {
     const user_id = req.session.user.user_id;
@@ -22,6 +26,11 @@ const getRecentViewHotels = async (req, res) => {
     res.status(200).json(results); 
 }
 
+const postRecentSearchs = (req, res) => {
+    // save recent seaches
+
+}
+
 const getRecentSearchs = async (req, res) => {
     const user_id = req.session.user.user_id;
 
@@ -37,6 +46,7 @@ const getRecentSearchs = async (req, res) => {
     }
     res.status(200).json(results); 
 }
+
 
 // get top 10 most searched places 
 const getPopularPlaces = async (req, res) => {
@@ -125,4 +135,4 @@ const getNearByHotels = async (req, res) => {
 };
 
 
-module.exports = {getRecentViewHotels, getRecentSearchs, getPopularPlaces, getNearByHotels};
+module.exports = {getRecentViewHotels, getRecentSearchs, getPopularPlaces, getNearByHotels, postRecentSearchs, postRecentViewHotels};
