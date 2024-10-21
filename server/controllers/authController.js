@@ -1,6 +1,7 @@
 const connection = require('../config/db');
 const bcrypt = require('bcryptjs')
 const { promisify } = require('util');
+const passport = require('passport');
 
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
@@ -118,10 +119,48 @@ const logoutUser = (req, res) => {
   });
 }
 
-const loginGoogle = (req, res) => {
-//....
+const loginGoogle = passport.authenticate('google', { scope: ['profile', 'email'] });
+// Callback route sau khi Google xác thực thành công
+const googleCallback = async (req, res) => {
+  try {
+    // Kiểm tra nếu profile của Google trả về không có user
+    if (!req.user) {
+      return res.status(401).json({ message: 'Đăng nhập thất bại!' });
+    }
 
-}
+    const profile = req.user;
+    const email = profile.emails[0].value;
+    console.log(email);
+    const displayName = profile.displayName;
+   
 
-module.exports = { checkEmail, loginUser, registerUser, logoutUser, loginGoogle };
+    // Tìm người dùng trong cơ sở dữ liệu dựa trên email
+    const existingUserQuery = 'SELECT * FROM users WHERE email = ?';
+    const existingUser = await queryAsync(existingUserQuery, [email]);
+
+    let userId;
+
+    if (existingUser.length > 0) {
+      // Nếu người dùng đã tồn tại
+      userId = existingUser[0].user_id;
+    } else {
+      // Nếu người dùng chưa tồn tại, tạo người dùng mới
+      const insertQuery = 'INSERT INTO users ( email,username) VALUES (?, ?)';
+      const result = await queryAsync(insertQuery, [ email,displayName]);
+      userId = result.insertId;
+    }
+
+    // Tạo session cho người dùng
+    req.session.user = {
+      id: userId
+    };
+
+    // Gửi phản hồi thành công
+    res.status(200).json({ success: true, message: 'Đăng nhập Google thành công!' });
+  } catch (error) {
+    console.error('Error during Google login callback:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+module.exports = { checkEmail, loginUser, registerUser, logoutUser, loginGoogle, googleCallback };
 
