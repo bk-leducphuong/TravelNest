@@ -130,7 +130,7 @@ const googleCallback = async (req, res) => {
 
     const profile = req.user;
     const email = profile.emails[0].value;
-    console.log(email);
+    // console.log(email);
     const displayName = profile.displayName;
    
 

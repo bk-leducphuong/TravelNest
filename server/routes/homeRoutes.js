@@ -5,7 +5,7 @@ const { getRecentViewHotels, getRecentSearchs, getPopularPlaces, getNearByHotels
 // Route to fetch all recently viewed hotels
 router.get('/recent-view-hotels', getRecentViewHotels);
 // Route to save all recently viewed hotels
-router.get('/recent-view-hotels', postRecentViewHotels);
+router.post('/recent-view-hotels', postRecentViewHotels);
 // Route to fetch all recently searchs
 router.get('/recent-searchs', getRecentSearchs);
 // Route to save all recently searchs
