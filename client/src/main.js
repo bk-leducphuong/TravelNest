@@ -6,6 +6,8 @@ import App from './App.vue'
 import router from './router'
 import store from './stores'; // Import your store
 
+import { clickOutside } from '../directives/clickOutsite'; // import custom directives
+
 import { createI18n } from 'vue-i18n';
 import en from './locales/en.json';
 import vi from './locales/vi.json';
@@ -23,6 +25,9 @@ const i18n = createI18n({
 });
 
 const app = createApp(App)
+
+// add custom directives
+app.directive('click-outside', clickOutside);
 
 // Add i18n to the app instance
 app.use(i18n);
