@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking.com</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.css"
+        integrity="sha512-yHknP1/AwR+yx26cB1y0cjvQUMvEa2PFzt1c9LlS4pRQ5NOTZFWbhBig+X9G9eYW/8m0/4OXNx8pxJ6z57x0dw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick-theme.min.css"
+        integrity="sha512-17EgCFERpgZKcm0j0fEq1YCJuyAWdz9KUtv1EjVuaOz8pDnh/0nZxmU6BBXwaaxqoi9PQXnRWqlcDB027hgv9A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="assets/CSS/base.css">
+    <link rel="stylesheet" href="assets/CSS/style.css">
+</head>
+
+<body>
+    <!-- header  -->
+    <div class="header">
+        <div class="container">
+            <div class="inner-wrap">
+                <div class="inner-logo">
+                    <strong>Booking.com</strong>
+                </div>
+                <div class="inner-login">
+                    <ul>
+                        <li><strong>VND</strong></li>
+                        <li><img src="assets/images/Vn@3x.png" alt=""></li>
+                        <li><i class="fa-regular fa-circle-question"></i></li>
+                        <li><span>Đăng chỗ nghỉ của Quý vị</span></li>
+                        <li class="login">Đăng ký</li>
+                        <li class="login">Đăng nhập</li>
+                    </ul>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!-- end header  -->
+
+    <!-- slide -->
+    <div class="slide">
+        <div class="single-item ">
+            <div class="img img1 "></div>
+            <div class="img img2 "></div>
+            <div class="img img3"></div>
+        </div>
+        <div class="container">
+            <div class="inner-wrap">
+                <strong>Tìm chỗ nghỉ tiếp theo</strong>
+                <br>
+                <p>Tìm ưu đãi khách sạn, chỗ nghỉ dạng nhà và nhiều hơn nữa...</p>
+            </div>
+        </div>
+    </div>
+    <!-- end slide -->
+
+    <!-- search -->
+    <div class="search">
+        <div class="container">
+            <div class="search-bar">
+                <input type="text" class="search-input" id="location-input" placeholder="Bạn muốn đến đâu?" value="">
+                <div class="location-popup" id="location-popup">
+                    <h3>Điểm đến được ưa thích gần đây</h3>
+                    <ul class="location-list">
+                        <li class="location-item">
+                            <div class="location-icon"></div>
+                            <div class="location-info">
+                                <span class="location-name">Phú Quốc</span>
+                                <span class="location-country">Việt Nam</span>
+                            </div>
+                        </li>
+                        <li class="location-item">
+                            <div class="location-icon"></div>
+                            <div class="location-info">
+                                <span class="location-name">Hà Nội</span>
+                                <span class="location-country">Việt Nam</span>
+                            </div>
+                        </li>
+                        <li class="location-item">
+                            <div class="location-icon"></div>
+                            <div class="location-info">
+                                <span class="location-name">Sa Pa</span>
+                                <span class="location-country">Việt Nam</span>
+                            </div>
+                        </li>
+                        <li class="location-item">
+                            <div class="location-icon"></div>
+                            <div class="location-info">
+                                <span class="location-name">Đà Lạt</span>
+                                <span class="location-country">Việt Nam</span>
+                            </div>
+                        </li>
+                        <li class="location-item">
+                            <div class="location-icon"></div>
+                            <div class="location-info">
+                                <span class="location-name">Đà Nẵng</span>
+                                <span class="location-country">Việt Nam</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="date-picker">
+                    <input class="search-input" type="text" placeholder="Nhận phòng - Trả phòng" id="checkin">
+                </div>
+                <div class="guest-room-wrapper">
+                    <input type="text" placeholder="2 người lớn · 0 trẻ em · 1 phòng" id="guest-input"
+                        class="search-input" readonly>
+                    <div class="guest-room-selector" id="guest-room-selector">
+                        <div class="selector-item">
+                            <span>Người lớn</span>
+                            <div class="counter">
+                                <button class="decrement one" onclick="decrement('adults')">-</button>
+                                <span id="adults-count">2</span>
+                                <button class="increment" onclick="increment('adults')">+</button>
+                            </div>
+                        </div>
+                        <div class="selector-item">
+                            <span>Trẻ em <small>(0 - 17 tuổi)</small></span>
+                            <div class="counter">
+                                <button class="decrement two" onclick="decrement('children')">-</button>
+                                <span id="children-count">0</span>
+                                <button class="increment" onclick="increment('children')">+</button>
+                            </div>
+                        </div>
+                        <div class="selector-item">
+                            <span>Phòng</span>
+                            <div class="counter">
+                                <button class="decrement three" onclick="decrement('rooms')">-</button>
+                                <span id="rooms-count">1</span>
+                                <button class="increment" onclick="increment('rooms')">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="search-button">Tìm</button>
+            </div>
+        </div>
+    </div>
+    <!-- end search -->
+
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous">
+    </script>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+
+    <!-- slide -->
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.single-item').slick();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- end slide -->
+
+    <!-- location -->
+    <script>
+        const locationInput = document.getElementById('location-input');
+        const locationPopup = document.getElementById('location-popup');
+        const locationItems = document.querySelectorAll('.location-item');
+
+        locationInput.addEventListener('focus', () => {
+            locationPopup.style.display = 'block';
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!locationInput.contains(event.target) && !locationPopup.contains(event.target)) {
+                locationPopup.style.display = 'none';
+            }
+        });
+
+        locationItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const locationName = item.querySelector('.location-name').textContent;
+                locationInput.value = locationName;
+                locationPopup.style.display = 'none';
+            });
+        });
+    </script>
+    <!-- end location -->
+
+    <!-- date -->
+    <script>
+        flatpickr("#checkin", {
+            dateFormat: "d/m/Y", // Định dạng ngày
+            locale: "vn", // Ngôn ngữ tiếng Việt cho tên ngày tháng
+            mode: "range", // Cho phép chọn dải ngày
+
+            minDate: "today", // Không cho phép chọn ngày trong quá khứ
+            showMonths: 2, // Hiển thị 2 tháng cạnh nhau
+            onChange: function (selectedDates, dateStr, instance) {
+                // Xử lý sự kiện sau khi chọn ngày (tuỳ chọn)
+                console.log(selectedDates);
+            },
+            mode: "range",
+            locale: {
+                rangeSeparator: " đến " // Thay "to" bằng "đến"
+            },
+            onValueUpdate: function (selectedDates, dateStr, instance) {
+                // Thêm "Từ" vào trước ngày bắt đầu
+                const display = instance.element.value;
+                instance.element.value = "Từ " + display;
+            }
+        });
+    </script>
+    <!--end  date -->
+
+    <!-- room -->
+    <script>
+        let adults = 2;
+        let children = 0;
+        let rooms = 1;
+
+        document.getElementById('guest-input').addEventListener('click', function () {
+            // Hiển thị bảng lựa chọn khi nhấn vào ô input
+            document.getElementById('guest-room-selector').style.display = 'block';
+        });
+
+        // Ẩn bảng khi click ra ngoài
+        document.addEventListener('click', function (event) {
+            let selector = document.getElementById('guest-room-selector');
+            let input = document.getElementById('guest-input');
+
+            if (!selector.contains(event.target) && !input.contains(event.target)) {
+                selector.style.display = 'none';
+            }
+        });
+
+
+        function increment(type) {
+            if (type === 'adults' && adults < 30) {
+                adults++;
+                document.getElementById('adults-count').textContent = adults;
+
+            } else if (type === 'children' && children < 10) {
+                children++;
+                document.getElementById('children-count').textContent = children;
+            } else if (type === 'rooms' && rooms < 30) {
+                rooms++;
+                document.getElementById('rooms-count').textContent = rooms;
+            }
+            updateInputValue();
+        }
+
+        function decrement(type) {
+            if (type === 'adults' && adults > 1) {
+                adults--;
+                document.getElementById('adults-count').textContent = adults;
+            } else if (type === 'children' && children > 0) {
+                children--;
+                document.getElementById('children-count').textContent = children;
+            } else if (type === 'rooms' && rooms > 1) {
+                rooms--;
+                document.getElementById('rooms-count').textContent = rooms;
+            }
+            updateInputValue();
+        }
+
+        // Cập nhật lại giá trị hiển thị trên ô input
+        function updateInputValue() {
+            document.getElementById('guest-input').value =
+                `${adults} người lớn · ${children} trẻ em · ${rooms} phòng`;
+        }
+    </script>
+    <!-- end room -->
+
+
+    <div id="basiclayout" class="basiclayout_pe">
+        <div class="watched-recently">
+            <div class="a1">
+                <h2 class="h2"> Khách sạn bạn xem gần đây </h2>
+              </div>
+                <div class="img-grid">
+                  <div class="recently-wrapper">
+                      <ul class="card-list">
+                          <li class="card-item"> 
+                              <div class="card-link">
+                                  <div class="card">            
+                                      <img src="assets/images/sunhill.webp" class="card-image">
+                                      <h3 class="card-tag"> Sun Hill Hotel </h3>
+                                      <p class="where">Vũng Tàu, Việt Nam</p>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="card-item"> 
+                              <div class="card-link">
+                                  <div class="card">            
+                                      <img src="assets/images/olala.jpg" class="card-image">
+                                      <h3 class="card-tag"> Olala Hotel </h3>
+                                      <p class="where">Vũng Tàu, Việt Nam</p>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="card-item"> 
+                              <div class="card-link">
+                                  <div class="card">            
+                                      <img src="assets/images/songapart.webp" class="card-image">
+                                      <h3 class="card-tag"> The Song Apartment </h3>
+                                      <p class="where">Vũng Tàu, Việt Nam</p>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="card-item"> 
+                              <div class="card-link">
+                                  <div class="card">            
+                                      <img src="assets/images/boutiqueapartment.webp"class="card-image">
+                                      <h3 class="card-tag"> The Song Boutique Apartment </h3>
+                                      <p class="where">Vũng Tàu, Việt Nam</p>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="card-item"> 
+                            <div class="card-link">
+                                <div class="card">            
+                                    <img src="assets/images/antata.webp"class="card-image">
+                                    <h3 class="card-tag"> Antata Beach Hotel </h3>
+                                    <p class="where">Vũng Tàu, Việt Nam</p>
+                                </div>
+                            </div>
+                        </li>
+                      </ul>
+                  </div>
+ 
+                  </div>
+        </div>
+        <div class="near-you">
+            <div class="a1">
+                <h2 class="h2"> Các khách sạn gần đây </h2>
+              </div>
+                <div class="img-grid">
+                  <div class="card-wrapper">
+                      <ul class="card-list">
+                          <li class="card-item"> 
+                              <div class="card-link">
+                                  <div class="card">            
+                                      <img src="assets/images/khachsan.jpeg" alt="Khách sạn" class="card-image">
+                                      <h3 class="card-tag"> Khách sạn </h3>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="card-item"> 
+                              <div class="card-link">
+                                  <div class="card">            
+                                      <img src="assets/images/canho.jpeg" alt="Căn hộ" class="card-image">
+                                      <h3 class="card-tag"> Căn hộ </h3>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="card-item"> 
+                              <div class="card-link">
+                                  <div class="card">            
+                                      <img src="assets/images/resort.jpg" alt="Resort" class="card-image">
+                                      <h3 class="card-tag"> Các resort </h3>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="card-item"> 
+                              <div class="card-link">
+                                  <div class="card">            
+                                      <img src="assets/images/villa.jpg" alt="Villa" class="card-image">
+                                      <h3 class="card-tag"> Các biệt thự </h3>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="card-item"> 
+                              <div class="card-link">
+                                  <div class="card">            
+                                      <img src="assets/images/cabin.jpeg" alt="Cabin" class="card-image">
+                                      <h3 class="card-tag"> Cabin nghỉ dưỡng </h3>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="card-item"> 
+                              <div class="card-link">
+                                  <div class="card">            
+                                      <img src="assets/images/nhanghiduong.jpeg" alt="Nhà nghỉ dưỡng" class="card-image">
+                                      <h3 class="card-tag">Các nhà nghỉ dưỡng </h3>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="card-item"> 
+                              <div class="card-link">
+                                  <div class="card">            
+                                      <img src="assets/images/nhakhach.jpeg" alt="Nhà khách" class="card-image">
+                                      <h3 class="card-tag"> Các nhà khách </h3>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="card-item"> 
+                              <div class="card-link">
+                                  <div class="card">            
+                                      <img src="assets/images/motel.jpeg" alt="Motel" class="card-image">
+                                      <h3 class="card-tag"> Các motel </h3>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="card-item"> 
+                              <div class="card-link">
+                                  <div class="card">            
+                                      <img src="assets/images/homestay.jpeg" alt="Homestay" class="card-image">
+                                      <h3 class="card-tag"> Homestay </h3>
+                                  </div>
+                              </div>
+                          </li>
+                          <li class="card-item"> 
+                              <div class="card-link">
+                                  <div class="card">            
+                                      <img src="assets/images/camtrai.jpeg" alt="Cắm trại" class="card-image">
+                                      <h3 class="card-tag"> Các khu cắm trại </h3>
+                                  </div>
+                              </div>
+                          </li>
+                      </ul>
+                  </div>
+                </div>
+                <script type="text/javascript">
+                    $(document).ready(function () {
+                        $('.card-list').slick();
+                    });
+                </script>
+                <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+                <script src="script.js"></script>
+        </div>
+        <div class="popular">
+            <div class="a2">
+                <h2 class="h2"> Điểm đến đang thịnh hành </h2>
+                <h4 class="Subhead2"> Các lựa chọn phổ biến nhất cho du khách từ Việt Nam </h4>
+            </div>
+            <div class="city-card-grid-up">
+                <div class="card">            
+                    <img src="assets/images/HN.jpg" alt="Hà Nội"">
+                    <div class="city-name">
+                        <h5>Hà Nội</h5>
+                    </div>
+                </div>
+                <div class="card">            
+                    <img src="assets/images/TPHCM.jpg" alt="TPHCM">
+                    <div class="city-name">
+                        <h5>TP. Hồ Chí Minh</h5>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="city-card-grid-bot">
+                <div class="card">            
+                    <img src="assets/images/VT.jpg" alt="Vũng Tàu">
+                    <div class="city-name">
+                        <h5>Vũng Tàu</h5>
+                    </div>
+                </div>
+                <div class="card">            
+                    <img src="assets/images/DN.jpg" alt="Đà Nẵng">
+                    <div class="city-name">
+                        <h5>Đà Nẵng</h5>
+                    </div>
+                </div>
+                <div class="card">            
+                    <img src="assets/images/DL.jpg" alt="Đà Lạt">
+                    <div class="city-name">
+                        <h5>Đà Lạt</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </body>
+</html>
