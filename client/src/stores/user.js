@@ -1,5 +1,6 @@
 // store/user.js
 export default {
+  namespaced: true,
   state: {
     userLocation: null,
   },
