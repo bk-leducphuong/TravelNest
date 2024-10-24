@@ -59,9 +59,8 @@
         </div>
 
         <!-- Guest room input -->
-        <div class="guest-room-wrapper">
-          <input type="text" v-model="guestDetails" class="search-input" @click="toggleGuestSelector" readonly
-            v-click-outside="hideGuestSelector">
+        <div class="guest-room-wrapper" v-click-outside="hideGuestSelector">
+          <input type="text" v-model="guestDetails" class="search-input" @click="toggleGuestSelector" readonly>
 
           <!-- Guest room selector -->
           <div v-if="showGuestSelector" class="guest-room-selector" id="guest-room-selector">
@@ -89,6 +88,7 @@
                 <button class="increment" @click="updateGuests('rooms', 'increment')">+</button>
               </div>
             </div>
+            <!-- <div class="guest-room-wrapper-finish-button">Áp dụng</div> -->
           </div>
         </div>
 
@@ -191,19 +191,20 @@ export default {
       };
       // store search informations
       let searchHistory = JSON.parse(localStorage.getItem("recentSearches")) || [];
-
       searchHistory.push(searchData);
-
       localStorage.setItem("recentSearches", JSON.stringify(searchHistory));
 
-      try {
-        const response = await axios.post("http://localhost:3000/api/search", searchData);
-
-        const result = await response.json();
-        console.log(result);
-      } catch (error) {
-        console.error("Error:", error);
-      }
+      // Redirect user to search results page with query params
+      this.$router.push({
+        name: 'SearchResults',
+        query: {
+          location: this.selectedLocation,
+          dateRange: this.dateRange,
+          adults: this.adults,
+          children: this.children,
+          rooms: this.rooms,
+        }
+      });
     },
   },
 };
@@ -301,27 +302,6 @@ body {
   z-index: 1;
 }
 
-.slide .img::before {
-  content: "";
-  width: 100%;
-  height: 100%;
-  background-color: #406fb5ae;
-}
-
-.slide .img1 {
-  background-image: url("../assets/header/1.jpg");
-
-
-}
-
-.slide .img2 {
-  background-image: url("../assets/header/SANDPIPER-BAY-RESORT.jpg");
-}
-
-.slide .img3 {
-  background-image: url("../assets/header/anh-phong-khach-san-dep-07.jpg");
-}
-
 .slide .inner-wrap {
   position: absolute;
   top: 30%;
@@ -329,30 +309,9 @@ body {
 
 }
 
-.slick-prev {
-  z-index: 99;
-  left: 0px;
-  width: 100px;
-  height: 100px;
-}
-
-.slick-next {
-  z-index: 99;
-  right: 0px;
-  width: 100px;
-  height: 100px;
-}
-
-.slick-prev::before,
-.slick-after::before {
-  color: #fff;
-}
-
 .slide .inner-wrap {
   position: relative;
-
   top: 30px;
-
 }
 
 .slide .inner-wrap strong {
@@ -537,6 +496,15 @@ body {
   margin: 0 10px;
   font-size: 16px;
 }
+
+/* .guest-room-wrapper-finish-button {
+  text-align: center;
+  cursor: pointer;
+  border-radius: 10px;
+  border: solid 1px;
+  border-color: #006ce4;
+  padding: 6px 4px 6px 4px ;
+} */
 
 .search-button {
   background-color: #3576d2;

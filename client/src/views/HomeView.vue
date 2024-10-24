@@ -24,7 +24,8 @@ export default {
     };
   },
   computed: {
-    ...mapState('user', ['userLocation']), // Map userLocation from the user module
+    ...mapState('user', ['userLocation']), // Map userLocation from the user module,
+    ...mapState('auth', ['isAuthenticated']),
     // Check if left scroll should be disabled
     disableScrollLeft() {
       return (sliderRef) => this.sliderPosition.get(sliderRef) === 0;
@@ -41,6 +42,36 @@ export default {
     }
   },
   methods: {
+    redirectToSearchResults(search) {
+      // Redirect user to search results page with query params
+      this.$router.push({
+        name: 'SearchResults',
+        query: {
+          location: search.location,
+          dateRange: search.dateRange, 
+          adults: search.adults,
+          children: search.children,
+          rooms: search.rooms
+        }
+      });
+    },
+    // redirect user to hotel details page
+    async redirectToHotelDetails(hotel) {
+      // store viewed hotels into localStorage
+      let viewedHotels = JSON.parse(localStorage.getItem("viewedHotels")) || [];
+      viewedHotels.push(hotel);
+      localStorage.setItem("viewedHotels", JSON.stringify(viewedHotels));
+
+      if (this.isAuthenticated) {
+        await axios.post('http://localhost:3000/api/home/recent-viewed-hotels', {
+          hotel_id: hotel.hotel_id
+        })
+      }
+      // redirect
+      const route = '/hotel/' + hotel.hotel_id;
+      this.$router.push(route);
+    },
+    // load hotels which close to user
     async loadNearbyHotels() {
       if (!this.userLocation) {
         console.log('User location is not available yet');
@@ -63,8 +94,13 @@ export default {
     },
 
     // Load data from localStorage for viewed hotels
-    loadViewedHotels() {
-      const hotels = JSON.parse(localStorage.getItem('viewedHotels')) || [];
+    async loadViewedHotels() {
+      let hotels = JSON.parse(localStorage.getItem('viewedHotels')) || [];
+      if (this.isAuthenticated) {
+        const response = await axios.get('http://localhost:3000/api/home/recent-viewed-hotels');
+        hotels = response.data.data;
+        //...
+      }
       this.viewedHotels = hotels;
     },
 
@@ -73,7 +109,7 @@ export default {
       const response = await axios.get('http://localhost:3000/api/home/popular-places');
 
       this.popularPlaces = response.data;
-      console.log(this.popularPlaces);
+      // console.log(this.popularPlaces);
     },
 
     // Remove a recent search item
@@ -135,7 +171,7 @@ export default {
       <h2 class="h2">Tìm kiếm gần đây của bạn</h2>
       <div class="slider-container">
         <div ref="recentSlider" class="search-slider">
-          <div class="search-card" v-for="(search, index) in recentSearches" :key="index">
+          <div class="search-card" v-for="(search, index) in recentSearches" :key="index" @click="redirectToSearchResults(search)">
             <div class="search-image">
               <img :src="'http://localhost:3000/vietnam_city/' + search.location + '.jpg'" :alt="search.location" />
             </div>
@@ -158,7 +194,7 @@ export default {
       <h2 class="h2">Bạn có còn quan tâm đến những chỗ nghỉ này?</h2>
       <div class="slider-container">
         <div ref="viewedSlider" class="hotel-slider">
-          <div class="hotel-card" v-for="(hotel, index) in viewedHotels" :key="index">
+          <div class="hotel-card" v-for="(hotel, index) in viewedHotels" :key="index" @click="redirectToHotelDetails(hotel)">
             <div class="hotel-image">
               <img :src="hotel.image_urls" :alt="hotel.name" />
               <button class="favorite-button" @click="toggleFavorite(index)">
@@ -188,7 +224,7 @@ export default {
       <h2 class="h2">Những khách sạn gần đây</h2>
       <div class="slider-container">
         <div ref="nearbySlider" class="hotel-slider">
-          <div class="hotel-card" v-for="(hotel, index) in nearbyHotels" :key="index">
+          <div class="hotel-card" v-for="(hotel, index) in nearbyHotels" :key="index" @click="redirectToHotelDetails(hotel)">
             <div class="hotel-image">
               <img :src="hotel.image_urls" :alt="hotel.name" />
               <button class="favorite-button" @click="toggleFavorite(index)">
@@ -350,6 +386,7 @@ img {
   position: relative;
   scroll-snap-align: start;
   transition: transform 0.3s;
+  cursor: pointer;
 }
 
 .search-image {
@@ -414,6 +451,7 @@ h1 {
   position: relative;
   scroll-snap-align: start;
   transition: transform 0.3s;
+  cursor: pointer;
 }
 
 .hotel-card:hover {

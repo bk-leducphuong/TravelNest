@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { getRecentViewHotels, getRecentSearchs, getPopularPlaces, getNearByHotels, postRecentViewHotels, postRecentSearchs} = require('../controllers/homeController');
+const { getRecentViewedHotels, getRecentSearchs, getPopularPlaces, getNearByHotels, postRecentViewedHotels, postRecentSearchs} = require('../controllers/homeController');
 
 // Route to fetch all recently viewed hotels
-router.get('/recent-view-hotels', getRecentViewHotels);
+router.get('/recent-viewed-hotels', getRecentViewedHotels);
 // Route to save all recently viewed hotels
-router.post('/recent-view-hotels', postRecentViewHotels);
+router.post('/recent-viewed-hotels', postRecentViewedHotels);
 // Route to fetch all recently searchs
 router.get('/recent-searchs', getRecentSearchs);
 // Route to save all recently searchs
