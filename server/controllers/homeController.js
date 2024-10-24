@@ -65,7 +65,7 @@ const getPopularPlaces = async (req, res) => {
             FROM search_logs
             GROUP BY location
             ORDER BY search_count DESC
-            LIMIT 10;
+            LIMIT 5;
         `;
 
         // Query the database
@@ -76,7 +76,7 @@ const getPopularPlaces = async (req, res) => {
         }
 
         // Store results in Redis with TTL (1 hour)
-        await redisClient.set('popular_places', JSON.stringify(results), 'EX', 3600);
+        await redisClient.set('popular_places', JSON.stringify(results), {EX: 60*60*24});   
 
         // Return the results
         res.json(results);
@@ -89,12 +89,11 @@ const getPopularPlaces = async (req, res) => {
 // Get nearby hotels based on location (latitude, longitude)
 const getNearByHotels = async (req, res) => {
     const { location } = req.body; // location.longitude, location.latitude
-    const { longitude, latitude } = location;
 
-    // Validate that both longitude and latitude are provided
-    if (!longitude || !latitude) {
+    if (!location) {
         return res.status(400).json({ success: false, message: 'Longitude and latitude are required.' });
     }
+    const { latitude, longitude } = location;
 
     // Define the search radius (in kilometers)
     const searchRadius = 5; // Example: find hotels within 10 kilometers

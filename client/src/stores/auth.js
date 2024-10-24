@@ -1,5 +1,6 @@
 // store/auth.js
 export default {
+  namespaced: true,
   state: {
     email: '',
     isAuthenticated: false,

@@ -1,3 +1,19 @@
 body {
   margin: 0;
+  background-color: #f5f5f5;
+}
+
+a {
+  text-decoration: none;   /* Bỏ gạch chân mặc định */
+  color: inherit;          /* Bỏ màu mặc định (kế thừa màu từ parent) */
+  background: none;        /* Bỏ nền mặc định */
+  border: none;            /* Bỏ viền (nếu có) */
+  outline: none;           /* Bỏ viền nét đứt khi click vào */
+  cursor: pointer;         /* Giữ con trỏ dưới dạng con trỏ tay */
+}
+
+a:hover {
+  text-decoration: none;   /* Bỏ gạch chân khi hover */
+  color: inherit;          /* Giữ nguyên màu khi hover */
+  background: none;        /* Giữ nguyên nền khi hover */
 }

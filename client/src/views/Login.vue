@@ -1,7 +1,7 @@
 <!-- src/views/Login.vue -->
 <template>
     <header class="header">
-        <div class="logo">Booking.com</div>
+        <div class="logo"><a href="/">Booking.com</a></div>
         <div class="header-right">
             <div class="flag"></div>
             <span>?</span>
