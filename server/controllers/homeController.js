@@ -55,7 +55,7 @@ const getPopularPlaces = async (req, res) => {
             FROM search_logs
             GROUP BY location
             ORDER BY search_count DESC
-            LIMIT 10;
+            LIMIT 5;
         `;
 
         // Query the database
@@ -66,7 +66,7 @@ const getPopularPlaces = async (req, res) => {
         }
 
         // Store results in Redis with TTL (1 hour)
-        await redisClient.set('popular_places', JSON.stringify(results), 'EX', 3600);
+        await redisClient.set('popular_places', JSON.stringify(results), {EX: 60*60*24});   
 
         // Return the results
         res.json(results);

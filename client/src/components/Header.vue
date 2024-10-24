@@ -10,7 +10,7 @@
             <li><strong>VND</strong></li>
             <li><img src="../assets/header/Vn@3x.png" alt="Vietnam"></li>
             <li><i class="fa-regular fa-circle-question"></i></li>
-            <li><span>Đăng chỗ nghỉ của Quý vị</span></li>
+            <li><span><a href="/join">Đăng chỗ nghỉ của Quý vị</a></span></li>
             <li class="login"><a href="/login">Đăng ký</a></li>
             <li class="login"><a href="/login">Đăng nhập</a></li>
           </ul>
@@ -189,6 +189,7 @@ export default {
         children: this.children,
         rooms: this.rooms,
       };
+      // store search informations
       let searchHistory = JSON.parse(localStorage.getItem("recentSearches")) || [];
 
       searchHistory.push(searchData);

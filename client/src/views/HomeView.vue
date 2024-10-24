@@ -69,12 +69,11 @@ export default {
     },
 
     // Static popular places data (replace with API or dynamic data)
-    loadPopularPlaces() {
-      this.popularPlaces = [
-        { name: 'Hà Nội', image: 'http://localhost:3000/vietnam_city/Hà Nội.jpg' },
-        { name: 'TP. Hồ Chí Minh', image: 'http://localhost:3000/vietnam_city/Sài Gòn.jpg' },
-        // More place objects
-      ];
+    async loadPopularPlaces() {
+      const response = await axios.get('http://localhost:3000/api/home/popular-places');
+
+      this.popularPlaces = response.data;
+      console.log(this.popularPlaces);
     },
 
     // Remove a recent search item
@@ -149,7 +148,8 @@ export default {
         </div>
         <button class="nav-button prev" :disabled="disableScrollLeft('recentSlider')"
           @click="scrollLeft('recentSlider')">‹</button>
-        <button class="nav-button next"  :disabled="disableScrollRight('recentSlider')" @click="scrollRight('recentSlider')">›</button>
+        <button class="nav-button next" :disabled="disableScrollRight('recentSlider')"
+          @click="scrollRight('recentSlider')">›</button>
       </div>
     </div>
 
@@ -176,9 +176,10 @@ export default {
             </div>
           </div>
         </div>
-        <button class="nav-button prev" :disabled="disableScrollLeft('viewedSlider')" 
+        <button class="nav-button prev" :disabled="disableScrollLeft('viewedSlider')"
           @click="scrollLeft('viewedSlider')">‹</button>
-        <button class="nav-button next"  :disabled="disableScrollRight('viewedSlider')"  @click="scrollRight('viewedSlider')">›</button>
+        <button class="nav-button next" :disabled="disableScrollRight('viewedSlider')"
+          @click="scrollRight('viewedSlider')">›</button>
       </div>
     </div>
 
@@ -205,9 +206,10 @@ export default {
             </div>
           </div>
         </div>
-        <button class="nav-button prev"  :disabled="disableScrollLeft('nearbySlider')" 
+        <button class="nav-button prev" :disabled="disableScrollLeft('nearbySlider')"
           @click="scrollLeft('nearbySlider')">‹</button>
-        <button class="nav-button next"  :disabled="disableScrollRight('nearbySlider')"  @click="scrollRight('nearbySlider')">›</button>
+        <button class="nav-button next" :disabled="disableScrollRight('nearbySlider')"
+          @click="scrollRight('nearbySlider')">›</button>
       </div>
     </div>
 
@@ -217,11 +219,18 @@ export default {
         <h2 class="h2"> Điểm đến đang thịnh hành </h2>
         <h4 class="h4"> Các lựa chọn phổ biến nhất cho du khách từ Việt Nam </h4>
       </div>
-      <div class="popular-city-card-grid">
-        <div class="popular-city-card" v-for="(place, index) in popularPlaces" :key="index">
-          <img :src="place.image" :alt="place.name" />
+      <div class="popular-city-card-up-grid popular-city-card-grid">
+        <div class="popular-city-card" v-for="(place, index) in popularPlaces.slice(0, 2)" :key="index">
+          <img :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'" :alt="place.location" />
+        </div>
+
+      </div>
+      <div class="popular-city-card-bottom-grid popular-city-card-grid">
+        <div class="popular-city-card" v-for="(place, index) in popularPlaces.slice(2, 5)" :key="index">
+          <img :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'" :alt="place.location" />
         </div>
       </div>
+
     </div>
   </div>
   <TheFooter />
@@ -270,14 +279,8 @@ img {
 
 .popular-city-card-grid {
   display: grid;
-  grid-template-columns: repeat(2, 550px);
-  grid-template-rows: 270px;
   gap: 8px;
-}
-
-.popular-city-card {
-  max-width: 550px;
-  max-height: 270px;
+  grid-template-rows: 270px;
 }
 
 .popular-city-card img {
@@ -291,6 +294,18 @@ img {
 .popular-city-card:hover {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
   border-radius: 14px;
+  cursor: pointer;
+}
+
+.popular-city-card-up-grid {
+  max-width: 550px;
+  max-height: 270px;
+  grid-template-columns: repeat(2, 550px);
+}
+
+.popular-city-card-bottom-grid {
+  margin-top: 16px;
+  grid-template-columns: repeat(3, 366px);
 }
 
 /********************* recently search *************************/

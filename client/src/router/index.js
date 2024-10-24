@@ -10,6 +10,7 @@ import Login from '@/views/Login.vue';
 // import BookingDetails from '@/views/BookingDetails.vue';
 // import Payment from '@/views/Payment.vue';
 import HomeView from '../views/HomeView.vue'
+import Join from '../views/Join.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,6 +24,11 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: Login
+    },
+    {
+      path: '/join',
+      name: 'join',
+      component: Join
     },
       // Catch-all route (for 404s)
     {
