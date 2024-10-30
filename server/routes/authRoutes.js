@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { checkEmail, loginUser, registerUser, logoutUser, loginGoogle,googleCallback } = require('../controllers/authController');
+const { checkEmail, loginUser, registerUser, logoutUser, loginGoogle,googleCallback, checkAuth } = require('../controllers/authController');
 const passport = require('passport');
 
+// Check authentication
+router.get('/check-auth', checkAuth);
 // Check email
 router.post('/check-email', checkEmail);
 // Login route

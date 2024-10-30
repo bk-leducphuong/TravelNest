@@ -13,28 +13,30 @@ import HomeView from '@/views/HomeView.vue'
 import Join from '@/views/Join.vue'
 import SearchResults from '@/views/SearchResults.vue'
 
-const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
+import stores from '@/stores'
+import MapComponent from '@/components/map/MapComponent.vue'
+
+const routes = [
     {
       path: '/',
-      name: 'home',
-      component: HomeView
+      name: 'Home',
+      component: HomeView,
+      //  meta: { requiresAuth: true } // Mark route as requiring authentication
     },
     {
       path: '/login',
-      name: 'login',
+      name: 'Login',
       component: Login
     },
     {
       path: '/join',
-      name: 'join',
+      name: 'Join',
       component: Join
     },
     // hotel routes
     {
       path: '/hotel/:id',
-      name: 'hotel details',
+      name: 'HotelDetails',
       component: HotelDetails
     },
     {
@@ -49,101 +51,36 @@ const router = createRouter({
         rooms: route.query.rooms
       })
     },
+    {
+      path: '/map',
+      name: 'Map',
+      component: MapComponent,
+
+    },
     // Catch-all route (for 404s)
     {
       path: '/:pathMatch(.*)*',
       name: 'NotFound',
       component: () => import('@/views/NotFound.vue') // Lazy load the NotFound view
     }
-  ]
+  ];
+
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes
 })
 
-// const routes = [
-//   // Auth Routes
-//   {
-//     path: '/login',
-//     name: 'Login',
-//     component: Login
-//   },
-
-//   // {
-//   //   path: '/register',
-//   //   name: 'Register',
-//   //   component: Register
-//   // },
-
-//   // // User Profile
-//   // {
-//   //   path: '/profile',
-//   //   name: 'Profile',
-//   //   component: Profile
-//   // },
-
-//   // // Hotels
-//   // {
-//   //   path: '/hotels',
-//   //   name: 'HotelList',
-//   //   component: HotelList
-//   // },
-//   // {
-//   //   path: '/hotels/:id',
-//   //   name: 'HotelDetails',
-//   //   component: HotelDetails,
-//   //   props: true
-//   // },
-
-//   // // Rooms
-//   // {
-//   //   path: '/hotels/:hotelId/rooms',
-//   //   name: 'RoomList',
-//   //   // component: RoomList, // If you're adding a separate list of rooms for each hotel
-//   // },
-//   // {
-//   //   path: '/rooms/:roomId',
-//   //   name: 'RoomDetails',
-//   //   component: RoomDetails,
-//   //   props: true
-//   // },
-
-//   // // Bookings
-//   // {
-//   //   path: '/bookings',
-//   //   name: 'Bookings',
-//   //   component: Bookings
-//   // },
-//   // {
-//   //   path: '/bookings/:id',
-//   //   name: 'BookingDetails',
-//   //   component: BookingDetails,
-//   //   props: true
-//   // },
-
-//   // // Payment
-//   // {
-//   //   path: '/payments/:bookingId',
-//   //   name: 'Payment',
-//   //   component: Payment,
-//   //   props: true
-//   // },
-
-//   // // Home
-//   // {
-//   //   path: '/',
-//   //   name: 'Home',
-//   //   component: Home
-//   // },
-
-//   // // Catch-all route (for 404s)
-//   // {
-//   //   path: '/:pathMatch(.*)*',
-//   //   name: 'NotFound',
-//   //   component: () => import('@/views/NotFound.vue'), // Lazy load the NotFound view
-//   // }
-// ];
-
-// const router = createRouter({
-//   history: createWebHistory(process.env.BASE_URL),
-//   routes
-// });
+// Navigation guard to check authentication before entering protected routes
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (!stores.getters['auth/isAuthenticated']) {
+      next({ name: 'Login' }); // Redirect to login if not authenticated
+    } else {
+      next(); // Proceed if authenticated
+    }
+  } else {
+    next(); // Always allow non-protected routes
+  }
+});
 
 export default router

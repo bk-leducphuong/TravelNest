@@ -6,6 +6,14 @@ const passport = require('passport');
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
 
+// Chech authentication
+const checkAuth = (req, res) => {
+  if (req.session.user.user_id) {
+    res.status(200).json({isAuthenticated: true});
+  }else {
+    res.status(200).json({isAuthenticated: false});
+  }
+}
 // Check email
 const checkEmail = async (req, res) => {
   try {
@@ -64,7 +72,7 @@ const loginUser = async (req, res) => {
 
     // Create session if password matches
     req.session.user = {
-      id: user.user_id
+      user_id: user.user_id
     };
 
     // Respond with success message
@@ -97,7 +105,7 @@ const registerUser = async (req, res) => {
 
     // Create session with user ID from the insert result
     req.session.user = {
-      id: result.insertId,  // Get the user ID from the result of the insert query
+      user_id: result.insertId,  // Get the user ID from the result of the insert query
     };
 
     // Send success response
@@ -152,7 +160,7 @@ const googleCallback = async (req, res) => {
 
     // Tạo session cho người dùng
     req.session.user = {
-      id: userId
+      user_id: userId
     };
 
     // Gửi phản hồi thành công
@@ -162,5 +170,5 @@ const googleCallback = async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
-module.exports = { checkEmail, loginUser, registerUser, logoutUser, loginGoogle, googleCallback };
+module.exports = { checkEmail, loginUser, registerUser, logoutUser, loginGoogle, googleCallback, checkAuth};
 

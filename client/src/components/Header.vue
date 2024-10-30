@@ -11,17 +11,22 @@
             <li><img src="../assets/header/Vn@3x.png" alt="Vietnam"></li>
             <li><i class="fa-regular fa-circle-question"></i></li>
             <li><span><a href="/join">Đăng chỗ nghỉ của Quý vị</a></span></li>
-            <li class="login"><a href="/login">Đăng ký</a></li>
-            <li class="login"><a href="/login">Đăng nhập</a></li>
+            <li v-if="!this.isAuthenticated">
+              <a href="/login" class="login" style="margin-right: 5px">Đăng ký</a>
+              <a href="/login" class="login" style="margin-left: 5px;">Đăng nhập</a>
+            </li>
+            <li v-if="this.isAuthenticated">
+              <AccountMenu/>
+            </li>
           </ul>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="slide">
+  <div class="slide" >
     <div class="container">
-      <div class="inner-wrap">
+      <div class="inner-wrap" v-if="this.$route.name === 'Home'">
         <strong>Tìm chỗ nghỉ tiếp theo</strong>
         <br>
         <p>Tìm ưu đãi khách sạn, chỗ nghỉ dạng nhà và nhiều hơn nữa...</p>
@@ -88,7 +93,6 @@
                 <button class="increment" @click="updateGuests('rooms', 'increment')">+</button>
               </div>
             </div>
-            <!-- <div class="guest-room-wrapper-finish-button">Áp dụng</div> -->
           </div>
         </div>
 
@@ -103,9 +107,13 @@
 import axios from 'axios';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.css';
-
+import { mapState } from 'vuex';
+import AccountMenu from './AccountMenu.vue';
 
 export default {
+  components: {
+    AccountMenu
+  },
   data() {
     return {
       selectedLocation: "",
@@ -121,10 +129,11 @@ export default {
       showGuestSelector: false,
       adults: 2,
       children: 0,
-      rooms: 1,
+      rooms: 1
     };
   },
   computed: {
+    ...mapState('auth', ['isAuthenticated']),
     guestDetails() {
       return `${this.adults} người lớn · ${this.children} trẻ em · ${this.rooms} phòng`;
     },
@@ -149,6 +158,7 @@ export default {
         instance.element.value = "Từ " + display;
       }
     });
+    
   },
   methods: {
     toggleLocationPopup() {
@@ -191,6 +201,9 @@ export default {
       };
       // store search informations
       let searchHistory = JSON.parse(localStorage.getItem("recentSearches")) || [];
+      if (searchHistory.length > 5) {
+        searchHistory.shift()
+      }
       searchHistory.push(searchData);
       localStorage.setItem("recentSearches", JSON.stringify(searchHistory));
 
@@ -205,7 +218,7 @@ export default {
           rooms: this.rooms,
         }
       });
-    },
+    }
   },
 };
 </script>
@@ -220,6 +233,7 @@ body {
 
 .header {
   background-color: #003B95;
+  padding-bottom: 30px;
 }
 
 .header .inner-wrap {
@@ -284,9 +298,8 @@ body {
 /* slide  */
 .slide {
   position: relative;
-  height: 200px;
   background-color: #003B95;
-
+  padding-bottom: 30px;
 }
 
 .slide .img {
@@ -303,15 +316,9 @@ body {
 }
 
 .slide .inner-wrap {
-  position: absolute;
-  top: 30%;
-  color: #fff;
-
-}
-
-.slide .inner-wrap {
   position: relative;
-  top: 30px;
+  top: -30px;
+  color: #fff
 }
 
 .slide .inner-wrap strong {

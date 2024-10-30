@@ -12,6 +12,12 @@ import { createI18n } from 'vue-i18n';
 import en from './locales/en.json';
 import vi from './locales/vi.json';
 
+import Toast from "vue-toastification";
+// Import the CSS or use your own!
+import "vue-toastification/dist/index.css";
+
+import "leaflet"
+
 // Define the translations and set the default language
 const messages = {
   en: en,
@@ -33,5 +39,12 @@ app.directive('click-outside', clickOutside);
 app.use(i18n);
 app.use(store);
 app.use(router);
+
+// toast notification
+const options = {
+    //...
+};
+
+app.use(Toast, options);
 
 app.mount('#app')

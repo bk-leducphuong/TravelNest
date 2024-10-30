@@ -42,12 +42,12 @@
           <li>Chúng tôi xử lý thanh toán thay bạn</li>
         </ul>
         <button class="get-started-button">Bắt đầu ngay</button>
-        <p class="login-text">
+        <div class="login-text">
             Bạn đã bắt đầu quá trình đăng ký? 
             <div>
                 <a href="#" class="login-link">Tiếp tục các bước đăng ký</a>
             </div>
-        </p>
+          </div>
       </div>
     </div>
     </div>

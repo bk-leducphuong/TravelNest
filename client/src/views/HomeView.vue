@@ -1,8 +1,8 @@
 <script>
 import TheHeader from '../components/Header.vue'
 import TheFooter from '../components/Footer.vue'
-import axios from 'axios';
-import { mapState } from 'vuex';
+import axios from 'axios'
+import { mapState } from 'vuex'
 
 export default {
   components: {
@@ -12,33 +12,32 @@ export default {
   data() {
     return {
       recentSearches: [], // Array to store recently searched data
-      viewedHotels: [],   // Array to store viewed hotels data
-      nearbyHotels: [],   // Example nearby hotels data
-      popularPlaces: [],  // Example popular places data
+      viewedHotels: [], // Array to store viewed hotels data
+      nearbyHotels: [], // Example nearby hotels data
+      popularPlaces: [], // Example popular places data
 
       sliderPosition: new Map([
-        ["recentSlider", 0],
-        ["viewedSlider", 0],
-        ["nearbySlider", 0]
-      ]),
-    };
+        ['recentSlider', 0],
+        ['viewedSlider', 0],
+        ['nearbySlider', 0]
+      ])
+    }
   },
   computed: {
     ...mapState('user', ['userLocation']), // Map userLocation from the user module,
     ...mapState('auth', ['isAuthenticated']),
     // Check if left scroll should be disabled
     disableScrollLeft() {
-      return (sliderRef) => this.sliderPosition.get(sliderRef) === 0;
+      return (sliderRef) => this.sliderPosition.get(sliderRef) === 0
     },
     // Check if right scroll should be disabled
     disableScrollRight() {
       return (sliderRef) => {
-        const slider = this.$refs[sliderRef];
-        if (!slider) return true; // Ensure the ref exists
-
+        const slider = this.$refs[sliderRef]
+        if (!slider) return true // Ensure the ref exists
         // Check if the slider is scrolled all the way to the right
-        return this.sliderPosition.get(sliderRef) >= (slider.scrollWidth - slider.clientWidth);
-      };
+        return this.sliderPosition.get(sliderRef) >= slider.scrollWidth - slider.clientWidth
+      }
     }
   },
   methods: {
@@ -48,116 +47,137 @@ export default {
         name: 'SearchResults',
         query: {
           location: search.location,
-          dateRange: search.dateRange, 
+          dateRange: search.dateRange,
           adults: search.adults,
           children: search.children,
           rooms: search.rooms
         }
-      });
+      })
     },
     // redirect user to hotel details page
     async redirectToHotelDetails(hotel) {
       // store viewed hotels into localStorage
-      let viewedHotels = JSON.parse(localStorage.getItem("viewedHotels")) || [];
-      viewedHotels.push(hotel);
-      localStorage.setItem("viewedHotels", JSON.stringify(viewedHotels));
+      let viewedHotels = JSON.parse(localStorage.getItem('viewedHotels')) || []
+      viewedHotels.push(hotel)
+      localStorage.setItem('viewedHotels', JSON.stringify(viewedHotels))
 
       if (this.isAuthenticated) {
-        await axios.post('http://localhost:3000/api/home/recent-viewed-hotels', {
-          hotel_id: hotel.hotel_id
-        })
+        await axios.post(
+          'http://localhost:3000/api/home/recent-viewed-hotels',
+          {
+            hotel_id: hotel.hotel_id
+          },
+          { withCredentials: true }
+        )
       }
       // redirect
-      const route = '/hotel/' + hotel.hotel_id;
-      this.$router.push(route);
+      const route = '/hotel/' + hotel.hotel_id
+      this.$router.push(route)
     },
     // load hotels which close to user
     async loadNearbyHotels() {
       if (!this.userLocation) {
-        console.log('User location is not available yet');
-        return; // Exit the function if userLocation is not set
+        console.log('User location is not available yet')
+        return // Exit the function if userLocation is not set
       }
 
       try {
         const response = await axios.post('http://localhost:3000/api/home/nearby-hotels', {
           location: this.userLocation
-        });
-        this.nearbyHotels = response.data.data;
+        })
+        this.nearbyHotels = response.data.data
       } catch (error) {
-        console.error("Error fetching nearby hotels:", error);
+        console.error('Error fetching nearby hotels:', error)
       }
     },
     // Load data from localStorage for recently searched
-    loadRecentSearches() {
-      const searches = JSON.parse(localStorage.getItem('recentSearches')) || [];
-      this.recentSearches = searches;
+    async loadRecentSearches() {
+      const searches = JSON.parse(localStorage.getItem('recentSearches')) || []
+
+      if (this.isAuthenticated) {
+        const response = await axios.get('http://localhost:3000/api/home/recent-searchs', {
+          withCredentials: true
+        })
+
+        // searches = repsonse.data
+      }
+
+      searches.reverse()
+      this.recentSearches = searches
     },
 
     // Load data from localStorage for viewed hotels
     async loadViewedHotels() {
-      let hotels = JSON.parse(localStorage.getItem('viewedHotels')) || [];
+      let hotels = JSON.parse(localStorage.getItem('viewedHotels')) || []
       if (this.isAuthenticated) {
-        const response = await axios.get('http://localhost:3000/api/home/recent-viewed-hotels');
-        hotels = response.data.data;
+        const response = await axios.get('http://localhost:3000/api/home/recent-viewed-hotels', {
+          withCredentials: true
+        })
+        // response = [{hotel_id: ...}, ...]
+        // hotels = response.data.data;
         //...
       }
-      this.viewedHotels = hotels;
+      hotels.reverse()
+      this.viewedHotels = hotels
     },
 
     // Static popular places data (replace with API or dynamic data)
     async loadPopularPlaces() {
-      const response = await axios.get('http://localhost:3000/api/home/popular-places');
+      const response = await axios.get('http://localhost:3000/api/home/popular-places')
 
-      this.popularPlaces = response.data;
+      this.popularPlaces = response.data
       // console.log(this.popularPlaces);
     },
 
     // Remove a recent search item
     removeSearch(index) {
-      this.recentSearches.splice(index, 1);
-      localStorage.setItem('recentSearches', JSON.stringify(this.recentSearches));
+      this.recentSearches.splice(index, 1)
+      localStorage.setItem('recentSearches', JSON.stringify(this.recentSearches))
     },
 
     // Toggle favorite status
     toggleFavorite(index) {
-      const hotel = this.viewedHotels[index];
-      hotel.isFavorite = !hotel.isFavorite;
-      this.viewedHotels.splice(index, 1, hotel);
-      localStorage.setItem('viewedHotels', JSON.stringify(this.viewedHotels));
+      const hotel = this.viewedHotels[index]
+      hotel.isFavorite = !hotel.isFavorite
+      this.viewedHotels.splice(index, 1, hotel)
+      localStorage.setItem('viewedHotels', JSON.stringify(this.viewedHotels))
     },
 
     // Scroll functionality for sliders
     scrollLeft(sliderRef) {
-      const slider = this.$refs[sliderRef];
+      const slider = this.$refs[sliderRef]
       // Ensure the scroll position doesn't go below 0
-      this.sliderPosition.set(sliderRef, Math.max(this.sliderPosition.get(sliderRef) - 300, 0));
+      this.sliderPosition.set(sliderRef, Math.max(this.sliderPosition.get(sliderRef) - 300, 0))
 
-      slider.scrollTo({ left: this.sliderPosition.get(sliderRef), behavior: 'smooth' });
+      slider.scrollTo({ left: this.sliderPosition.get(sliderRef), behavior: 'smooth' })
     },
 
     scrollRight(sliderRef) {
-      const slider = this.$refs[sliderRef];
+      const slider = this.$refs[sliderRef]
       // Ensure the scroll position doesn't exceed the rightmost position
-      this.sliderPosition.set(sliderRef, Math.min(this.sliderPosition.get(sliderRef) + 300, slider.scrollWidth - slider.clientWidth));
+      this.sliderPosition.set(
+        sliderRef,
+        Math.min(this.sliderPosition.get(sliderRef) + 300, slider.scrollWidth - slider.clientWidth)
+      )
 
-      slider.scrollTo({ left: this.sliderPosition.get(sliderRef), behavior: 'smooth' });
-    },
+      slider.scrollTo({ left: this.sliderPosition.get(sliderRef), behavior: 'smooth' })
+    }
   },
   watch: {
     userLocation: {
       handler(newLocation) {
         if (newLocation) {
-          this.loadNearbyHotels(); // Call loadNearbyHotels when userLocation is updated
+          this.loadNearbyHotels() // Call loadNearbyHotels when userLocation is updated
         }
       },
-      immediate: true, // Ensures the watcher runs immediately when the component is created
+      immediate: true // Ensures the watcher runs immediately when the component is created
     }
   },
   mounted() {
-    this.loadRecentSearches();
-    this.loadViewedHotels();
-    this.loadNearbyHotels();
-    this.loadPopularPlaces();
+    this.loadRecentSearches()
+    this.loadViewedHotels()
+    this.loadNearbyHotels()
+    this.loadPopularPlaces()
   }
 }
 </script>
@@ -171,9 +191,17 @@ export default {
       <h2 class="h2">Tìm kiếm gần đây của bạn</h2>
       <div class="slider-container">
         <div ref="recentSlider" class="search-slider">
-          <div class="search-card" v-for="(search, index) in recentSearches" :key="index" @click="redirectToSearchResults(search)">
+          <div
+            class="search-card"
+            v-for="(search, index) in recentSearches"
+            :key="index"
+            @click="redirectToSearchResults(search)"
+          >
             <div class="search-image">
-              <img :src="'http://localhost:3000/vietnam_city/' + search.location + '.jpg'" :alt="search.location" />
+              <img
+                :src="'http://localhost:3000/vietnam_city/' + search.location + '.jpg'"
+                :alt="search.location"
+              />
             </div>
             <div class="search-content">
               <h2 class="search-title">{{ search.location }}</h2>
@@ -182,10 +210,20 @@ export default {
             <button class="close-button" @click="removeSearch(index)">×</button>
           </div>
         </div>
-        <button class="nav-button prev" :disabled="disableScrollLeft('recentSlider')"
-          @click="scrollLeft('recentSlider')">‹</button>
-        <button class="nav-button next" :disabled="disableScrollRight('recentSlider')"
-          @click="scrollRight('recentSlider')">›</button>
+        <button
+          class="nav-button prev"
+          :disabled="disableScrollLeft('recentSlider')"
+          @click="scrollLeft('recentSlider')"
+        >
+          ‹
+        </button>
+        <button
+          class="nav-button next"
+          :disabled="disableScrollRight('recentSlider')"
+          @click="scrollRight('recentSlider')"
+        >
+          ›
+        </button>
       </div>
     </div>
 
@@ -194,7 +232,12 @@ export default {
       <h2 class="h2">Bạn có còn quan tâm đến những chỗ nghỉ này?</h2>
       <div class="slider-container">
         <div ref="viewedSlider" class="hotel-slider">
-          <div class="hotel-card" v-for="(hotel, index) in viewedHotels" :key="index" @click="redirectToHotelDetails(hotel)">
+          <div
+            class="hotel-card"
+            v-for="(hotel, index) in viewedHotels"
+            :key="index"
+            @click="redirectToHotelDetails(hotel)"
+          >
             <div class="hotel-image">
               <img :src="hotel.image_urls" :alt="hotel.name" />
               <button class="favorite-button" @click="toggleFavorite(index)">
@@ -212,10 +255,20 @@ export default {
             </div>
           </div>
         </div>
-        <button class="nav-button prev" :disabled="disableScrollLeft('viewedSlider')"
-          @click="scrollLeft('viewedSlider')">‹</button>
-        <button class="nav-button next" :disabled="disableScrollRight('viewedSlider')"
-          @click="scrollRight('viewedSlider')">›</button>
+        <button
+          class="nav-button prev"
+          :disabled="disableScrollLeft('viewedSlider')"
+          @click="scrollLeft('viewedSlider')"
+        >
+          ‹
+        </button>
+        <button
+          class="nav-button next"
+          :disabled="disableScrollRight('viewedSlider')"
+          @click="scrollRight('viewedSlider')"
+        >
+          ›
+        </button>
       </div>
     </div>
 
@@ -224,7 +277,12 @@ export default {
       <h2 class="h2">Những khách sạn gần đây</h2>
       <div class="slider-container">
         <div ref="nearbySlider" class="hotel-slider">
-          <div class="hotel-card" v-for="(hotel, index) in nearbyHotels" :key="index" @click="redirectToHotelDetails(hotel)">
+          <div
+            class="hotel-card"
+            v-for="(hotel, index) in nearbyHotels"
+            :key="index"
+            @click="redirectToHotelDetails(hotel)"
+          >
             <div class="hotel-image">
               <img :src="hotel.image_urls" :alt="hotel.name" />
               <button class="favorite-button" @click="toggleFavorite(index)">
@@ -242,31 +300,62 @@ export default {
             </div>
           </div>
         </div>
-        <button class="nav-button prev" :disabled="disableScrollLeft('nearbySlider')"
-          @click="scrollLeft('nearbySlider')">‹</button>
-        <button class="nav-button next" :disabled="disableScrollRight('nearbySlider')"
-          @click="scrollRight('nearbySlider')">›</button>
+        <button
+          class="nav-button prev"
+          :disabled="disableScrollLeft('nearbySlider')"
+          @click="scrollLeft('nearbySlider')"
+        >
+          ‹
+        </button>
+        <button
+          class="nav-button next"
+          :disabled="disableScrollRight('nearbySlider')"
+          @click="scrollRight('nearbySlider')"
+        >
+          ›
+        </button>
       </div>
     </div>
 
     <!-- Popular Places -->
     <div class="popular-container container">
       <div class="popular-header">
-        <h2 class="h2"> Điểm đến đang thịnh hành </h2>
-        <h4 class="h4"> Các lựa chọn phổ biến nhất cho du khách từ Việt Nam </h4>
+        <h2 class="h2">Điểm đến đang thịnh hành</h2>
+        <h4 class="h4">Các lựa chọn phổ biến nhất cho du khách từ Việt Nam</h4>
       </div>
-      <div class="popular-city-card-up-grid popular-city-card-grid">
-        <div class="popular-city-card" v-for="(place, index) in popularPlaces.slice(0, 2)" :key="index">
-          <img :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'" :alt="place.location" />
+      <div class="popular-place-card-up-grid popular-place-card-grid">
+        <div
+          class="popular-place-card"
+          v-for="(place, index) in popularPlaces.slice(0, 2)"
+          :key="index"
+          @click="
+            redirectToSearchResults({
+              location: place.location,
+              dateRange: '',
+              adults: '',
+              children: '',
+              rooms: ''
+            })
+          "
+        >
+          <img
+            :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'"
+            :alt="place.location"
+          />
         </div>
-
       </div>
-      <div class="popular-city-card-bottom-grid popular-city-card-grid">
-        <div class="popular-city-card" v-for="(place, index) in popularPlaces.slice(2, 5)" :key="index">
-          <img :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'" :alt="place.location" />
+      <div class="popular-place-card-bottom-grid popular-place-card-grid">
+        <div
+          class="popular-place-card"
+          v-for="(place, index) in popularPlaces.slice(2, 5)"
+          :key="index"
+        >
+          <img
+            :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'"
+            :alt="place.location"
+          />
         </div>
       </div>
-
     </div>
   </div>
   <TheFooter />
@@ -276,7 +365,7 @@ export default {
 body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: #f5f5f5;
 }
 
@@ -313,13 +402,13 @@ img {
   margin-top: 30px;
 }
 
-.popular-city-card-grid {
+.popular-place-card-grid {
   display: grid;
   gap: 8px;
   grid-template-rows: 270px;
 }
 
-.popular-city-card img {
+.popular-place-card img {
   display: block;
   width: 100%;
   height: 100%;
@@ -327,19 +416,19 @@ img {
   margin: 0px;
 }
 
-.popular-city-card:hover {
+.popular-place-card:hover {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
   border-radius: 14px;
   cursor: pointer;
 }
 
-.popular-city-card-up-grid {
+.popular-place-card-up-grid {
   max-width: 550px;
   max-height: 270px;
   grid-template-columns: repeat(2, 550px);
 }
 
-.popular-city-card-bottom-grid {
+.popular-place-card-bottom-grid {
   margin-top: 16px;
   grid-template-columns: repeat(3, 366px);
 }
@@ -484,7 +573,9 @@ h1 {
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.3s, transform 0.3s;
+  transition:
+    background-color 0.3s,
+    transform 0.3s;
 }
 
 .favorite-button:hover {
@@ -551,7 +642,9 @@ h1 {
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.3s, transform 0.3s;
+  transition:
+    background-color 0.3s,
+    transform 0.3s;
   z-index: 10;
 }
 

@@ -12,7 +12,7 @@ require('./config/passportConfig.js');
 const app = express();
 
 // Allow nginx proxy
-app.set('trust proxy', true);
+app.set('trust proxy', 1);
 
 /******************************************* Middleware **********************************************/
 
@@ -24,7 +24,7 @@ app.use(express.static('public'));
 // To Allow cross origin requests originating from selected origins
 var corsOptions = {
   origin:  'http://localhost:5173', 
-  methods: ['GET, POST, OPTIONS, PUT, DELETE'],
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }
@@ -36,9 +36,9 @@ app.use(bodyParser.urlencoded({ extended: false })); // create application/x-www
 
 // Configure Session
 app.use(session({
-  genid: (req) => {
-    return uuidv4() // Use UUIDs for session IDs
-  },
+  // genid: (req) => {
+  //   return uuidv4() // Use UUIDs for session IDs
+  // },
   store: new RedisStore({ client: redisClient }),
   secret: process.env.SESSION_SECRET_KEY, // A secret key to sign the session ID
   resave: false,             // Prevents session being saved back to the session store if nothing changed
@@ -46,7 +46,7 @@ app.use(session({
   cookie: { 
     maxAge: 1000 * 60 * 60 * 365 * 24, // one year session expiration
     httpOnly: true,             // Protects against XSS attacks
-    secure: false               // Set to true if you're using HTTPS
+    secure: process.env.NODE_ENV === 'production'               // Set to true if you're using HTTPS
   }
 }));
 

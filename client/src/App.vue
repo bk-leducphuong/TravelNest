@@ -76,6 +76,9 @@ export default {
         console.error("Failed to get user location:", error);
         // You can handle the error here, e.g., show a default location
       });
+  },
+  created() {
+    this.$store.dispatch('auth/checkAuth');
   }
 };
 </script>
