@@ -35,7 +35,7 @@ const routes = [
     },
     // hotel routes
     {
-      path: '/hotel/:id',
+      path: '/hotels/:hotel_id',
       name: 'HotelDetails',
       component: HotelDetails
     },

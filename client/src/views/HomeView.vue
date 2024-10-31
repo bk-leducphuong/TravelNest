@@ -71,8 +71,7 @@ export default {
         )
       }
       // redirect
-      const route = '/hotel/' + hotel.hotel_id
-      this.$router.push(route)
+      this.$router.push({ name: 'HotelDetails', params: { hotel_id: hotel.hotel_id }});
     },
     // load hotels which close to user
     async loadNearbyHotels() {

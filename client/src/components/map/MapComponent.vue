@@ -8,7 +8,8 @@
         </div>
 
         <!-- Hotel cards -->
-        <div class="hotel-card" v-for="hotel in hotels" :key="hotel.id">
+        <div class="hotel-card" v-for="hotel in hotels" :key="hotel.hotel_id"   @mouseover="hoveredHotelId = hotel.hotel_id"
+          @mouseleave="hoveredHotelId = null">
           <div class="hotel-image">
             <button class="favorite-button">♡</button>
           </div>
@@ -50,7 +51,7 @@
             <l-map ref="map" v-model:zoom="zoom" :center="center" :use-global-leaflet="false">
               <l-tile-layer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" layer-type="base"
                 name="OpenStreetMap"></l-tile-layer>
-              <l-marker v-for="hotel in hotels" :key="hotel.id" :lat-lng="[hotel.latitude, hotel.longitude]">
+              <l-marker v-for="hotel in hotels" :key="hotel.hotel_id" :lat-lng="[hotel.latitude, hotel.longitude]" :icon="hotel.hotel_id === hoveredHotelId ? redIcon : blueIcon">
                 <l-popup>{{ hotel.name }}</l-popup>
               </l-marker>
             </l-map>
@@ -63,7 +64,32 @@
 
 <script>
 import 'leaflet/dist/leaflet.css'
+// load marker icons
+import blueMarkerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadowIcon from "leaflet/dist/images/marker-shadow.png";
+import redMarkerIcon from "@/assets/marker/red-marker-icon.png";
+
 import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet'
+
+import * as L from 'leaflet'
+
+// Define icons for default and hovered markers
+const blueIcon = L.icon({
+  iconUrl: blueMarkerIcon,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowUrl: markerShadowIcon,
+});
+
+const redIcon = L.icon({
+  iconUrl: redMarkerIcon,
+  iconSize: [35, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowUrl: markerShadowIcon,
+});
+
 
 export default {
   components: {
@@ -77,6 +103,9 @@ export default {
       openMapPopup: true,
       center: [15.9030623, 105.8066925],
       zoom: 4,
+      hoveredHotelId: null, // Track which hotel is hovered
+      blueIcon,
+      redIcon
     }
   },
   props: {
