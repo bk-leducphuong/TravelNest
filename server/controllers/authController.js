@@ -6,14 +6,20 @@ const passport = require('passport');
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
 
-// Chech authentication
+// Check authentication
 const checkAuth = (req, res) => {
-  if (req.session.user.user_id) {
-    res.status(200).json({isAuthenticated: true});
-  }else {
-    res.status(200).json({isAuthenticated: false});
+  try {
+    if (req.session.user && req.session.user.user_id) {
+      return res.status(200).json({ isAuthenticated: true });
+    } else {
+      return res.status(200).json({ isAuthenticated: false });
+    }
+  } catch (error) {
+    console.error("Error in checkAuth:", error);
+    res.status(500).json({ isAuthenticated: false, error: "Internal server error" });
   }
-}
+};
+
 // Check email
 const checkEmail = async (req, res) => {
   try {

@@ -28,7 +28,7 @@ const getSearchResults = async (req, res) => {
         const check_out = new Date(check_out_parts[2], check_out_parts[1] - 1, check_out_parts[0]); // YYYY, MM, DD
         // Truy vấn tìm khách sạn và phòng trống dựa trên khoảng thời gian
         const query = `
-            SELECT h.hotel_id, h.name, h.address, h.city, h.country, h.overall_rating, h.hotel_class, h.hotel_amenities, h.image_urls, h.latitude, h.longitude,
+            SELECT DISTINCT h.hotel_id, h.name, h.address, h.city, h.country, h.overall_rating, h.hotel_class, h.hotel_amenities, h.image_urls, h.latitude, h.longitude,
                    r.room_id, r.description AS room_description, r.price_per_night, r.max_guests, r.total_rooms, r.booked_rooms
             FROM hotels h
             JOIN rooms r ON h.hotel_id = r.hotel_id

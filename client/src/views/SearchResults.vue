@@ -13,11 +13,24 @@ export default {
   data() {
     return {
       openMapPopup: false,
-      hotels: [] // Kết quả tìm kiếm sẽ được lưu ở đây
+      hotels: [], // Kết quả tìm kiếm sẽ được lưu ở đây
+      sortCriteria: '' // default sort criteria
     }
   },
-  created() {
-    this.searchHotels()
+  computed: {
+    sortedHotels() {
+      // Sort hotels based on the selected criteria
+      return [...this.hotels].sort((a, b) => {
+        if (this.sortCriteria === 'priceLowToHigh') {
+          return parseFloat(a.price_per_night) - parseFloat(b.price_per_night);
+        } else if (this.sortCriteria === 'priceHighToLow') {
+          return parseFloat(b.price_per_night) - parseFloat(a.price_per_night);
+        } else if (this.sortCriteria === 'ratingHighToLow') {
+          return parseFloat(b.overall_rating) - parseFloat(a.overall_rating);
+        }
+        return 0;
+      });
+    }
   },
   methods: {
     // api query
@@ -51,13 +64,23 @@ export default {
     // close the map popup
     closeMapPopup() {
       this.openMapPopup = false;
+    },
+    redirectToHotelDetails(hotel_id) {
+      this.$router.push({ name: 'HotelDetails', params: { hotel_id: hotel_id } })
+    },
+    handleSort() {
+      // Trigger reactivity by updating the computed property
+      // Sorting is handled automatically in the computed property `sortedHotels`
     }
-  }
+  },
+  created() {
+    this.searchHotels()
+  },
 }
 </script>
 <template>
   <TheHeader />
-  <MapComponent v-if="openMapPopup" :hotels="hotels" @close-map-popup="closeMapPopup"/>
+  <MapComponent v-if="openMapPopup" :hotels="hotels" @close-map-popup="closeMapPopup" />
   <!-- inforSearch -->
   <div class="inforSearch">
     <div class="container">
@@ -67,15 +90,11 @@ export default {
             <div class="map">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d59582.31596536299!2d105.834667!3d21.036897!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135aba15ec15d17%3A0x620e85c2cfe14d4c!2zTMSDbmcgQ2jhu6cgdOG7i2NoIEjhu5MgQ2jDrSBNaW5o!5e0!3m2!1svi!2sus!4v1729735752435!5m2!1svi!2sus"
-                allowfullscreen=""
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
-              ></iframe>
+                allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
               <button class="map-button" @click="openMapPopup = !openMapPopup">
                 <svg class="map-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path
-                    d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
-                  />
+                    d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                 </svg>
                 Hiển thị trên bản đồ
               </button>
@@ -98,22 +117,8 @@ export default {
                     <span id="max-value">VND 3.000.000+</span>
                   </p>
                   <div class="range-slider">
-                    <input
-                      type="range"
-                      id="slider-min"
-                      min="100000"
-                      max="3000000"
-                      step="10000"
-                      value="100000"
-                    />
-                    <input
-                      type="range"
-                      id="slider-max"
-                      min="100000"
-                      max="3000000"
-                      step="10000"
-                      value="3000000"
-                    />
+                    <input type="range" id="slider-min" min="100000" max="3000000" step="10000" value="100000" />
+                    <input type="range" id="slider-max" min="100000" max="3000000" step="10000" value="3000000" />
                   </div>
                 </div>
               </div>
@@ -213,41 +218,41 @@ export default {
 
           <div class="col-9">
             <div class="inner-content">
-              <strong
-                >{{ this.$route.query.location }}: tìm thấy {{ this.hotels.length }} chỗ
-                nghỉ</strong
-              >
+              <strong>{{ this.$route.query.location }}: tìm thấy {{ this.hotels.length }} chỗ
+                nghỉ</strong>
               <div class="arrange">
                 <i class="fa-solid fa-repeat"></i>
                 <span>Sắp xếp theo:</span>
-                <select name="arrange" id="">
-                  <option value="default">Lựa chọn hàng đầu của chúng tôi</option>
-                  <option value="house&apartment">Ưu tiên nhà & căn hộ</option>
-                  <option value="minPriceASC">Giá (ưu tiên thấp nhất)</option>
-                  <option value="minPriceDESC">Giá (ưu tiên cao nhất)</option>
-                  <option value="reviewASC">Được đánh giá tốt nhất và có giá thấp nhất</option>
-                  <option value="rankingASC">Xếp hạng chỗ nghỉ (Cao đến thấp)</option>
+                <!-- Sorting Controls -->
+                <select v-model="sortCriteria" @change="handleSort">
+                  <option value="">Lựa chọn hàng đầu của chúng tôi</option>
+                  <option value="priceLowToHigh">Giá (ưu tiên thấp nhất)</option>
+                  <option value="priceHighToLow">Giá (ưu tiên cao nhất)</option>
+                  <option value="ratingHighToLow">Xếp hạng chỗ nghỉ (Cao đến thấp)</option>
                 </select>
               </div>
 
-              <div class="room-infor" v-for="hotel in this.hotels" :key="hotel.id">
+              <div class="room-infor" v-for="hotel in sortedHotels" :key="hotel.hotel_id"
+                @click="redirectToHotelDetails(hotel.hotel_id)">
                 <div class="inner-img">
                   <img
                     src="https://cf.bstatic.com/xdata/images/hotel/square600/584426827.webp?k=bb9814a06488db8b686ac44963015b0f0a861f5536304a689fc2d00ed60a1679&o="
-                    alt=""
-                  />
+                    alt="" />
                 </div>
                 <div class="inner-show">
                   <div class="inner-introduction">
                     <div class="inner-name">
-                      <strong>{{ hotel.name }}</strong>
+                      <strong class="hotel-name">{{ hotel.name }}</strong>
                       <br />
-                      <span class="no">Nổi bật</span>
-                      <br />
-                      <span class="location"
-                        ><a href="/">Quận Ba Đình, Hà Nội - Xem bản đồ</a> - Cách trung tâm
-                        1,6km</span
-                      >
+                      <div class="address-container">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                          class="bi bi-geo-alt-fill" viewBox="0 0 16 16">
+                          <path
+                            d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6" />
+                        </svg>
+                        <span class="location" style="margin-left: 5px;">{{ hotel.address }}</span>
+                      </div>
+
                     </div>
                     <div class="inner-review">
                       <div class="award">
@@ -268,8 +273,7 @@ export default {
                       <br />
                       <span class="desc"><i class="fa-solid fa-check"></i> Miến phí hủy</span>
                       <br />
-                      <span class="desc"
-                        ><i class="fa-solid fa-check"></i> Không cần thanh toán trước -
+                      <span class="desc"><i class="fa-solid fa-check"></i> Không cần thanh toán trước -
                       </span>
                       <span class="desc">Thanh toán tại chỗ nghỉ</span>
                       <br />
@@ -278,12 +282,10 @@ export default {
                     <div class="price">
                       <span class="people">2 đêm, 2 người lớn</span>
                       <br />
-                      <span class="newPrice"
-                        >VND
+                      <span class="newPrice">VND
                         {{
                           (Number(hotel.price_per_night) * calculateDaysBetween()).toLocaleString('vi-VN')
-                        }}</span
-                      >
+                        }}</span>
                       <br />
                       <span class="desc">Đã bao gồm thuế và phí</span>
                       <button>Xem chỗ trống</button>
@@ -297,7 +299,7 @@ export default {
       </div>
     </div>
   </div>
-  <TheFooter/>
+  <TheFooter />
 </template>
 <style scoped>
 /* searchInfor */
@@ -425,7 +427,7 @@ button {
 iframe {
   width: 100%;
   height: 100%;
-  border: none; 
+  border: none;
   border-radius: 10px;
 }
 
@@ -568,12 +570,9 @@ input[type='range']::-moz-range-track {
   padding: 10px 20px;
 }
 
-.inner-content strong {
-  font-size: 30px;
-}
-
 .arrange select {
-  border-radius: 20px;padding: 5px;
+  border-radius: 20px;
+  padding: 5px;
 }
 
 .inner-content .arrange {
@@ -611,6 +610,7 @@ input[type='range']::-moz-range-track {
 
 /* room  */
 .room-infor {
+  height: 258px;
   display: flex;
   padding: 10px;
   justify-content: space-between;
@@ -618,7 +618,10 @@ input[type='range']::-moz-range-track {
   border-radius: 8px;
   align-items: center;
   margin-bottom: 10px;
+  cursor: pointer;
 }
+
+
 
 .room-infor .inner-img {
   width: 31%;
@@ -638,9 +641,18 @@ input[type='range']::-moz-range-track {
   padding: 0 20px;
 }
 
-.room-infor .inner-name strong {
+.inner-show {
+  height: -webkit-fill-available;
+  justify-content: space-between;
+}
+
+.hotel-name {
   color: #003b95;
   font-size: 24px;
+}
+
+.hotel-name:hover {
+  color: black;
 }
 
 .room-infor .inner-introduction {

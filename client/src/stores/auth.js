@@ -50,9 +50,9 @@ export default {
       }
     },
     async checkAuth({ commit }) {
-      const response = await axios.get('api/auth/check-auth', { withCredentials: true })
-
+      const response = await axios.get('http://localhost:3000/api/auth/check-auth', { withCredentials: true })
       if (response.data.isAuthenticated) {
+
         commit('setAuthentication', true) // Restore state from localStorage
       } else {
         commit('setAuthentication', false) // Reset state if not authenticated

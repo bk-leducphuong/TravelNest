@@ -58,7 +58,19 @@ export default {
     async redirectToHotelDetails(hotel) {
       // store viewed hotels into localStorage
       let viewedHotels = JSON.parse(localStorage.getItem('viewedHotels')) || []
+
+      // Check if the hotel has already been viewed
+      const index = viewedHotels.findIndex((viewedHotel) => viewedHotel.hotel_id === hotel.hotel_id)
+
+      if (index !== -1) {
+        // If already viewed, move the hotel to the end of the array (most recent)
+        viewedHotels.splice(index, 1) // Remove existing entry
+      }
+
+      // Add the hotel to the end of the array
       viewedHotels.push(hotel)
+
+      // Save updated array to localStorage
       localStorage.setItem('viewedHotels', JSON.stringify(viewedHotels))
 
       if (this.isAuthenticated) {
@@ -71,7 +83,7 @@ export default {
         )
       }
       // redirect
-      this.$router.push({ name: 'HotelDetails', params: { hotel_id: hotel.hotel_id }});
+      this.$router.push({ name: 'HotelDetails', params: { hotel_id: hotel.hotel_id } })
     },
     // load hotels which close to user
     async loadNearbyHotels() {
@@ -129,7 +141,9 @@ export default {
     },
 
     // Remove a recent search item
-    removeSearch(index) {
+    removeSearch(index, event) {
+      event.stopPropagation();  // Stop the event from bubbling up to the parent
+
       this.recentSearches.splice(index, 1)
       localStorage.setItem('recentSearches', JSON.stringify(this.recentSearches))
     },
@@ -206,7 +220,7 @@ export default {
               <h2 class="search-title">{{ search.location }}</h2>
               <p class="search-details">{{ search.dateRange }}</p>
             </div>
-            <button class="close-button" @click="removeSearch(index)">×</button>
+            <button class="close-button" @click="removeSearch(index, $event)">×</button>
           </div>
         </div>
         <button
@@ -245,7 +259,7 @@ export default {
             </div>
             <div class="hotel-content">
               <h2 class="hotel-name">{{ hotel.name }}</h2>
-              <p class="hotel-location">{{ hotel.address }}</p>
+              <p class="hotel-location">{{ hotel.address.slice(0, 71) }}</p>
               <div class="hotel-rating">
                 <span class="rating-badge">{{ hotel.overall_rating }}</span>
                 <span class="rating-text">{{ hotel.reviewSummary }}</span>
@@ -290,7 +304,7 @@ export default {
             </div>
             <div class="hotel-content">
               <h2 class="hotel-name">{{ hotel.name }}</h2>
-              <p class="hotel-location">{{ hotel.address }}</p>
+              <p class="hotel-location">{{ hotel.address.slice(0, 71) }}</p>
               <div class="hotel-rating">
                 <span class="rating-badge">{{ hotel.overall_rating }}</span>
                 <span class="rating-text">{{ hotel.reviewSummary }}</span>
@@ -443,10 +457,11 @@ img {
   cursor: pointer;
   padding: 8px;
   color: #666;
-  font-size: 18px;
+  font-size: 25px;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 9999;
 }
 
 .close-button:hover {
@@ -531,6 +546,7 @@ h1 {
 }
 
 .hotel-card {
+  height: 360px;
   flex: 0 0 280px;
   background: white;
   border-radius: 8px;
@@ -548,7 +564,7 @@ h1 {
 
 .hotel-image {
   position: relative;
-  height: 200px;
+  height: 60%;
   overflow: hidden;
 }
 
@@ -587,7 +603,11 @@ h1 {
 }
 
 .hotel-content {
+  height: 40%;
   padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .hotel-name {

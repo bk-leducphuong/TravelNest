@@ -84,7 +84,7 @@ export default {
 </script>
 
 <template>
-  <cookie-consent @consent-given="handleConsent" />
+  <!-- <cookie-consent @consent-given="handleConsent" /> -->
   <RouterView />
 </template>
 
