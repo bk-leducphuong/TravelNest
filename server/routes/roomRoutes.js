@@ -6,4 +6,6 @@ router.get('/hotels/:hotelId/rooms');
 // Route to fetch detailed information about specific room
 router.get('/rooms/:roomId');
 
+
+
 module.exports = router;
