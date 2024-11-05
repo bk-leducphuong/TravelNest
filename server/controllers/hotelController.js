@@ -91,23 +91,25 @@ const getHotelDetails = async (req, res) => {
                 });
             }
         
-            // Thêm các mục từ reviews_breakdown
             if (row.category_name) {
-                reviews_breakdown.push({
-                    review_id: row.review_id,
-                    hotel_id: row.hotel_id,
-                    category_name: row.category_name,
-                    total_mentioned: row.total_mentioned,
-                    positive: row.positive,
-                    negative: row.negative,
-                    neutral: row.neutral
-                });
+                // Tạo một chuỗi định danh duy nhất cho mỗi mục trong reviews_breakdown
+                const uniqueKey = `${row.hotel_id}-${row.category_name}`;
+        
+                // Kiểm tra nếu mục đó đã có trong reviews_breakdown hay chưa
+                if (!reviews_breakdown.some(item => `${item.hotel_id}-${item.category_name}` === uniqueKey)) {
+                    reviews_breakdown.push({
+                        review_id: row.review_id,
+                        hotel_id: row.hotel_id,
+                        category_name: row.category_name,
+                        total_mentioned: row.total_mentioned,
+                        positive: row.positive,
+                        negative: row.negative,
+                        neutral: row.neutral
+                    });
+                }
             }
-
-            
         });
-
-        console.log(reviews_breakdown.length)
+        
 
         res.json({
             hotel: hotelInfo,
