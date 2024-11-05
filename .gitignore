@@ -32,3 +32,7 @@ client/.vscode/*
 *.sw?
 
 *.tsbuildinfo
+
+/scrape_data/data/*.json
+/scrape_data/data/hotels/Hà Nội
+
