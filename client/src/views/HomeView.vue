@@ -11,6 +11,11 @@ export default {
   },
   data() {
     return {
+      noNearbyHotelsFound: false,
+      noViewedHotelsFound: false,
+      noRecentSearchesFound: false,
+      noPopularPlacesFound: false,
+
       recentSearches: [], // Array to store recently searched data
       viewedHotels: [], // Array to store viewed hotels data
       nearbyHotels: [], // Example nearby hotels data
@@ -96,7 +101,9 @@ export default {
         const response = await axios.post('http://localhost:3000/api/home/nearby-hotels', {
           location: this.userLocation
         })
-        this.nearbyHotels = response.data.data
+        this.nearbyHotels = response.data.hotels
+        this.noNearbyHotelsFound = this.nearbyHotels.length === 0 ? true : false;
+
       } catch (error) {
         console.error('Error fetching nearby hotels:', error)
       }
@@ -115,6 +122,8 @@ export default {
 
       searches.reverse()
       this.recentSearches = searches
+
+      this.noRecentSearchesFound = this.recentSearches.length === 0 ? true : false;
     },
 
     // Load data from localStorage for viewed hotels
@@ -130,13 +139,17 @@ export default {
       }
       hotels.reverse()
       this.viewedHotels = hotels
+
+      this.noViewedHotelsFound = this.viewedHotels.length === 0 ? true : false;
     },
 
     // Static popular places data (replace with API or dynamic data)
     async loadPopularPlaces() {
       const response = await axios.get('http://localhost:3000/api/home/popular-places')
 
-      this.popularPlaces = response.data
+      this.popularPlaces = response.data.popular_places
+
+      this.noPopularPlacesFound = this.popularPlaces.length === 0 ? true : false;
       // console.log(this.popularPlaces);
     },
 
@@ -200,7 +213,7 @@ export default {
   <!-- home body -->
   <div class="home-container">
     <!-- Recently Search -->
-    <div class="recent-search-container container">
+    <div class="recent-search-container container" v-if="!noRecentSearchesFound">
       <h2 class="h2">Tìm kiếm gần đây của bạn</h2>
       <div class="slider-container">
         <div ref="recentSlider" class="search-slider">
@@ -241,7 +254,7 @@ export default {
     </div>
 
     <!-- Viewed Hotels -->
-    <div class="hotel-container container">
+    <div class="hotel-container container" v-if="!noViewedHotelsFound">
       <h2 class="h2">Bạn có còn quan tâm đến những chỗ nghỉ này?</h2>
       <div class="slider-container">
         <div ref="viewedSlider" class="hotel-slider">
@@ -286,7 +299,7 @@ export default {
     </div>
 
     <!-- Nearby Hotels -->
-    <div class="hotel-container container">
+    <div class="hotel-container container" v-if="!noNearbyHotelsFound">
       <h2 class="h2">Những khách sạn gần đây</h2>
       <div class="slider-container">
         <div ref="nearbySlider" class="hotel-slider">
@@ -331,7 +344,7 @@ export default {
     </div>
 
     <!-- Popular Places -->
-    <div class="popular-container container">
+    <div class="popular-container container" v-if="!noPopularPlacesFound">
       <div class="popular-header">
         <h2 class="h2">Điểm đến đang thịnh hành</h2>
         <h4 class="h4">Các lựa chọn phổ biến nhất cho du khách từ Việt Nam</h4>

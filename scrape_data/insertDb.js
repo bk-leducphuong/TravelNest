@@ -89,7 +89,7 @@ const insertReviewsBreakdown = async (review_breakdown) => {
 
 // Hàm chèn thông tin rooms vào database
 const insertRooms = async (room) => {
-  const sql = `INSERT INTO rooms (hotel_id, price_per_night, max_guests, total_rooms, booked_rooms, name, image_urls, room_amenities) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+  const sql = `INSERT INTO rooms (hotel_id, price_per_night, max_guests, total_rooms, booked_rooms, room_name, image_urls, room_amenities) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
   const values = [
     room.hotel_id,
     room.price_per_night,
@@ -263,9 +263,7 @@ const processHotelData = async () => {
                         total_rooms: 10,
                         booked_rooms: 0,
                         name: room.name,
-                        image_urls: room.images.map(
-                          (img) => img.original_image
-                        ),
+                        image_urls: room.images,
                         room_amenities: [
                           "Giường ngủ thoải mái",
                           "Bàn làm việc và ghế",

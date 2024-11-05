@@ -153,7 +153,7 @@ const getPopularPlaces = async (req, res) => {
 
     if (cachedPopularPlaces) {
       // Return cached data if it exists
-      return res.json(JSON.parse(cachedPopularPlaces));
+      return res.json({popular_places: JSON.parse(cachedPopularPlaces)});
     }
 
     // If cache miss, query the database
@@ -171,7 +171,7 @@ const getPopularPlaces = async (req, res) => {
     if (results.length === 0) {
       return res
         .status(404)
-        .json({ success: false, message: "No popular places found" });
+        .json({ success: false, popular_places: [], message: "No popular places found" });
     }
 
     // Store results in Redis with TTL (1 hour)
@@ -180,7 +180,7 @@ const getPopularPlaces = async (req, res) => {
     });
 
     // Return the results
-    res.json(results);
+    res.json({popular_places: results});
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -226,12 +226,12 @@ const getNearByHotels = async (req, res) => {
 
     if (results.length === 0) {
       return res
-        .status(404)
-        .json({ success: false, message: "No nearby hotels found." });
+        .status(200)
+        .json({ success: false, hotels: [], message: "No nearby hotels found." });
     }
 
     // Return the list of nearby hotels
-    res.json({ success: true, data: results });
+    res.json({ success: true, hotels: results });
   } catch (error) {
     console.error("Error fetching nearby hotels:", error);
     res.status(500).json({ success: false, message: "Server error." });

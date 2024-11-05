@@ -1,4 +1,5 @@
 const MAX_DATA_LIMIT = 500;
+const MAX_ROOM_ID = 70;
 
 function getRandomDateWithinOneMonth(from = new Date()) {
   const randomDays = Math.floor(Math.random() * 31);
@@ -15,7 +16,7 @@ function generateRoomAvailabilityData() {
     const availableTo = getRandomDateWithinOneMonth(new Date(availableFrom));
     
     data.push({
-      room_id: Math.floor(Math.random() * 210),
+      room_id: Math.floor(Math.random() * MAX_ROOM_ID),
       available_from: availableFrom,
       available_to: availableTo,
     });
