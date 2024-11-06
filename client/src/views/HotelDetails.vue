@@ -1,8 +1,8 @@
 <script>
 import TheHeader from '@/components/Header.vue'
 import TheFooter from '@/components/Footer.vue'
-import MapComponent from '@/components/map/MapComponent.vue';
-import ImageSlider from '@/components/image-slider/ImageSlider.vue';
+import MapComponent from '@/components/map/MapComponent.vue'
+import ImageSlider from '@/components/image-slider/ImageSlider.vue'
 import axios from 'axios'
 
 export default {
@@ -15,26 +15,26 @@ export default {
   data() {
     return {
       hotel_id: null,
+
       hotel: {},
-      openCommentPopup: false, 
+      rooms: [],
+      reviews: [],
+      nearby_hotels: [],
+      reviews_breakdown: [],
+
+      openCommentPopup: false,
       openMapPopup: false,
-      isSliderOpen: false,
-      imageList: [
-        "https://cf.bstatic.com/xdata/images/hotel/max500/607452727.jpg?k=dedb57c9de2d7768212d044018809f7a692a38e2d5bb8a69302d0f8eed26375a&o=&hp=1",
-        "https://cf.bstatic.com/xdata/images/hotel/max500/607020364.jpg?k=615e5b2944a5cd48c80144ca9387bb5b7184d12af19e8022f2a6ea38bad5f7f3&o=&hp=1",
-        "https://cf.bstatic.com/xdata/images/hotel/max1024x768/139485406.jpg?k=e12e1e4c7b7a8293ff392e0249a80cac3891e281d1373354934a11441f89d867&o=&hp=1",
-        "https://cf.bstatic.com/xdata/images/hotel/max300/143633832.jpg?k=eee3ba907b66cc9f46235304d0fff0952528a2d3ed979549f18d2a944c9eb66e&o=&hp=1",
-        "https://cf.bstatic.com/xdata/images/hotel/max300/607020320.jpg?k=47a969a383fc5d96234fc91e85eec210973e6b1509f382f5bdd2722748ce849b&o=&hp=1",
-        "https://cf.bstatic.com/xdata/images/hotel/max300/607150715.jpg?k=32c4c039ddeadf5a8a935fa087f84dacb07cd3dbf0899fd1835f8fbba36393d3&o=&hp=1",
-        "https://cf.bstatic.com/xdata/images/hotel/max300/143636536.jpg?k=cbb548d7184c3c3e6e54dc7548824dd2726ee738c42aaa108cbcf52bcef8a08c&o=&hp=1",
-    
-      ]
+      isSliderOpen: false
     }
   },
   methods: {
     async getHotelDetails() {
       const response = await axios.get(`http://localhost:3000/api/hotels/${this.hotel_id}`)
-      this.hotel = response.data[0]
+      this.hotel = response.data.hotel
+      this.rooms = response.data.rooms
+      this.reviews = response.data.reviews
+      this.reviews_breakdown = response.data.reviews_breakdown
+      this.nearby_hotels = response.data.nearby_hotels
     },
     // comment popup
     showCommentPopup() {
@@ -45,14 +45,14 @@ export default {
     },
     // map popup
     closeMapPopup() {
-        this.openMapPopup = false
+      this.openMapPopup = false
     },
     // image slider
     openImageSlider() {
-      this.isSliderOpen = true;
+      this.isSliderOpen = true
     },
     closeImageSlider() {
-      this.isSliderOpen = false;
+      this.isSliderOpen = false
     }
   },
   mounted() {
@@ -65,7 +65,7 @@ export default {
 <template>
   <TheHeader />
   <MapComponent v-if="openMapPopup" :hotels="[hotel]" @close-map-popup="closeMapPopup" />
-   <ImageSlider :images="imageList" :isOpen="isSliderOpen" @close="closeImageSlider" />
+  <ImageSlider :images="hotel.image_urls" :isOpen="isSliderOpen" @close="closeImageSlider" />
   <!-- menu  -->
   <div class="menu">
     <div class="container">
@@ -215,23 +215,7 @@ export default {
     <div class="container">
       <div class="information__total">
         <div class="information__text">
-          <p>
-            Nằm tại vị trí thuận tiện ở trung tâm Hà Nội, Eco Nest Apartment & Hotel Đình Ngang cách
-            Ga Hà Nội 7 phút đi bộ và Văn Miếu - Quốc Tử Giám chưa đến 1 km. Khách sạn 3 sao này có
-            bàn bán tour và phòng giữ hành lý. Chỗ nghỉ cung cấp lễ tân 24/24, dịch vụ đưa đón sân
-            bay, dịch vụ tiền sảnh và Wi-Fi miễn phí.
-          </p>
-          <p>
-            Với phòng tắm riêng được trang bị vòi sen và đồ vệ sinh cá nhân miễn phí, tất cả các căn
-            tại khách sạn có TV màn hình phẳng và điều hòa, trong đó một số phòng có ban công. Các
-            căn đều có tủ lạnh.
-          </p>
-          <p>
-            Các điểm tham quan nổi tiếng gần Eco Nest Apartment & Hotel Đình Ngang bao gồm Bảo tàng
-            mỹ thuật Việt Nam, Nhà thờ Thánh Joseph và Hoàng thành Huế. Sân bay Quốc tế Nội Bài cách
-            24 km.
-          </p>
-          <p>Các khoảng cách nêu trong mô tả chỗ nghỉ được tính toán bằng © OpenStreetMap</p>
+          <p>{{ this.hotel.description }}</p>
           <h3>Các tiện nghi được ưa chuộng nhất</h3>
           <ul>
             <li>
@@ -291,6 +275,26 @@ export default {
           <div class="col-3">
             <div class="thead">
               <strong>Loại chỗ ở</strong>
+            </div>
+            <div class="room--1">
+              <strong>Nhà 1 Phòng ngủ</strong>
+              <ul>
+                <li><i class="fa-solid fa-house"></i>Nhà nghỉ dưỡng nguyên căn</li>
+                <li><i class="fa-solid fa-wheelchair-move"></i>Ban công</li>
+                <li><i class="fa-solid fa-wind"></i> Nhìn ra vườn</li>
+                <li><i class="fa-regular fa-snowflake"></i>Điều hòa không khí</li>
+                <li><i class="fa-solid fa-sink"></i>Phòng tắm riêng trong phòng</li>
+                <li><i class="fa-solid fa-tv"></i>TV màn hình phẳng</li>
+              </ul>
+              <hr />
+              <ul class="price--check">
+                <li><i class="fa-solid fa-check"></i> Đồ vệ sinh cá nhân miễn phí</li>
+                <li><i class="fa-solid fa-check"></i>Áo choàng tắm</li>
+                <li><i class="fa-solid fa-check"></i>Nhà vệ sinh</li>
+                <li><i class="fa-solid fa-check"></i>Bồn tắm hoặc Vòi sen</li>
+                <li><i class="fa-solid fa-check"></i>Khăn tắm</li>
+                <li><i class="fa-solid fa-check"></i>Ổ điện gần giường</li>
+              </ul>
             </div>
             <div class="room--1">
               <strong>Nhà 1 Phòng ngủ</strong>
@@ -1317,7 +1321,6 @@ export default {
   fill: currentColor;
 }
 
-
 .overview {
   margin-bottom: 10px;
 }
@@ -1513,6 +1516,7 @@ export default {
 
 .price .room--1 {
   padding: 0px 5px;
+  border-bottom: 3px solid #5bbaff;
 }
 
 .price .room--1 strong {

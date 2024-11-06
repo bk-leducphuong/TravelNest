@@ -10,7 +10,8 @@ import HotelDetails from '@/views/HotelDetails.vue'
 // import BookingDetails from '@/views/BookingDetails.vue';
 // import Payment from '@/views/Payment.vue';
 import HomeView from '@/views/HomeView.vue'
-import Join from '@/views/Join.vue'
+import Join from '@/views/JoinHome.vue'
+import JoinForm from '@/views/JoinForms.vue'
 import SearchResults from '@/views/SearchResults.vue'
 
 import stores from '@/stores'
@@ -32,6 +33,11 @@ const routes = [
       path: '/join',
       name: 'Join',
       component: Join
+    },
+    {
+      path: '/join/become-a-host',
+      name: 'JoinForm',
+      component: JoinForm
     },
     // hotel routes
     {
