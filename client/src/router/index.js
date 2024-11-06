@@ -33,14 +33,12 @@ const routes = [
   {
     path: '/join',
     name: 'Join',
-    component: Join,
-    children: [
-      {
-        path: '/become-a-host',
-        name: 'JoinForm',
-        component: JoinForm
-      }
-    ]
+    component: Join
+  },
+  {
+    path: '/join/become-a-host',
+    name: 'JoinForm',
+    component: JoinForm
   },
   // hotel routes
   {
@@ -63,14 +61,12 @@ const routes = [
   {
     path: '/book',
     name: 'Book',
-    component: Book,
-    children: [
-      {
-        path: '/complete',
-        name: 'Complete',
-        component: Complete
-      }
-    ]
+    component: Book
+  },
+  {
+    path: '/book/complete',
+    name: 'Complete',
+    component: Complete
   },
   // Catch-all route (for 404s)
   {

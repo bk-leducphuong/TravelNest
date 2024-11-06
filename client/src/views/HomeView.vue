@@ -102,8 +102,7 @@ export default {
           location: this.userLocation
         })
         this.nearbyHotels = response.data.hotels
-        this.noNearbyHotelsFound = this.nearbyHotels.length === 0 ? true : false;
-
+        this.noNearbyHotelsFound = this.nearbyHotels.length === 0 ? true : false
       } catch (error) {
         console.error('Error fetching nearby hotels:', error)
       }
@@ -123,7 +122,7 @@ export default {
       searches.reverse()
       this.recentSearches = searches
 
-      this.noRecentSearchesFound = this.recentSearches.length === 0 ? true : false;
+      this.noRecentSearchesFound = this.recentSearches.length === 0 ? true : false
     },
 
     // Load data from localStorage for viewed hotels
@@ -140,7 +139,7 @@ export default {
       hotels.reverse()
       this.viewedHotels = hotels
 
-      this.noViewedHotelsFound = this.viewedHotels.length === 0 ? true : false;
+      this.noViewedHotelsFound = this.viewedHotels.length === 0 ? true : false
     },
 
     // Static popular places data (replace with API or dynamic data)
@@ -149,13 +148,13 @@ export default {
 
       this.popularPlaces = response.data.popular_places
 
-      this.noPopularPlacesFound = this.popularPlaces.length === 0 ? true : false;
+      this.noPopularPlacesFound = this.popularPlaces.length === 0 ? true : false
       // console.log(this.popularPlaces);
     },
 
     // Remove a recent search item
     removeSearch(index, event) {
-      event.stopPropagation();  // Stop the event from bubbling up to the parent
+      event.stopPropagation() // Stop the event from bubbling up to the parent
 
       this.recentSearches.splice(index, 1)
       localStorage.setItem('recentSearches', JSON.stringify(this.recentSearches))
@@ -217,17 +216,10 @@ export default {
       <h2 class="h2">Tìm kiếm gần đây của bạn</h2>
       <div class="slider-container">
         <div ref="recentSlider" class="search-slider">
-          <div
-            class="search-card"
-            v-for="(search, index) in recentSearches"
-            :key="index"
-            @click="redirectToSearchResults(search)"
-          >
+          <div class="search-card" v-for="(search, index) in recentSearches" :key="index"
+            @click="redirectToSearchResults(search)">
             <div class="search-image">
-              <img
-                :src="'http://localhost:3000/vietnam_city/' + search.location + '.jpg'"
-                :alt="search.location"
-              />
+              <img :src="'http://localhost:3000/vietnam_city/' + search.location + '.jpg'" :alt="search.location" />
             </div>
             <div class="search-content">
               <h2 class="search-title">{{ search.location }}</h2>
@@ -236,18 +228,12 @@ export default {
             <button class="close-button" @click="removeSearch(index, $event)">×</button>
           </div>
         </div>
-        <button
-          class="nav-button prev"
-          :disabled="disableScrollLeft('recentSlider')"
-          @click="scrollLeft('recentSlider')"
-        >
+        <button class="nav-button prev" :disabled="disableScrollLeft('recentSlider')"
+          @click="scrollLeft('recentSlider')">
           ‹
         </button>
-        <button
-          class="nav-button next"
-          :disabled="disableScrollRight('recentSlider')"
-          @click="scrollRight('recentSlider')"
-        >
+        <button class="nav-button next" :disabled="disableScrollRight('recentSlider')"
+          @click="scrollRight('recentSlider')">
           ›
         </button>
       </div>
@@ -258,12 +244,8 @@ export default {
       <h2 class="h2">Bạn có còn quan tâm đến những chỗ nghỉ này?</h2>
       <div class="slider-container">
         <div ref="viewedSlider" class="hotel-slider">
-          <div
-            class="hotel-card"
-            v-for="(hotel, index) in viewedHotels"
-            :key="index"
-            @click="redirectToHotelDetails(hotel)"
-          >
+          <div class="hotel-card" v-for="(hotel, index) in viewedHotels" :key="index"
+            @click="redirectToHotelDetails(hotel)">
             <div class="hotel-image">
               <img :src="hotel.image_urls" :alt="hotel.name" />
               <button class="favorite-button" @click="toggleFavorite(index)">
@@ -281,18 +263,12 @@ export default {
             </div>
           </div>
         </div>
-        <button
-          class="nav-button prev"
-          :disabled="disableScrollLeft('viewedSlider')"
-          @click="scrollLeft('viewedSlider')"
-        >
+        <button class="nav-button prev" :disabled="disableScrollLeft('viewedSlider')"
+          @click="scrollLeft('viewedSlider')">
           ‹
         </button>
-        <button
-          class="nav-button next"
-          :disabled="disableScrollRight('viewedSlider')"
-          @click="scrollRight('viewedSlider')"
-        >
+        <button class="nav-button next" :disabled="disableScrollRight('viewedSlider')"
+          @click="scrollRight('viewedSlider')">
           ›
         </button>
       </div>
@@ -303,12 +279,8 @@ export default {
       <h2 class="h2">Những khách sạn gần đây</h2>
       <div class="slider-container">
         <div ref="nearbySlider" class="hotel-slider">
-          <div
-            class="hotel-card"
-            v-for="(hotel, index) in nearbyHotels"
-            :key="index"
-            @click="redirectToHotelDetails(hotel)"
-          >
+          <div class="hotel-card" v-for="(hotel, index) in nearbyHotels" :key="index"
+            @click="redirectToHotelDetails(hotel)">
             <div class="hotel-image">
               <img :src="hotel.image_urls" :alt="hotel.name" />
               <button class="favorite-button" @click="toggleFavorite(index)">
@@ -326,18 +298,12 @@ export default {
             </div>
           </div>
         </div>
-        <button
-          class="nav-button prev"
-          :disabled="disableScrollLeft('nearbySlider')"
-          @click="scrollLeft('nearbySlider')"
-        >
+        <button class="nav-button prev" :disabled="disableScrollLeft('nearbySlider')"
+          @click="scrollLeft('nearbySlider')">
           ‹
         </button>
-        <button
-          class="nav-button next"
-          :disabled="disableScrollRight('nearbySlider')"
-          @click="scrollRight('nearbySlider')"
-        >
+        <button class="nav-button next" :disabled="disableScrollRight('nearbySlider')"
+          @click="scrollRight('nearbySlider')">
           ›
         </button>
       </div>
@@ -350,36 +316,21 @@ export default {
         <h4 class="h4">Các lựa chọn phổ biến nhất cho du khách từ Việt Nam</h4>
       </div>
       <div class="popular-place-card-up-grid popular-place-card-grid">
-        <div
-          class="popular-place-card"
-          v-for="(place, index) in popularPlaces.slice(0, 2)"
-          :key="index"
-          @click="
-            redirectToSearchResults({
-              location: place.location,
-              dateRange: '',
-              adults: '',
-              children: '',
-              rooms: ''
-            })
-          "
-        >
-          <img
-            :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'"
-            :alt="place.location"
-          />
+        <div class="popular-place-card" v-for="(place, index) in popularPlaces.slice(0, 2)" :key="index" @click="
+          redirectToSearchResults({
+            location: place.location,
+            dateRange: '',
+            adults: '',
+            children: '',
+            rooms: ''
+          })
+          ">
+          <img :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'" :alt="place.location" />
         </div>
       </div>
       <div class="popular-place-card-bottom-grid popular-place-card-grid">
-        <div
-          class="popular-place-card"
-          v-for="(place, index) in popularPlaces.slice(2, 5)"
-          :key="index"
-        >
-          <img
-            :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'"
-            :alt="place.location"
-          />
+        <div class="popular-place-card" v-for="(place, index) in popularPlaces.slice(2, 5)" :key="index">
+          <img :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'" :alt="place.location" />
         </div>
       </div>
     </div>

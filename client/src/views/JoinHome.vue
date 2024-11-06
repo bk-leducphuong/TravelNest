@@ -1,73 +1,74 @@
-<script>
-
-</script>
+<script></script>
 
 <template>
-    <div class="join-container">
-        <div class="header">
-        <div class="container">
-            <div class="inner-wrap">
-                <div class="inner-logo">
-                    <strong><a href="/">Booking.com</a></strong>
-                </div>
-                <div class="inner-login">
-                    <ul>
-                        <li><strong>VND</strong></li>
-                        <li><img src="" alt=""></li>
-                        <li><i class="fa-regular fa-circle-question"></i></li>
-                        <li><span>Đã là đối tác ?</span></li>
-                        <li class="login">Đăng nhập</li>
-                        <li class="guides">Trợ giúp</li>
-                    </ul>
-                </div>
-            </div>
+  <div class="join-container">
+    <div class="header">
+      <div class="container">
+        <div class="inner-wrap">
+          <div class="inner-logo">
+            <strong><a href="/">Booking.com</a></strong>
+          </div>
+          <div class="inner-login">
+            <ul>
+              <li><strong>VND</strong></li>
+              <li><img src="" alt="" /></li>
+              <li><i class="fa-regular fa-circle-question"></i></li>
+              <li><span>Đã là đối tác ?</span></li>
+              <li class="login">Đăng nhập</li>
+              <li class="guides">Trợ giúp</li>
+            </ul>
+          </div>
         </div>
+      </div>
     </div>
     <div class="main-container">
-        <div class="left-main-container">
-            <h1 class="main-title">
-                Đăng<br>
-                <span class="highlight">bất cứ chỗ nghỉ nào</span><br>
-                trên Booking.com
-              </h1>
-            <h1 class="subtitle">
-                Dù host là nghề tay trái hay công việc toàn thời gian, hãy đăng nhà của bạn ngay hôm nay và nhanh chóng có thêm nguồn thu nhập.
-            </h1>
-    </div>
-    <div class="register-card">
+      <div class="left-main-container">
+        <h1 class="main-title">
+          Đăng<br />
+          <span class="highlight">bất cứ chỗ nghỉ nào</span><br />
+          trên Booking.com
+        </h1>
+        <h1 class="subtitle">
+          Dù host là nghề tay trái hay công việc toàn thời gian, hãy đăng nhà của bạn ngay hôm nay
+          và nhanh chóng có thêm nguồn thu nhập.
+        </h1>
+      </div>
+      <div class="register-card">
         <h2 class="register-title">Đăng ký miễn phí</h2>
         <ul class="list">
           <li>45% host nhận được đơn đặt đầu tiên trong vòng 1 tuần</li>
           <li>Chọn một trong hai cách nhận đơn đặt: xác nhận tức thì và xem trước để duyệt</li>
           <li>Chúng tôi xử lý thanh toán thay bạn</li>
         </ul>
-        <button class="get-started-button">Bắt đầu ngay</button>
+        <button class="get-started-button" @click="this.$router.push('/join/become-a-host')">
+          Bắt đầu ngay
+        </button>
         <div class="login-text">
-            Bạn đã bắt đầu quá trình đăng ký? 
-            <div>
-                <a href="#" class="login-link">Tiếp tục các bước đăng ký</a>
-            </div>
+          Bạn đã bắt đầu quá trình đăng ký?
+          <div>
+            <a href="#" class="login-link">Tiếp tục các bước đăng ký</a>
           </div>
+        </div>
       </div>
     </div>
-    </div>
+  </div>
 </template>
 
 <style scoped>
 .join-container {
-    background-color: #003B95 ;
-    padding-bottom: 100px;
+  background-color: #003b95;
+  padding-bottom: 100px;
 }
 /* header  */
 
-.header .inner-wrap{
+.header .inner-wrap {
   display: flex;
   justify-content: space-between;
   padding: 12px 0;
   align-items: center;
 }
 
-.header .inner-logo strong{
+.header .inner-logo strong {
   font-size: 24px;
   color: #fff;
 }
@@ -75,12 +76,12 @@
 .header .inner-login ul {
   display: flex;
   color: #fff;
-  list-style-type:none ;
+  list-style-type: none;
   align-items: center;
   margin-bottom: 0;
 }
 
-.header .inner-login ul li{
+.header .inner-login ul li {
   padding: 10px;
   margin-left: 15px;
   border-radius: 5px;
@@ -90,36 +91,36 @@
   font-size: 14px;
 }
 
-.header .inner-login ul li:hover{
-  background-color: #1A4FA0;
+.header .inner-login ul li:hover {
+  background-color: #1a4fa0;
 }
 
-.header .inner-login ul li img{
+.header .inner-login ul li img {
   border-radius: 50%;
   height: 18px;
   overflow: hidden;
   width: auto;
 }
-.header .inner-login ul li span{
+.header .inner-login ul li span {
   font-weight: 600;
 }
 
 .header .inner-login ul .login {
   padding: 5px 10px;
-  color:  #1d5fc2;
+  color: #1d5fc2;
   font-weight: 500;
   background-color: #fff;
   border-radius: 5px;
 }
 .header .inner-login ul .guides {
   padding: 5px 10px;
-  color:  #1d5fc2;
+  color: #1d5fc2;
   font-weight: 500;
   background-color: #fff;
   border-radius: 5px;
 }
 
-.header .inner-login ul .login:hover{
+.header .inner-login ul .login:hover {
   background-color: #f0f6fde8;
 }
 .header .inner-login ul .guides:hover {
@@ -152,12 +153,12 @@
   padding-right: 20px;
 }
 .main-container .left-main-container .subtitle {
-    color: #ebf3ff;
-    font-size: 22px;
-    line-height: 28px;
-    margin-top: 8px;
-    padding-bottom: 8px;
-    font-weight: 500;
+  color: #ebf3ff;
+  font-size: 22px;
+  line-height: 28px;
+  margin-top: 8px;
+  padding-bottom: 8px;
+  font-weight: 500;
 }
 
 /* ô đăng ký */
@@ -190,7 +191,7 @@
 }
 
 .list li::before {
-  content: "✓";
+  content: '✓';
   color: #008009;
   font-weight: bold;
 }
@@ -212,12 +213,11 @@
 }
 
 .get-started-button::after {
-  content: "→";
+  content: '→';
 }
-.get-started-button:hover{
+.get-started-button:hover {
   background: #13539d;
 }
-
 
 .login-text {
   font-size: 14px;
@@ -229,7 +229,7 @@
   text-decoration: none;
   font-size: 14px;
 }
-  /* hết ô đăng ký */
+/* hết ô đăng ký */
 
 /* end main-container */
 </style>
