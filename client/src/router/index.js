@@ -13,63 +13,72 @@ import HomeView from '@/views/HomeView.vue'
 import Join from '@/views/JoinHome.vue'
 import JoinForm from '@/views/JoinForms.vue'
 import SearchResults from '@/views/SearchResults.vue'
+import Book from '@/views/Book.vue'
 
 import stores from '@/stores'
-import MapComponent from '@/components/map/MapComponent.vue'
+import Complete from '@/components/book/Complete.vue'
 
 const routes = [
-    {
-      path: '/',
-      name: 'Home',
-      component: HomeView,
-      //  meta: { requiresAuth: true } // Mark route as requiring authentication
-    },
-    {
-      path: '/login',
-      name: 'Login',
-      component: Login
-    },
-    {
-      path: '/join',
-      name: 'Join',
-      component: Join
-    },
-    {
-      path: '/join/become-a-host',
-      name: 'JoinForm',
-      component: JoinForm
-    },
-    // hotel routes
-    {
-      path: '/hotels/:hotel_id',
-      name: 'HotelDetails',
-      component: HotelDetails
-    },
-    {
-      path: '/search',
-      name: 'SearchResults',
-      component: SearchResults,
-      props: (route) => ({
-        location: route.query.location,
-        dateRange: route.query.dateRange,
-        adults: route.query.adults,
-        children: route.query.children,
-        rooms: route.query.rooms
-      })
-    },
-    {
-      path: '/map',
-      name: 'Map',
-      component: MapComponent,
-
-    },
-    // Catch-all route (for 404s)
-    {
-      path: '/:pathMatch(.*)*',
-      name: 'NotFound',
-      component: () => import('@/views/NotFound.vue') // Lazy load the NotFound view
-    }
-  ];
+  {
+    path: '/',
+    name: 'Home',
+    component: HomeView
+    //  meta: { requiresAuth: true } // Mark route as requiring authentication
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login
+  },
+  {
+    path: '/join',
+    name: 'Join',
+    component: Join,
+    children: [
+      {
+        path: '/become-a-host',
+        name: 'JoinForm',
+        component: JoinForm
+      }
+    ]
+  },
+  // hotel routes
+  {
+    path: '/hotels/:hotel_id',
+    name: 'HotelDetails',
+    component: HotelDetails
+  },
+  {
+    path: '/search',
+    name: 'SearchResults',
+    component: SearchResults,
+    props: (route) => ({
+      location: route.query.location,
+      dateRange: route.query.dateRange,
+      adults: route.query.adults,
+      children: route.query.children,
+      rooms: route.query.rooms
+    })
+  },
+  {
+    path: '/book',
+    name: 'Book',
+    component: Book,
+    children: [
+      {
+        path: '/complete',
+        name: 'Complete',
+        component: Complete
+      }
+    ]
+  },
+  // Catch-all route (for 404s)
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/NotFound.vue') // Lazy load the NotFound view
+  }
+]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -78,15 +87,15 @@ const router = createRouter({
 
 // Navigation guard to check authentication before entering protected routes
 router.beforeEach((to, from, next) => {
-  if (to.matched.some(record => record.meta.requiresAuth)) {
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!stores.getters['auth/isAuthenticated']) {
-      next({ name: 'Login' }); // Redirect to login if not authenticated
+      next({ name: 'Login' }) // Redirect to login if not authenticated
     } else {
-      next(); // Proceed if authenticated
+      next() // Proceed if authenticated
     }
   } else {
-    next(); // Always allow non-protected routes
+    next() // Always allow non-protected routes
   }
-});
+})
 
 export default router

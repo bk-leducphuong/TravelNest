@@ -1873,11 +1873,6 @@ export default {
 }
 
 .review {
-  /* color: #007bff; */
-  /* cursor: pointer; */
-}
-
-.review {
   margin-top: 20px;
 }
 
