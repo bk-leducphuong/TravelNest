@@ -107,8 +107,8 @@
 import axios from 'axios';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.css';
-import { mapState } from 'vuex';
-import AccountMenu from './AccountMenu.vue';
+import { mapActions, mapState, mapGetters } from 'vuex';
+import AccountMenu from './user/AccountMenu.vue';
 
 export default {
   components: {
@@ -116,6 +116,8 @@ export default {
   },
   data() {
     return {
+      // search data
+      
       selectedLocation: "",
       dateRange: "",
       locations: [
@@ -161,6 +163,8 @@ export default {
     
   },
   methods: {
+    ...mapActions('search', ['searchHotel']),
+
     toggleLocationPopup() {
       this.showLocationPopup = !this.showLocationPopup;
     },
@@ -206,6 +210,8 @@ export default {
       }
       searchHistory.push(searchData);
       localStorage.setItem("recentSearches", JSON.stringify(searchHistory));
+
+      this.searchHotel(searchData); // store searchData in store vuex
 
       // Redirect user to search results page with query params
       this.$router.push({

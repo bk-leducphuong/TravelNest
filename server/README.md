@@ -29,3 +29,6 @@
 |Payments	|POST	|/api/payments	(authenticate)|Process payment for a booking.
 |Payments	|GET	|/api/payments/:bookingId	(authenticate)|Get payment details for a specific booking.
 
+## Testing stripe webhook on local 
+ stripe listen --forward-to http://localhost:3000/api/payment/webhook
+

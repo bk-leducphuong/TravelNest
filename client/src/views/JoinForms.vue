@@ -106,7 +106,7 @@ export default {
 .header .inner-wrap {
   display: flex;
   justify-content: space-between;
-  padding: 12px 30px;
+  padding: 12px 40px;
   align-items: center;
 }
 

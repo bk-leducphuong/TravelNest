@@ -1,14 +1,7 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '@/views/Login.vue'
-// import Register from '@/views/Register.vue';
-// import Profile from '@/views/Profile.vue';
-// import HotelList from '@/views/HotelList.vue';
 import HotelDetails from '@/views/HotelDetails.vue'
-// import RoomDetails from '@/views/RoomDetails.vue';
-// import Bookings from '@/views/Bookings.vue';
-// import BookingDetails from '@/views/BookingDetails.vue';
-// import Payment from '@/views/Payment.vue';
 import HomeView from '@/views/HomeView.vue'
 import Join from '@/views/JoinHome.vue'
 import JoinForm from '@/views/JoinForms.vue'
