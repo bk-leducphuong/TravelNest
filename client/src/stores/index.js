@@ -7,10 +7,10 @@ import user from './user';
 import search from './search';
 import book from './book';
 
-// const vuexSession = new VuexPersistence({
-//   storage: window.sessionStorage,
-//   modules: ['search'],
-// });
+const vuexSession = new VuexPersistence({
+  storage: window.sessionStorage,
+  modules: ['search'],
+});
 
 export default createStore({
   modules: {
@@ -19,5 +19,5 @@ export default createStore({
     search,
     book
   },
-  // plugins: [vuexSession.plugin],
+  plugins: [vuexSession.plugin],
 });

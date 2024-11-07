@@ -8,15 +8,17 @@
         <div class="inner-login">
           <ul>
             <li><strong>VND</strong></li>
-            <li><img src="../assets/header/Vn@3x.png" alt="Vietnam"></li>
+            <li><img src="../assets/header/Vn@3x.png" alt="Vietnam" /></li>
             <li><i class="fa-regular fa-circle-question"></i></li>
-            <li><span><a href="/join">Đăng chỗ nghỉ của Quý vị</a></span></li>
+            <li>
+              <span><a href="/join">Đăng chỗ nghỉ của Quý vị</a></span>
+            </li>
             <li v-if="!this.isAuthenticated">
               <a href="/login" class="login" style="margin-right: 5px">Đăng ký</a>
-              <a href="/login" class="login" style="margin-left: 5px;">Đăng nhập</a>
+              <a href="/login" class="login" style="margin-left: 5px">Đăng nhập</a>
             </li>
             <li v-if="this.isAuthenticated">
-              <AccountMenu/>
+              <AccountMenu />
             </li>
           </ul>
         </div>
@@ -24,11 +26,11 @@
     </div>
   </div>
 
-  <div class="slide" >
+  <div class="slide">
     <div class="container">
       <div class="inner-wrap" v-if="this.$route.name === 'Home'">
         <strong>Tìm chỗ nghỉ tiếp theo</strong>
-        <br>
+        <br />
         <p>Tìm ưu đãi khách sạn, chỗ nghỉ dạng nhà và nhiều hơn nữa...</p>
       </div>
     </div>
@@ -39,15 +41,26 @@
     <div class="container">
       <div class="search-bar">
         <!-- Location input -->
-        <input type="text" class="search-input" id="local" v-model="selectedLocation" placeholder="Bạn muốn đến đâu?"
-          @click="toggleLocationPopup" v-click-outside="hideLocationPopup">
+        <input
+          type="text"
+          class="search-input"
+          id="local"
+          v-model="selectedLocation"
+          placeholder="Bạn muốn đến đâu?"
+          @click="toggleLocationPopup"
+          v-click-outside="hideLocationPopup"
+        />
 
         <!-- Location popup -->
         <div class="location-popup" v-if="showLocationPopup">
           <h3>Điểm đến được ưa thích gần đây</h3>
           <ul class="location-list">
-            <li class="location-item" v-for="location in locations" :key="location.name"
-              @click="selectLocation(location)">
+            <li
+              class="location-item"
+              v-for="location in locations"
+              :key="location.name"
+              @click="selectLocation(location)"
+            >
               <div class="location-icon"></div>
               <div class="location-info">
                 <span class="location-name">{{ location.name }}</span>
@@ -59,13 +72,24 @@
 
         <!-- Date picker input -->
         <div class="date-picker">
-          <input class="search-input" type="text" placeholder="Nhận phòng - Trả phòng" v-model="dateRange"
-            ref="dateInput">
+          <input
+            class="search-input"
+            type="text"
+            placeholder="Nhận phòng - Trả phòng"
+            v-model="dateRange"
+            ref="dateInput"
+          />
         </div>
 
         <!-- Guest room input -->
         <div class="guest-room-wrapper" v-click-outside="hideGuestSelector">
-          <input type="text" v-model="guestDetails" class="search-input" @click="toggleGuestSelector" readonly>
+          <input
+            type="text"
+            v-model="guestDetails"
+            class="search-input"
+            @click="toggleGuestSelector"
+            readonly
+          />
 
           <!-- Guest room selector -->
           <div v-if="showGuestSelector" class="guest-room-selector" id="guest-room-selector">
@@ -104,11 +128,11 @@
 </template>
 
 <script>
-import axios from 'axios';
-import flatpickr from 'flatpickr';
-import 'flatpickr/dist/flatpickr.css';
-import { mapActions, mapState, mapGetters } from 'vuex';
-import AccountMenu from './user/AccountMenu.vue';
+import axios from 'axios'
+import flatpickr from 'flatpickr'
+import 'flatpickr/dist/flatpickr.css'
+import { mapActions, mapState, mapGetters } from 'vuex'
+import AccountMenu from './user/AccountMenu.vue'
 
 export default {
   components: {
@@ -117,82 +141,121 @@ export default {
   data() {
     return {
       // search data
-      
-      selectedLocation: "",
-      dateRange: "",
+      // selectedLocation: '',
+      // dateRange: '',
+      // adults: 2,
+      // children: 0,
+      // rooms: 1,
+
       locations: [
-        { name: "Phú Quốc", country: "Việt Nam" },
-        { name: "Hà Nội", country: "Việt Nam" },
-        { name: "Sa Pa", country: "Việt Nam" },
-        { name: "Đà Lạt", country: "Việt Nam" },
-        { name: "Đà Nẵng", country: "Việt Nam" },
+        { name: 'Phú Quốc', country: 'Việt Nam' },
+        { name: 'Hà Nội', country: 'Việt Nam' },
+        { name: 'Sa Pa', country: 'Việt Nam' },
+        { name: 'Đà Lạt', country: 'Việt Nam' },
+        { name: 'Đà Nẵng', country: 'Việt Nam' }
       ],
       showLocationPopup: false,
-      showGuestSelector: false,
-      adults: 2,
-      children: 0,
-      rooms: 1
-    };
+      showGuestSelector: false
+    }
   },
   computed: {
     ...mapState('auth', ['isAuthenticated']),
-    guestDetails() {
-      return `${this.adults} người lớn · ${this.children} trẻ em · ${this.rooms} phòng`;
+    ...mapGetters('search', ['getSearchData']),
+    selectedLocation: {
+      get() {
+        return this.getSearchData?.location || ''
+      },
+      set(value) {
+        this.$store.dispatch('search/updateLocation', value)
+      }
     },
+    dateRange: {
+      get() {
+        return this.getSearchData?.dateRange || ''
+      },
+      set(value) {
+        this.$store.dispatch('search/updateDateRange', value)
+      }
+    },
+    adults: {
+      get() {
+        return this.getSearchData?.adults || 2
+      },
+      set(value) {
+        this.$store.dispatch('search/updateAdults', value)
+      }
+    },
+    children: {
+      get() {
+        return this.getSearchData?.children || 0
+      },
+      set(value) {
+        this.$store.dispatch('search/updateChildren', value)
+      }
+    },
+    rooms: {
+      get() {
+        return this.getSearchData?.rooms || 1
+      },
+      set(value) {
+        this.$store.dispatch('search/updateRooms', value)
+      }
+    },
+    guestDetails() {
+      return `${this.adults} người lớn · ${this.children} trẻ em · ${this.rooms} phòng`
+    }
   },
   mounted() {
     flatpickr(this.$refs.dateInput, {
-      dateFormat: "d/m/Y", // Định dạng ngày
-      locale: "vn", // Ngôn ngữ tiếng Việt cho tên ngày tháng
-      mode: "range", // Cho phép chọn dải ngày
+      dateFormat: 'd/m/Y', // Định dạng ngày
+      locale: 'vn', // Ngôn ngữ tiếng Việt cho tên ngày tháng
+      mode: 'range', // Cho phép chọn dải ngày
 
-      minDate: "today", // Không cho phép chọn ngày trong quá khứ
+      minDate: 'today', // Không cho phép chọn ngày trong quá khứ
       showMonths: 2, // Hiển thị 2 tháng cạnh nhau
-      onChange: function (selectedDates, dateStr, instance) {
-      },
-      mode: "range",
+      onChange: function (selectedDates, dateStr, instance) {},
+      mode: 'range',
       locale: {
-        rangeSeparator: " đến " // Thay "to" bằng "đến"
+        rangeSeparator: ' đến ' // Thay "to" bằng "đến"
       },
       onValueUpdate: function (selectedDates, dateStr, instance) {
         // Thêm "Từ" vào trước ngày bắt đầu
-        const display = instance.element.value;
-        instance.element.value = "Từ " + display;
+        const display = instance.element.value
+        instance.element.value = 'Từ ' + display
       }
-    });
-    
+    })
   },
   methods: {
     ...mapActions('search', ['searchHotel']),
 
     toggleLocationPopup() {
-      this.showLocationPopup = !this.showLocationPopup;
+      this.showLocationPopup = !this.showLocationPopup
     },
 
     selectLocation(location) {
-      this.selectedLocation = location.name;
-      this.showLocationPopup = false;
+      this.selectedLocation = location.name
+      this.showLocationPopup = false
     },
     hideLocationPopup() {
-      this.showLocationPopup = false;
+      this.showLocationPopup = false
     },
     toggleGuestSelector() {
-      this.showGuestSelector = !this.showGuestSelector;
+      this.showGuestSelector = !this.showGuestSelector
     },
     updateGuests(type, action) {
-      if (type === "adults") {
-        if (action === "increment" && this.adults < 30) this.adults++;
-        else if (action === "decrement" && this.adults > 1) this.adults--;
-      } else if (type === "children") {
-        if (action === "increment" && this.children < 10) this.children++;
-        else if (action === "decrement" && this.children > 0) this.children--;
-      } else if (type === "rooms") {
-        if (action === "increment" && this.rooms < 30) this.rooms++;
-        else if (action === "decrement" && this.rooms > 1) this.rooms--;
+      if (type === 'adults') {
+        if (action === 'increment' && this.adults < 30) this.adults++
+        else if (action === 'decrement' && this.adults > 1) this.adults--
+      } else if (type === 'children') {
+        if (action === 'increment' && this.children < 10) this.children++
+        else if (action === 'decrement' && this.children > 0) this.children--
+      } else if (type === 'rooms') {
+        if (action === 'increment' && this.rooms < 30) this.rooms++
+        else if (action === 'decrement' && this.rooms > 1) this.rooms--
       }
     },
     hideGuestSelector() {
-      this.showGuestSelector = false;
+      this.showGuestSelector = false
     },
 
     async submitSearch() {
@@ -201,17 +264,17 @@ export default {
         dateRange: this.dateRange,
         adults: this.adults,
         children: this.children,
-        rooms: this.rooms,
-      };
+        rooms: this.rooms
+      }
       // store search informations
-      let searchHistory = JSON.parse(localStorage.getItem("recentSearches")) || [];
+      let searchHistory = JSON.parse(localStorage.getItem('recentSearches')) || []
       if (searchHistory.length > 5) {
         searchHistory.shift()
       }
-      searchHistory.push(searchData);
-      localStorage.setItem("recentSearches", JSON.stringify(searchHistory));
+      searchHistory.push(searchData)
+      localStorage.setItem('recentSearches', JSON.stringify(searchHistory))
 
-      this.searchHotel(searchData); // store searchData in store vuex
+      this.searchHotel(searchData) // store searchData in store vuex
 
       // Redirect user to search results page with query params
       this.$router.push({
@@ -221,12 +284,12 @@ export default {
           dateRange: this.dateRange,
           adults: this.adults,
           children: this.children,
-          rooms: this.rooms,
+          rooms: this.rooms
         }
-      });
+      })
     }
-  },
-};
+  }
+}
 </script>
 
 <style scoped>
@@ -238,7 +301,7 @@ body {
 }
 
 .header {
-  background-color: #003B95;
+  background-color: #003b95;
   padding-bottom: 30px;
 }
 
@@ -273,7 +336,7 @@ body {
 }
 
 .header .inner-login ul li:hover {
-  background-color: #1A4FA0;
+  background-color: #1a4fa0;
 }
 
 .header .inner-login ul li img {
@@ -296,7 +359,7 @@ body {
 }
 
 .header .inner-login ul .login:hover {
-  background-color: #F0F6FD;
+  background-color: #f0f6fd;
 }
 
 /* end header  */
@@ -304,7 +367,7 @@ body {
 /* slide  */
 .slide {
   position: relative;
-  background-color: #003B95;
+  background-color: #003b95;
   padding-bottom: 30px;
 }
 
@@ -324,7 +387,7 @@ body {
 .slide .inner-wrap {
   position: relative;
   top: -30px;
-  color: #fff
+  color: #fff;
 }
 
 .slide .inner-wrap strong {
@@ -337,7 +400,6 @@ body {
 }
 
 /* end slide  */
-
 
 /* search */
 .search-bar {
@@ -369,9 +431,7 @@ body {
   background-size: 16px;
   width: 30%;
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>');
-
 }
-
 
 .location-popup {
   position: absolute;
@@ -446,9 +506,7 @@ body {
   background-size: 16px;
   width: 100%;
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>');
-
 }
-
 
 .guest-room-wrapper {
   position: relative;
@@ -459,11 +517,9 @@ body {
 .guest-room-wrapper input {
   width: 100%;
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>');
-
 }
 
 #guest-room-selector {
-
   position: absolute;
   top: 100%;
   left: 0;
@@ -534,4 +590,3 @@ body {
 
 /* end search  */
 </style>
-
