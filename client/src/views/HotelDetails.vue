@@ -2,142 +2,316 @@
 import TheHeader from '@/components/Header.vue'
 import TheFooter from '@/components/Footer.vue'
 import MapComponent from '@/components/map/MapComponent.vue'
-import ImageSlider from '@/components/image-slider/ImageSlider.vue'
 import axios from 'axios'
+import { mapGetters } from 'vuex'
+import ImageGallery from '@/components/hotel-image/ImageGallery.vue'
 
 export default {
   components: {
     TheHeader,
     TheFooter,
     MapComponent,
-    ImageSlider
+    ImageGallery
   },
   data() {
     return {
       hotel_id: null,
 
+      // image gallery
+      hotelImages: [],
+      initialThumbnailCount: 4,
+
       hotel: {},
-      rooms: [],
+      room_list: [],
       reviews: [],
       nearby_hotels: [],
       reviews_breakdown: [],
 
       openCommentPopup: false,
       openMapPopup: false,
-      isSliderOpen: false
+      isImageGalleryOpen: false,
+
+      showGuestSelector: false
+    }
+  },
+  computed: {
+    ...mapGetters('search', ['getSearchData']),
+    dateRange: {
+      get() {
+        return this.getSearchData?.dateRange || ''
+      },
+      set(value) {
+        this.$store.dispatch('search/updateDateRange', value)
+      }
+    },
+    adults: {
+      get() {
+        return this.getSearchData?.adults || '2'
+      },
+      set(value) {
+        this.$store.dispatch('search/updateAdults', value)
+      }
+    },
+    children: {
+      get() {
+        return this.getSearchData?.children || '0'
+      },
+      set(value) {
+        this.$store.dispatch('search/updateChildren', value)
+      }
+    },
+    rooms: {
+      get() {
+        return this.getSearchData?.rooms || '1'
+      },
+      set(value) {
+        this.$store.dispatch('search/updateRooms', value)
+      }
+    },
+    guestDetails() {
+      return `${this.adults} người lớn · ${this.children} trẻ em · ${this.rooms} phòng`
+    },
+    displayedThumbnails() {
+      return this.hotelImages.slice(3, 3 + this.initialThumbnailCount)
+    },
+    hasMoreImages() {
+      return !this.showAll && this.hotelImages.length > 3 + this.initialThumbnailCount
+    },
+    remainingImages() {
+      return this.hotelImages.length - (3 + this.initialThumbnailCount)
     }
   },
   methods: {
     async getHotelDetails() {
       const response = await axios.get(`http://localhost:3000/api/hotels/${this.hotel_id}`)
       this.hotel = response.data.hotel
-      this.rooms = response.data.rooms
+      this.room_list = response.data.rooms
       this.reviews = response.data.reviews
       this.reviews_breakdown = response.data.reviews_breakdown
       this.nearby_hotels = response.data.nearby_hotels
+      this.hotelImages = JSON.parse(response.data.hotel.hotel_image_urls)
     },
-    // comment popup
+    /******** comment popup *******/
     showCommentPopup() {
       this.openCommentPopup = true
     },
     hideCommentPopup() {
       this.openCommentPopup = false
     },
-    // map popup
+    /******** map popup ********/
     closeMapPopup() {
       this.openMapPopup = false
     },
-    // image slider
-    openImageSlider() {
-      this.isSliderOpen = true
+    /******** image gallery popup ********/
+    openImageGallery() {
+      this.isImageGalleryOpen = true
+      document.getElementById("hotelDetails").classList.add("no-scroll");
     },
-    closeImageSlider() {
-      this.isSliderOpen = false
+    closeImageGallery() {
+      this.isImageGalleryOpen = false
+      document.getElementById("hotelDetails").classList.remove("no-scroll");
+    },
+    /*********** guest selection popup *******/
+    toggleGuestSelector() {
+      this.showGuestSelector = !this.showGuestSelector
+    },
+    updateGuests(type, action) {
+      if (type === 'adults') {
+        if (action === 'increment' && this.adults < 30) this.adults++
+        else if (action === 'decrement' && this.adults > 1) this.adults--
+      } else if (type === 'children') {
+        if (action === 'increment' && this.children < 10) this.children++
+        else if (action === 'decrement' && this.children > 0) this.children--
+      } else if (type === 'rooms') {
+        if (action === 'increment' && this.rooms < 30) this.rooms++
+        else if (action === 'decrement' && this.rooms > 1) this.rooms--
+      }
+    },
+    hideGuestSelector() {
+      this.showGuestSelector = false
+    },
+    async applyChange() {
+      const response = await axios.post('http://localhost:3000/api/hotels/search-room', {
+        hotel_id: this.hotel_id,
+        dateRange: this.dateRange,
+        adults: this.adults,
+        children: this.children,
+        rooms: this.rooms
+      })
+
+      this.room_list = response.data.available_rooms
+    },
+    calculateDaysBetween() {
+      const [start, end] = this.dateRange.match(/\d{2}\/\d{2}\/\d{4}/g)
+
+      const startDate = new Date(start.split('/').reverse().join('-'))
+      const endDate = new Date(end.split('/').reverse().join('-'))
+
+      const timeDiff = endDate - startDate
+      const daysDiff = timeDiff / (1000 * 60 * 60 * 24)
+
+      return daysDiff + 1
     }
   },
   mounted() {
     this.hotel_id = this.$route.params.hotel_id
     // Fetch hotel details using hotelId
-    this.getHotelDetails()
+    this.getHotelDetails(),
+      // date picker popup
+      flatpickr(this.$refs.dateInput, {
+        dateFormat: 'd/m/Y', // Định dạng ngày
+        locale: 'vn', // Ngôn ngữ tiếng Việt cho tên ngày tháng
+        mode: 'range', // Cho phép chọn dải ngày
+
+        minDate: 'today', // Không cho phép chọn ngày trong quá khứ
+        showMonths: 2, // Hiển thị 2 tháng cạnh nhau
+        onChange: function (selectedDates, dateStr, instance) {},
+        mode: 'range',
+        locale: {
+          rangeSeparator: ' đến ' // Thay "to" bằng "đến"
+        },
+        onValueUpdate: function (selectedDates, dateStr, instance) {
+          // Thêm "Từ" vào trước ngày bắt đầu
+          const display = instance.element.value
+          instance.element.value = 'Từ ' + display
+        }
+      })
   }
 }
 </script>
 <template>
-  <TheHeader />
-  <MapComponent v-if="openMapPopup" :hotels="[hotel]" @close-map-popup="closeMapPopup" />
-  <ImageSlider :images="hotel.image_urls" :isOpen="isSliderOpen" @close="closeImageSlider" />
-  <!-- menu  -->
-  <div class="menu">
-    <div class="container">
-      <div class="menu__list">
-        <ul>
-          <li><a href="">Tổng quan</a></li>
-          <li><a href="#price">Thông tin & giá</a></li>
-          <li>Tiện nghi</li>
-          <li><a href="#policy">Chính sách</a></li>
-          <li>Ghi chú</li>
-          <li><a href="#review">Đánh giá của khách</a></li>
-        </ul>
+  <div id="hotelDetails" class="hotel-details-container">
+    <TheHeader />
+    <MapComponent v-if="openMapPopup" :hotels="[hotel]" @close-map-popup="closeMapPopup" />
+    <ImageGallery :room_list="room_list" :hotelImages="hotelImages" :isOpen="isImageGalleryOpen" @close="closeImageGallery" />
+    <!-- menu  -->
+    <div class="menu">
+      <div class="container">
+        <div class="menu__list">
+          <ul>
+            <li><a href="">Tổng quan</a></li>
+            <li><a href="#price">Thông tin & giá</a></li>
+            <li>Tiện nghi</li>
+            <li><a href="#policy">Chính sách</a></li>
+            <li>Ghi chú</li>
+            <li><a href="#review">Đánh giá của khách</a></li>
+          </ul>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- end menu  -->
+    <!-- end menu  -->
 
-  <!-- overview  -->
-  <div class="overview">
-    <div class="container">
-      <div class="overview__total">
-        <div class="overview__search">
-          <div class="booking-form">
-            <h2>Đặt Phòng</h2>
-            <label for="destination">Tên chỗ nghỉ / điểm đến:</label>
-            <input type="text" id="destination" placeholder="Hà Nội" />
-
-            <label for="checkin-date">Ngày nhận phòng:</label>
-            <input type="text" id="checkin-date" placeholder="Chọn ngày nhận phòng" />
-
-            <label for="checkout-date">Ngày trả phòng:</label>
-            <input type="text" id="checkout-date" placeholder="Chọn ngày trả phòng" />
-
-            <label for="guest-info">Khách & Phòng:</label>
-            <input
-              type="text"
-              id="guest-info"
-              readonly
-              placeholder="2 người lớn · 0 trẻ em · 1 phòng"
-            />
-
-            <!-- Dropdown khách & phòng -->
-            <div class="guest-room-dropdown" style="display: none">
-              <div class="counter">
-                <span>Người lớn</span>
-                <div class="select">
-                  <button id="adults-minus">-</button>
-                  <span class="number" id="adults-count">2</span>
-                  <button id="adults-plus">+</button>
-                </div>
-              </div>
-              <div class="counter">
-                <span>Trẻ em</span>
-                <div class="select">
-                  <button id="children-minus">-</button>
-                  <span class="number" id="children-count">0</span>
-                  <button id="children-plus">+</button>
-                </div>
-              </div>
-              <div class="counter">
-                <span>Phòng</span>
-                <div class="select">
-                  <button id="rooms-minus">-</button>
-                  <span class="number" id="rooms-count">1</span>
-                  <button id="rooms-plus">+</button>
-                </div>
-              </div>
-              <button class="closeButton">Đóng</button>
+    <!-- overview  -->
+    <div class="overview">
+      <div class="container">
+        <div class="overview__total">
+          <div class="overview__image">
+            <div class="overview__image--title">
+              <h2>{{ hotel.name }}</h2>
+              <button>Đặt ngay</button>
+            </div>
+            <div class="overview__image--location">
+              <p><i class="fa-solid fa-location-dot"></i>{{ hotel.address }}</p>
             </div>
 
-            <button type="button">Tìm Kiếm</button>
+            <div class="gallery-container" >
+              <!-- Featured large images -->
+              <div class="featured-images">
+                <div class="featured-left" @click="openImageGallery">
+                  <img
+                    :src="hotelImages[0]"
+                    alt="Featured room 1"
+                    class="featured-image"
+                    v-if="hotelImages.length > 0"
+                  />
+                </div>
+                <div class="featured-right" @click="openImageGallery">
+                  <img
+                    :src="hotelImages[1]"
+                    alt="Featured room 2"
+                    class="featured-image"
+                    v-if="hotelImages.length > 1"
+                  />
+                  <img
+                    :src="hotelImages[2]"
+                    alt="Featured room 3"
+                    class="featured-image"
+                    v-if="hotelImages.length > 2"
+                  />
+                </div>
+              </div>
+
+              <!-- Thumbnail grid -->
+              <div class="thumbnail-grid">
+                <div
+                  v-for="(image, index) in displayedThumbnails"
+                  :key="index"
+                  class="thumbnail-item"
+                  @click="openImageGallery"
+                >
+                  <img :src="image" :alt="`Room ${index + 4}`" class="thumbnail-image" />
+                </div>
+                <div
+                  v-if="hasMoreImages"
+                  class="thumbnail-item more-images"
+                  @click="openImageGallery"
+                >
+                  <div class="more-overlay">
+                    <span>+{{ remainingImages }} ảnh</span>
+                  </div>
+                  <img
+                    :src="hotelImages[displayedThumbnails.length + 3]"
+                    :alt="`Room ${displayedThumbnails.length + 4}`"
+                    class="thumbnail-image"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- end overview  -->
+
+    <!-- information  -->
+    <div class="information">
+      <div class="container">
+        <div class="information__total">
+          <div class="information__text">
+            <p>{{ this.hotel.description }}</p>
+            <h3>Các tiện nghi được ưa chuộng nhất</h3>
+            <ul>
+              <li>
+                <i class="fa-solid fa-bus"></i>
+                <p>Xe đưa đón sân bay</p>
+              </li>
+              <li>
+                <i class="fa-solid fa-ban-smoking"></i>
+                <p>Phòng không hút thuốc</p>
+              </li>
+              <li>
+                <i class="fa-solid fa-wifi"></i>
+                <p>WiFi miễn phí</p>
+              </li>
+              <li>
+                <i class="fa-solid fa-people-roof"></i>
+                <p>Phòng gia đình</p>
+              </li>
+              <li>
+                <i class="fa-solid fa-bell-concierge"></i>
+                <p>tân 24 giờ</p>
+              </li>
+              <li>
+                <i class="fa-solid fa-elevator"></i>
+                <p>Thang máy</p>
+              </li>
+              <li>
+                <i class="fa-regular fa-snowflake"></i>
+                <p>Điều hòa nhiệt độ</p>
+              </li>
+            </ul>
           </div>
           <div class="map">
             <iframe
@@ -156,1007 +330,581 @@ export default {
             </button>
           </div>
         </div>
-        <div class="overview__image">
-          <div class="overview__image--title">
-            <h2>{{ hotel.name }}</h2>
-            <button>Đặt ngay</button>
-          </div>
-          <div class="overview__image--location">
-            <p><i class="fa-solid fa-location-dot"></i>{{ hotel.address }}</p>
-          </div>
-          <div class="overview__image--list">
-            <div class="overview__image--header">
-              <div class="overview__image--1">
-                <img
-                  src="https://cf.bstatic.com/xdata/images/hotel/max500/607452727.jpg?k=dedb57c9de2d7768212d044018809f7a692a38e2d5bb8a69302d0f8eed26375a&o=&hp=1"
-                  alt=""
-                />
-                <img
-                  src="https://cf.bstatic.com/xdata/images/hotel/max500/607020364.jpg?k=615e5b2944a5cd48c80144ca9387bb5b7184d12af19e8022f2a6ea38bad5f7f3&o=&hp=1"
-                  alt=""
-                />
-              </div>
-              <div class="overview__image--2" @click="openImageSlider()">
-                <img
-                  src="https://cf.bstatic.com/xdata/images/hotel/max1024x768/139485406.jpg?k=e12e1e4c7b7a8293ff392e0249a80cac3891e281d1373354934a11441f89d867&o=&hp=1"
-                  alt=""
-                />
-              </div>
-            </div>
-            <div class="overview__image--footer">
-              <img
-                src="https://cf.bstatic.com/xdata/images/hotel/max300/143633832.jpg?k=eee3ba907b66cc9f46235304d0fff0952528a2d3ed979549f18d2a944c9eb66e&o=&hp=1"
-                alt=""
-              />
-              <img
-                src="https://cf.bstatic.com/xdata/images/hotel/max300/607020320.jpg?k=47a969a383fc5d96234fc91e85eec210973e6b1509f382f5bdd2722748ce849b&o=&hp=1"
-                alt=""
-              />
-              <img
-                src="https://cf.bstatic.com/xdata/images/hotel/max300/607150715.jpg?k=32c4c039ddeadf5a8a935fa087f84dacb07cd3dbf0899fd1835f8fbba36393d3&o=&hp=1"
-                alt=""
-              />
-              <img
-                src="https://cf.bstatic.com/xdata/images/hotel/max300/143636536.jpg?k=cbb548d7184c3c3e6e54dc7548824dd2726ee738c42aaa108cbcf52bcef8a08c&o=&hp=1"
-                alt=""
-              />
-              <img class="last" src="" alt="" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- end overview  -->
-
-  <!-- information  -->
-  <div class="information">
-    <div class="container">
-      <div class="information__total">
-        <div class="information__text">
-          <p>{{ this.hotel.description }}</p>
-          <h3>Các tiện nghi được ưa chuộng nhất</h3>
-          <ul>
-            <li>
-              <i class="fa-solid fa-bus"></i>
-              <p>Xe đưa đón sân bay</p>
-            </li>
-            <li>
-              <i class="fa-solid fa-ban-smoking"></i>
-              <p>Phòng không hút thuốc</p>
-            </li>
-            <li>
-              <i class="fa-solid fa-wifi"></i>
-              <p>WiFi miễn phí</p>
-            </li>
-            <li>
-              <i class="fa-solid fa-people-roof"></i>
-              <p>Phòng gia đình</p>
-            </li>
-            <li>
-              <i class="fa-solid fa-bell-concierge"></i>
-              <p>tân 24 giờ</p>
-            </li>
-            <li>
-              <i class="fa-solid fa-elevator"></i>
-              <p>Thang máy</p>
-            </li>
-            <li>
-              <i class="fa-regular fa-snowflake"></i>
-              <p>Điều hòa nhiệt độ</p>
-            </li>
-          </ul>
-        </div>
-        <div class="information__login">
-          <div class="information_genius">
-            <h3>Lợi ích Genius có ở một số lựa chọn:</h3>
-            <ul>
-              <li>
-                <i class="fa-solid fa-circle-check"></i> Giảm giá 10% <br />
-                Áp dụng trên giá trước thuế và phí
-              </li>
-            </ul>
-            <hr />
-            <p>Chương trình khách hàng thân thiết của Booking.com</p>
-          </div>
-        </div>
-      </div>
-      <hr />
-    </div>
-  </div>
-  <!-- end information  -->
-
-  <!-- price -->
-  <div class="price" id="price">
-    <div class="container">
-      <div class="price__total">
-        <div class="row">
-          <div class="col-3">
-            <div class="thead">
-              <strong>Loại chỗ ở</strong>
-            </div>
-            <div class="room--1">
-              <strong>Nhà 1 Phòng ngủ</strong>
-              <ul>
-                <li><i class="fa-solid fa-house"></i>Nhà nghỉ dưỡng nguyên căn</li>
-                <li><i class="fa-solid fa-wheelchair-move"></i>Ban công</li>
-                <li><i class="fa-solid fa-wind"></i> Nhìn ra vườn</li>
-                <li><i class="fa-regular fa-snowflake"></i>Điều hòa không khí</li>
-                <li><i class="fa-solid fa-sink"></i>Phòng tắm riêng trong phòng</li>
-                <li><i class="fa-solid fa-tv"></i>TV màn hình phẳng</li>
-              </ul>
-              <hr />
-              <ul class="price--check">
-                <li><i class="fa-solid fa-check"></i> Đồ vệ sinh cá nhân miễn phí</li>
-                <li><i class="fa-solid fa-check"></i>Áo choàng tắm</li>
-                <li><i class="fa-solid fa-check"></i>Nhà vệ sinh</li>
-                <li><i class="fa-solid fa-check"></i>Bồn tắm hoặc Vòi sen</li>
-                <li><i class="fa-solid fa-check"></i>Khăn tắm</li>
-                <li><i class="fa-solid fa-check"></i>Ổ điện gần giường</li>
-              </ul>
-            </div>
-            <div class="room--1">
-              <strong>Nhà 1 Phòng ngủ</strong>
-              <ul>
-                <li><i class="fa-solid fa-house"></i>Nhà nghỉ dưỡng nguyên căn</li>
-                <li><i class="fa-solid fa-wheelchair-move"></i>Ban công</li>
-                <li><i class="fa-solid fa-wind"></i> Nhìn ra vườn</li>
-                <li><i class="fa-regular fa-snowflake"></i>Điều hòa không khí</li>
-                <li><i class="fa-solid fa-sink"></i>Phòng tắm riêng trong phòng</li>
-                <li><i class="fa-solid fa-tv"></i>TV màn hình phẳng</li>
-              </ul>
-              <hr />
-              <ul class="price--check">
-                <li><i class="fa-solid fa-check"></i> Đồ vệ sinh cá nhân miễn phí</li>
-                <li><i class="fa-solid fa-check"></i>Áo choàng tắm</li>
-                <li><i class="fa-solid fa-check"></i>Nhà vệ sinh</li>
-                <li><i class="fa-solid fa-check"></i>Bồn tắm hoặc Vòi sen</li>
-                <li><i class="fa-solid fa-check"></i>Khăn tắm</li>
-                <li><i class="fa-solid fa-check"></i>Ổ điện gần giường</li>
-              </ul>
-            </div>
-          </div>
-          <div class="col-1">
-            <div class="thead">
-              <strong>Số lượng khách</strong>
-            </div>
-            <div class="price__customer price__customer--1">
-              <i class="fa-solid fa-user"></i>
-              <i class="fa-solid fa-user"></i>
-            </div>
-            <div class="price__customer price__customer--2">
-              <i class="fa-solid fa-user"></i>
-              <i class="fa-solid fa-user"></i>
-            </div>
-            <div class="price__customer price__customer--3">
-              <i class="fa-solid fa-user"></i>
-            </div>
-            <div class="price__customer price__customer--4">
-              <i class="fa-solid fa-user"></i>
-            </div>
-          </div>
-          <div class="col-2">
-            <div class="thead" style="background-color: #00388e">
-              <strong>Giá hôm nay</strong>
-            </div>
-            <div class="price__customer price__customer--1">
-              <span>VND 350.100</span>
-              <br />
-              <strong>VND 350.090</strong> <i class="fa-solid fa-circle-exclamation"></i>
-              <br />
-              <span>Đã bao gồm thuế và phí</span>
-              <br />
-              <span class="save">Tiết kiệm 10%</span>
-            </div>
-            <div class="price__customer price__customer--2">
-              <span>VND 350.100</span>
-              <br />
-              <strong>VND 350.090</strong> <i class="fa-solid fa-circle-exclamation"></i>
-              <br />
-              <span>Đã bao gồm thuế và phí</span>
-              <br />
-              <span class="save">Tiết kiệm 10%</span>
-            </div>
-            <div class="price__customer price__customer--3">
-              <span>VND 350.100</span>
-              <br />
-              <strong>VND 350.090</strong> <i class="fa-solid fa-circle-exclamation"></i>
-              <br />
-              <span>Đã bao gồm thuế và phí</span>
-              <br />
-              <span class="save">Tiết kiệm 10%</span>
-            </div>
-            <div class="price__customer price__customer--4">
-              <span>VND 350.100</span>
-              <br />
-              <strong>VND 350.090</strong> <i class="fa-solid fa-circle-exclamation"></i>
-              <br />
-              <span>Đã bao gồm thuế và phí</span>
-              <br />
-              <span class="save">Tiết kiệm 10%</span>
-            </div>
-          </div>
-          <div class="col-3">
-            <div class="thead">
-              <strong>Các lựa chọn</strong>
-            </div>
-            <div class="price__customer price__customer--1">
-              <ul>
-                <li>Không hoàn tiền</li>
-              </ul>
-              <ul class="check">
-                <li>
-                  <i class="fa-solid fa-check"></i>Giảm giá Genius 10% trên giá nước thuế và phí
-                </li>
-              </ul>
-            </div>
-            <div class="price__customer price__customer--2">
-              <ul>
-                <li>Phí hủy: 50% tiền phòng</li>
-              </ul>
-              <ul class="check">
-                <li>
-                  <i class="fa-solid fa-check"></i><b>Không cần thanh toán trước</b> - thanh toán
-                  tại chỗ nghỉ
-                </li>
-                <li>
-                  <i class="fa-solid fa-check"></i>Giảm giá Genius 10% trên giá nước thuế và phí
-                </li>
-              </ul>
-            </div>
-            <div class="price__customer price__customer--3">
-              <ul>
-                <li>Không hoàn tiền</li>
-              </ul>
-              <ul class="check">
-                <li>
-                  <i class="fa-solid fa-check"></i>Giảm giá Genius 10% trên giá nước thuế và phí
-                </li>
-              </ul>
-            </div>
-            <div class="price__customer price__customer--4">
-              <ul>
-                <li>Không hoàn tiền</li>
-              </ul>
-              <ul class="check">
-                <li>
-                  <i class="fa-solid fa-check"></i>Giảm giá Genius 10% trên giá nước thuế và phí
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div class="col-1">
-            <div class="thead">
-              <strong>Chọn nhà nghỉ mát</strong>
-            </div>
-            <div class="price__customer price__customer--1">
-              <select name="" id="">
-                <option value="0">0</option>
-                <option value="0">1 (VND 315.090)</option>
-                <option value="0">2 (VND 630.180)</option>
-                <option value="0">3 (VND 945.270)</option>
-                <option value="0">4 (VND 1.260.360)</option>
-                <option value="0">5 (VND 1.575.450)</option>
-              </select>
-            </div>
-            <div class="price__customer price__customer--2">
-              <select name="" id="">
-                <option value="0">0</option>
-                <option value="0">1 (VND 315.090)</option>
-                <option value="0">2 (VND 630.180)</option>
-                <option value="0">3 (VND 945.270)</option>
-                <option value="0">4 (VND 1.260.360)</option>
-                <option value="0">5 (VND 1.575.450)</option>
-              </select>
-            </div>
-            <div class="price__customer price__customer--3">
-              <select name="" id="">
-                <option value="0">0</option>
-                <option value="0">1 (VND 315.090)</option>
-                <option value="0">2 (VND 630.180)</option>
-                <option value="0">3 (VND 945.270)</option>
-                <option value="0">4 (VND 1.260.360)</option>
-                <option value="0">5 (VND 1.575.450)</option>
-              </select>
-            </div>
-            <div class="price__customer price__customer--4">
-              <select name="" id="">
-                <option value="0">0</option>
-                <option value="0">1 (VND 315.090)</option>
-                <option value="0">2 (VND 630.180)</option>
-                <option value="0">3 (VND 945.270)</option>
-                <option value="0">4 (VND 1.260.360)</option>
-                <option value="0">5 (VND 1.575.450)</option>
-              </select>
-            </div>
-          </div>
-          <div class="col-2">
-            <div class="thead"></div>
-            <div class="price__content">
-              <button>Tôi sẽ đặt</button>
-              <ul>
-                <li>Chỉ mất có 2 phút</li>
-                <li>Xác nhận tức thời</li>
-              </ul>
-              <b><i class="fa-solid fa-address-card"></i> Không cần thẻ tín dụng </b>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- end price -->
-
-  <!-- review -->
-
-  <div class="review__open" v-if="openCommentPopup">
-    <div class="review__open--left"></div>
-    <div class="review__open--right">
-      <strong>Đánh giá của khách</strong>
-      <button class="close" @click="hideCommentPopup()">x</button>
-      <div class="review__open--point">
-        <span class="point">9.2</span>
-        <div>
-          <span style="font-weight: 500">Tuyệt hảo</span>
-          <br />
-          <span>23 đánh giá</span>
-        </div>
-        <p>Chúng tôi cố gắng mang đến 100% đánh giá thật <i class="fa-solid fa-circle-info"></i></p>
-        <button>Viết đánh giá</button>
-      </div>
-      <hr />
-      <div class="review__process">
-        <strong>Hạng mục</strong>
-        <div class="review__process--bar">
-          <div class="row">
-            <div class="col-lg-4 col-md-6 col-12">
-              <div class="category">
-                <div>Nhân viên phục vụ</div>
-                <div>9.2</div>
-              </div>
-              <div class="process--bar">
-                <div class="bar" style="width: 92%"></div>
-              </div>
-            </div>
-            <div class="col-lg-4 col-md-6 col-12">
-              <div class="category">
-                <div>Tiện nghi</div>
-                <div>8.8</div>
-              </div>
-              <div class="process--bar">
-                <div class="bar" style="width: 88%"></div>
-              </div>
-            </div>
-            <div class="col-lg-4 col-md-6 col-12">
-              <div class="category">
-                <div>Sạch sẽ</div>
-                <div>9.1</div>
-              </div>
-              <div class="process--bar">
-                <div class="bar" style="width: 91%"></div>
-              </div>
-            </div>
-            <div class="col-lg-4 col-md-6 col-12">
-              <div class="category">
-                <div>Thoái mái</div>
-                <div>9.3</div>
-              </div>
-              <div class="process--bar">
-                <div class="bar" style="width: 93%"></div>
-              </div>
-            </div>
-            <div class="col-lg-4 col-md-6 col-12">
-              <div class="category">
-                <div>Đáng giá tiền</div>
-                <div>9.2</div>
-              </div>
-              <div class="process--bar">
-                <div class="bar" style="width: 92%"></div>
-              </div>
-            </div>
-            <div class="col-lg-4 col-md-6 col-12">
-              <div class="category">
-                <div>Địa điểm</div>
-                <div>8.4</div>
-              </div>
-              <div class="process--bar">
-                <div class="bar" style="width: 84%"></div>
-              </div>
-            </div>
-            <div class="col-lg-4 col-md-6 col-12">
-              <div class="category">
-                <div>Wifi miễn phí</div>
-                <div>7.5</div>
-              </div>
-              <div class="process--bar">
-                <div class="bar" style="width: 75%"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <hr />
-      <div class="review__number">
-        <strong>Bộ lọc</strong>
-        <ul>
-          <li>
-            <p>Khách đánh giá</p>
-            <select name="" id="">
-              <option value="">Tất cả(23)</option>
-              <option value="">Gia đình(11)</option>
-              <option value="">Cặp đôi(2)</option>
-              <option value="">Khách lẻ(9)</option>
-              <option value="">Du khách doanh nhân(1)</option>
-            </select>
-          </li>
-          <li>
-            <p>Điểm đánh giá</p>
-            <select name="" id="">
-              <option value="">Tất cả(23)</option>
-              <option value="">Tuyệt hảo: 9+ (19)</option>
-              <option value="">Tốt: 7-9 (2)</option>
-              <option value="">Tàm tạm: 5-7 (1)</option>
-              <option value="">Rất tệ: 1-3 (1)</option>
-            </select>
-          </li>
-          <li>
-            <p>Ngôn ngữ</p>
-            <select name="" id="">
-              <option value="">Tất cả (23)</option>
-              <option value="">Tiếng Việt (6)</option>
-              <option value="">Tiếng Anh (6)</option>
-              <option value="">Tiếng Hàn Quốc (1)</option>
-              <option value="">Tiếng Pháp (5)</option>
-            </select>
-          </li>
-          <li>
-            <p>Thời gian trong năm</p>
-            <select name="" id="">
-              <option value="">Tất cả(23)</option>
-              <option value="">Tháng 3-5</option>
-              <option value="">Tháng 6-8</option>
-              <option value="">Tháng 9-11</option>
-              <option value="">Tháng 12-2</option>
-            </select>
-          </li>
-        </ul>
-        <p>Chọn chủ để để lọc đánh giá</p>
-        <button class="visible"><i class="fa-solid fa-plus"></i> Yên tĩnh</button>
-        <button class="visible"><i class="fa-solid fa-plus"></i> Phòng</button>
-        <button class="visible"><i class="fa-solid fa-plus"></i> Vị trí</button>
-        <button class="visible"><i class="fa-solid fa-plus"></i> Bãi biển</button>
-
-        <button><i class="fa-solid fa-plus"></i> Suite</button>
-        <button><i class="fa-solid fa-plus"></i> Gia đình</button>
-        <button><i class="fa-solid fa-plus"></i> Xe đạp</button>
-        <button><i class="fa-solid fa-plus"></i> Tiếng Anh</button>
-        <button><i class="fa-solid fa-plus"></i> Ban công</button>
-        <button><i class="fa-solid fa-plus"></i> Nhà hàng</button>
-        <button><i class="fa-solid fa-plus"></i> Sạch sẽ</button>
-        <button><i class="fa-solid fa-plus"></i> Taxi</button>
-        <button><i class="fa-solid fa-plus"></i> Ô tô</button>
-
-        <button class="search visible"><i class="fa-solid fa-magnifying-glass"></i></button>
-        <button class="smooth">Thu gọn</button>
-        <button class="smooth2 visible">Hiển thị thêm</button>
-      </div>
-      <hr />
-      <strong>Đánh giá của khách</strong>
-      <div class="review__open--text">
-        <div class="review__open--infor">
-          <div class="name">
-            <img src="" alt="" />
-            <div class="infor">
-              <span style="font-weight: 600">Anatolii</span>
-              <br />
-              <span>Nga</span>
-            </div>
-          </div>
-          <div>
-            <div class="service"><i class="fa-solid fa-bed"></i> <span>Nhà 1 phòng ngủ</span></div>
-            <div class="service">
-              <i class="fa-regular fa-calendar"></i> <span>7 đêm · tháng 3/2023</span>
-            </div>
-            <div class="service"><i class="fa-solid fa-person"></i> <span>Khách lẻ</span></div>
-          </div>
-        </div>
-        <div class="review__open--desc">
-          <div class="point">
-            <div>
-              <p>Ngày đánh giá: ngày 11 tháng 4 năm 2023</p>
-              <strong>Xuất sắc</strong>
-            </div>
-            <span>10</span>
-          </div>
-          <div class="text">
-            <i class="fa-regular fa-face-smile-beam"></i>
-            <span
-              >Very good inexpensive place, the guy in charge there speaks perfect English (which is
-              VERY uncommon in Vietnam!), cozy bungalows, cleaning every 3-4 day which is sufficient
-              for me, UNBELIEVABLE lonely beach (maybe 10 people per 1 kilometer of the beach) very
-              close (500-600 meters, maybe), but a bit difficult to find (access mostly blocked by a
-              construction site). Great value for little money! Yes, it's in the middle of nowhere
-              (small local village with cows walking through the streets), but you have some
-              restaurants and shops in the main road. But you either get a motorcycle or you suffer
-              and pay taxi, if you need to go to the city. I had motorcycle, so no problem at al!
-              Hope to visit this place again!</span
-            >
-          </div>
-          <div class="button">
-            <button><i class="fa-regular fa-thumbs-up"></i> Hữu ích</button>
-            <button><i class="fa-regular fa-thumbs-down"></i> Không hữu ích</button>
-          </div>
-        </div>
-      </div>
-      <hr />
-      <div class="review__open--text">
-        <div class="review__open--infor">
-          <div class="name">
-            <img src="" alt="" />
-            <div class="infor">
-              <span style="font-weight: 600">Anatolii</span>
-              <br />
-              <span>Nga</span>
-            </div>
-          </div>
-          <div>
-            <div class="service"><i class="fa-solid fa-bed"></i> <span>Nhà 1 phòng ngủ</span></div>
-            <div class="service">
-              <i class="fa-regular fa-calendar"></i> <span>7 đêm · tháng 3/2023</span>
-            </div>
-            <div class="service"><i class="fa-solid fa-person"></i> <span>Khách lẻ</span></div>
-          </div>
-        </div>
-        <div class="review__open--desc">
-          <div class="point">
-            <div>
-              <p>Ngày đánh giá: ngày 11 tháng 4 năm 2023</p>
-              <strong>Xuất sắc</strong>
-            </div>
-            <span>10</span>
-          </div>
-          <div class="text">
-            <i class="fa-regular fa-face-smile-beam"></i>
-            <span
-              >Very good inexpensive place, the guy in charge there speaks perfect English (which is
-              VERY uncommon in Vietnam!), cozy bungalows, cleaning every 3-4 day which is sufficient
-              for me, UNBELIEVABLE lonely beach (maybe 10 people per 1 kilometer of the beach) very
-              close (500-600 meters, maybe), but a bit difficult to find (access mostly blocked by a
-              construction site). Great value for little money! Yes, it's in the middle of nowhere
-              (small local village with cows walking through the streets), but you have some
-              restaurants and shops in the main road. But you either get a motorcycle or you suffer
-              and pay taxi, if you need to go to the city. I had motorcycle, so no problem at al!
-              Hope to visit this place again!</span
-            >
-          </div>
-          <div class="button">
-            <button><i class="fa-regular fa-thumbs-up"></i> Hữu ích</button>
-            <button><i class="fa-regular fa-thumbs-down"></i> Không hữu ích</button>
-          </div>
-        </div>
         <hr />
       </div>
-      <hr />
-      <div class="review__open--text">
-        <div class="review__open--infor">
-          <div class="name">
-            <img src="" alt="" />
-            <div class="infor">
-              <span style="font-weight: 600">Anatolii</span>
-              <br />
-              <span>Nga</span>
+    </div>
+    <!-- end information  -->
+
+    <!-- Search bar -->
+    <div class="search container">
+      <div>
+        <div class="search-bar">
+          <!-- Date picker input -->
+          <div class="date-picker">
+            <input
+              class="search-input"
+              type="text"
+              placeholder="Nhận phòng - Trả phòng"
+              v-model="dateRange"
+              ref="dateInput"
+            />
+          </div>
+
+          <!-- Guest room input -->
+          <div class="guest-room-wrapper" v-click-outside="hideGuestSelector">
+            <input
+              type="text"
+              v-model="guestDetails"
+              class="search-input"
+              @click="toggleGuestSelector"
+              readonly
+            />
+
+            <!-- Guest room selector -->
+            <div v-if="showGuestSelector" class="guest-room-selector" id="guest-room-selector">
+              <div class="selector-item">
+                <span>Người lớn</span>
+                <div class="counter">
+                  <button class="decrement" @click="updateGuests('adults', 'decrement')">-</button>
+                  <span>{{ adults }}</span>
+                  <button class="increment" @click="updateGuests('adults', 'increment')">+</button>
+                </div>
+              </div>
+              <div class="selector-item">
+                <span>Trẻ em <small>(0 - 17 tuổi)</small></span>
+                <div class="counter">
+                  <button class="decrement" @click="updateGuests('children', 'decrement')">
+                    -
+                  </button>
+                  <span>{{ children }}</span>
+                  <button class="increment" @click="updateGuests('children', 'increment')">
+                    +
+                  </button>
+                </div>
+              </div>
+              <div class="selector-item">
+                <span>Phòng</span>
+                <div class="counter">
+                  <button class="decrement" @click="updateGuests('rooms', 'decrement')">-</button>
+                  <span>{{ rooms }}</span>
+                  <button class="increment" @click="updateGuests('rooms', 'increment')">+</button>
+                </div>
+              </div>
             </div>
           </div>
-          <div>
-            <div class="service"><i class="fa-solid fa-bed"></i> <span>Nhà 1 phòng ngủ</span></div>
-            <div class="service">
-              <i class="fa-regular fa-calendar"></i> <span>7 đêm · tháng 3/2023</span>
-            </div>
-            <div class="service"><i class="fa-solid fa-person"></i> <span>Khách lẻ</span></div>
-          </div>
+
+          <!-- Search button -->
+          <button class="search-button" @click="applyChange">Áp dụng</button>
         </div>
-        <div class="review__open--desc">
-          <div class="point">
-            <div>
-              <p>Ngày đánh giá: ngày 11 tháng 4 năm 2023</p>
-              <strong>Xuất sắc</strong>
-            </div>
-            <span>10</span>
-          </div>
-          <div class="text">
-            <i class="fa-regular fa-face-smile-beam"></i>
-            <span
-              >Very good inexpensive place, the guy in charge there speaks perfect English (which is
-              VERY uncommon in Vietnam!), cozy bungalows, cleaning every 3-4 day which is sufficient
-              for me, UNBELIEVABLE lonely beach (maybe 10 people per 1 kilometer of the beach) very
-              close (500-600 meters, maybe), but a bit difficult to find (access mostly blocked by a
-              construction site). Great value for little money! Yes, it's in the middle of nowhere
-              (small local village with cows walking through the streets), but you have some
-              restaurants and shops in the main road. But you either get a motorcycle or you suffer
-              and pay taxi, if you need to go to the city. I had motorcycle, so no problem at al!
-              Hope to visit this place again!</span
-            >
-          </div>
-          <div class="button">
-            <button><i class="fa-regular fa-thumbs-up"></i> Hữu ích</button>
-            <button><i class="fa-regular fa-thumbs-down"></i> Không hữu ích</button>
-          </div>
-        </div>
-        <hr />
-      </div>
-      <hr />
-      <div class="pagination">
-        <button><i class="fa-solid fa-arrow-left"></i></button>
-        <button>1</button>
-        <button>2</button>
-        <button>3</button>
-        <button><i class="fa-solid fa-arrow-right"></i></button>
       </div>
     </div>
-  </div>
 
-  <div class="review" id="review">
+    <!-- price -->
     <div class="container">
-      <div class="review__total">
-        <div class="review__point">
-          <div class="review__point--left">
-            <h3>Đánh giá của khách</h3>
-            <span class="point">9.2</span>
-            <span style="font-weight: 500; margin-left: 5px">Tuyệt hảo - 23 đánh giá </span>
+      <table>
+        <thead>
+          <tr class="table_header">
+            <th class="table_header_1">Loại chỗ nghỉ</th>
+            <th class="table_header_2">Số lượng khách</th>
+            <th class="table_header_3">Giá hôm nay</th>
+            <th class="table_header_4">Các lựa chọn</th>
+            <th class="table_header_5">Chọn phòng</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="room_1" v-for="room in room_list" :key="room.room_id">
+            <td>
+              <a href="#" class="room-title">{{ room.room_name }}</a>
+              <ul class="service">
+                <li v-for="(amenity, index) in JSON.parse(room.room_amenities)" :key="index">
+                  {{ amenity }}
+                </li>
+              </ul>
+            </td>
+            <td>
+              <div class="price__customer price__customer--1">
+                <i
+                  class="fa-solid fa-user"
+                  v-for="(guest, index) in room.max_guests"
+                  :key="index"
+                ></i>
+              </div>
+            </td>
+            <td>
+              <div class="price">
+                {{
+                  (Number(room.price_per_night) * calculateDaysBetween()).toLocaleString('vi-VN')
+                }}
+              </div>
+              <div class="tax-info">Đã bao gồm thuế và phí</div>
+            </td>
+            <td>
+              <ul class="benefits">
+                <li>Miễn phí hủy bất kỳ lúc nào</li>
+                <li>Không cần thanh toán trước</li>
+              </ul>
+            </td>
+            <td>
+              <select name="" id="">
+                <option value="0">0</option>
+                <option value="0">1 (VND 315.090)</option>
+                <option value="0">2 (VND 630.180)</option>
+                <option value="0">3 (VND 945.270)</option>
+                <option value="0">4 (VND 1.260.360)</option>
+                <option value="0">5 (VND 1.575.450)</option>
+              </select>
+            </td>
+            <td>
+              <div class="price__content">
+                <button>Tôi sẽ đặt</button>
+                <ul>
+                  <li>Chỉ mất có 2 phút</li>
+                  <li>Xác nhận tức thời</li>
+                </ul>
+                <b><i class="fa-solid fa-address-card"></i> Không cần thẻ tín dụng </b>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- end price -->
+
+    <!-- review popup -->
+    <div class="review__open" v-if="openCommentPopup">
+      <div class="review__open--left"></div>
+      <div class="review__open--right">
+        <strong>Đánh giá của khách</strong>
+        <button class="close" @click="hideCommentPopup()">x</button>
+        <div class="review__open--point">
+          <span class="point">{{ this.hotel.overall_rating }}</span>
+          <div>
+            <span style="font-weight: 500">Tuyệt hảo</span>
+            <br />
+            <span>{{ this.reviews.length }} đánh giá</span>
           </div>
-          <div class="review__point--right">
-            <button>Xem phòng trống</button>
-          </div>
+          <p>
+            Chúng tôi cố gắng mang đến 100% đánh giá thật <i class="fa-solid fa-circle-info"></i>
+          </p>
+          <button>Viết đánh giá</button>
         </div>
+        <hr />
         <div class="review__process">
           <strong>Hạng mục</strong>
           <div class="review__process--bar">
             <div class="row">
-              <div class="col-lg-4 col-md-6 col-12">
+              <div class="col-lg-4 col-md-6 col-12" v-for="review_breakdown in reviews_breakdown">
                 <div class="category">
-                  <div>Nhân viên phục vụ</div>
-                  <div>9.2</div>
+                  <div>{{ review_breakdown.category_name }}</div>
+                  <div>
+                    {{
+                      Number(
+                        (review_breakdown.positive / review_breakdown.total_mentioned) * 10
+                      ).toFixed(1)
+                    }}
+                  </div>
                 </div>
                 <div class="process--bar">
                   <div class="bar" style="width: 92%"></div>
-                </div>
-              </div>
-              <div class="col-lg-4 col-md-6 col-12">
-                <div class="category">
-                  <div>Tiện nghi</div>
-                  <div>8.8</div>
-                </div>
-                <div class="process--bar">
-                  <div class="bar" style="width: 88%"></div>
-                </div>
-              </div>
-              <div class="col-lg-4 col-md-6 col-12">
-                <div class="category">
-                  <div>Sạch sẽ</div>
-                  <div>9.1</div>
-                </div>
-                <div class="process--bar">
-                  <div class="bar" style="width: 91%"></div>
-                </div>
-              </div>
-              <div class="col-lg-4 col-md-6 col-12">
-                <div class="category">
-                  <div>Thoái mái</div>
-                  <div>9.3</div>
-                </div>
-                <div class="process--bar">
-                  <div class="bar" style="width: 93%"></div>
-                </div>
-              </div>
-              <div class="col-lg-4 col-md-6 col-12">
-                <div class="category">
-                  <div>Đáng giá tiền</div>
-                  <div>9.2</div>
-                </div>
-                <div class="process--bar">
-                  <div class="bar" style="width: 92%"></div>
-                </div>
-              </div>
-              <div class="col-lg-4 col-md-6 col-12">
-                <div class="category">
-                  <div>Địa điểm</div>
-                  <div>8.4</div>
-                </div>
-                <div class="process--bar">
-                  <div class="bar" style="width: 84%"></div>
-                </div>
-              </div>
-              <div class="col-lg-4 col-md-6 col-12">
-                <div class="category">
-                  <div>Wifi miễn phí</div>
-                  <div>7.5</div>
-                </div>
-                <div class="process--bar">
-                  <div class="bar" style="width: 75%"></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div class="review__text">
-          <strong>Khách lưu trú ở đây thích điều gì</strong>
+        <hr />
+        <div class="review__number">
+          <strong>Bộ lọc</strong>
+          <ul>
+            <li>
+              <p>Khách đánh giá</p>
+              <select name="" id="">
+                <option value="">Tất cả({{ this.reviews.length }})</option>
+                <option value="">Gia đình(11)</option>
+                <option value="">Cặp đôi(2)</option>
+                <option value="">Khách lẻ(9)</option>
+                <option value="">Du khách doanh nhân(1)</option>
+              </select>
+            </li>
+            <li>
+              <p>Điểm đánh giá</p>
+              <select name="" id="">
+                <option value="">Tất cả({{ this.reviews.length }})</option>
+                <option value="">Tuyệt hảo: 9+ (19)</option>
+                <option value="">Tốt: 7-9 (2)</option>
+                <option value="">Tàm tạm: 5-7 (1)</option>
+                <option value="">Rất tệ: 1-3 (1)</option>
+              </select>
+            </li>
+            <li>
+              <p>Ngôn ngữ</p>
+              <select name="" id="">
+                <option value="">Tất cả ({{ this.reviews.length }})</option>
+                <option value="">Tiếng Việt (6)</option>
+                <option value="">Tiếng Anh (6)</option>
+                <option value="">Tiếng Hàn Quốc (1)</option>
+                <option value="">Tiếng Pháp (5)</option>
+              </select>
+            </li>
+            <li>
+              <p>Thời gian trong năm</p>
+              <select name="" id="">
+                <option value="">Tất cả({{ this.reviews.length }})</option>
+                <option value="">Tháng 3-5</option>
+                <option value="">Tháng 6-8</option>
+                <option value="">Tháng 9-11</option>
+                <option value="">Tháng 12-2</option>
+              </select>
+            </li>
+          </ul>
+          <p>Chọn chủ để để lọc đánh giá</p>
+          <button class="visible"><i class="fa-solid fa-plus"></i> Yên tĩnh</button>
+          <button class="visible"><i class="fa-solid fa-plus"></i> Phòng</button>
+          <button class="visible"><i class="fa-solid fa-plus"></i> Vị trí</button>
+          <button class="visible"><i class="fa-solid fa-plus"></i> Bãi biển</button>
 
+          <button><i class="fa-solid fa-plus"></i> Suite</button>
+          <button><i class="fa-solid fa-plus"></i> Gia đình</button>
+          <button><i class="fa-solid fa-plus"></i> Xe đạp</button>
+          <button><i class="fa-solid fa-plus"></i> Tiếng Anh</button>
+          <button><i class="fa-solid fa-plus"></i> Ban công</button>
+          <button><i class="fa-solid fa-plus"></i> Nhà hàng</button>
+          <button><i class="fa-solid fa-plus"></i> Sạch sẽ</button>
+          <button><i class="fa-solid fa-plus"></i> Taxi</button>
+          <button><i class="fa-solid fa-plus"></i> Ô tô</button>
+
+          <button class="search visible"><i class="fa-solid fa-magnifying-glass"></i></button>
+          <button class="smooth">Thu gọn</button>
+          <button class="smooth2 visible">Hiển thị thêm</button>
+        </div>
+        <hr />
+        <strong>Đánh giá của khách</strong>
+        <div class="review__open--text" v-for="review in reviews" :key="review.review_id">
+          <div class="review__open--infor">
+            <div class="name">
+              <img src="" alt="" />
+              <div class="infor">
+                <span style="font-weight: 600">{{ review.username }}</span>
+                <br />
+                <span>Nga</span>
+              </div>
+            </div>
+            <div>
+              <div class="service">
+                <i class="fa-solid fa-bed"></i> <span>Nhà 1 phòng ngủ</span>
+              </div>
+              <div class="service">
+                <i class="fa-regular fa-calendar"></i> <span>7 đêm · tháng 3/2023</span>
+              </div>
+              <div class="service"><i class="fa-solid fa-person"></i> <span>Khách lẻ</span></div>
+            </div>
+          </div>
+          <div class="review__open--desc">
+            <div class="point">
+              <div>
+                <p>Ngày đánh giá: ngày 11 tháng 4 năm 2023</p>
+                <strong>Xuất sắc</strong>
+              </div>
+              <span>{{ review.rating }}</span>
+            </div>
+            <div class="text">
+              <i class="fa-regular fa-face-smile-beam"></i>
+              <span> {{ review.comment }}</span>
+            </div>
+            <div class="button">
+              <button><i class="fa-regular fa-thumbs-up"></i> Hữu ích</button>
+              <button><i class="fa-regular fa-thumbs-down"></i> Không hữu ích</button>
+            </div>
+          </div>
+        </div>
+        <hr />
+        <div class="pagination">
+          <button><i class="fa-solid fa-arrow-left"></i></button>
+          <button>1</button>
+          <button>2</button>
+          <button>3</button>
+          <button><i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- review -->
+    <div class="review" id="review">
+      <div class="container">
+        <div class="review__total">
+          <div class="review__point">
+            <div class="review__point--left">
+              <h3>Đánh giá của khách</h3>
+              <span class="point">{{ this.hotel.overall_rating }}</span>
+              <span style="font-weight: 500; margin-left: 5px"
+                >Tuyệt hảo - {{ this.reviews.length }} đánh giá
+              </span>
+            </div>
+            <div class="review__point--right">
+              <button>Xem phòng trống</button>
+            </div>
+          </div>
+          <div class="review__process">
+            <strong>Hạng mục</strong>
+            <div class="review__process--bar">
+              <div class="row">
+                <div class="col-lg-4 col-md-6 col-12" v-for="review_breakdown in reviews_breakdown">
+                  <div class="category">
+                    <div>{{ review_breakdown.category_name }}</div>
+                    <div>
+                      {{
+                        Number(
+                          (review_breakdown.positive / review_breakdown.total_mentioned) * 10
+                        ).toFixed(1)
+                      }}
+                    </div>
+                  </div>
+                  <div class="process--bar">
+                    <div class="bar" style="width: 92%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="review__text">
+            <strong>Khách lưu trú ở đây thích điều gì</strong>
+            <div class="row">
+              <div class="col-xl-4 col-md-6 col-12" v-for="(review, index) in reviews" :key="index">
+                <div class="reviewer" v-if="index <= 2">
+                  <div class="name">
+                    <img src="" alt="" />
+                    <div class="infor">
+                      <span style="font-weight: 600">{{ review.username }}</span>
+                      <br />
+                      <span>Nga</span>
+                    </div>
+                  </div>
+                  <div class="text">
+                    <p>“{{ review.comment }}”</p>
+                    <a href="">Tìm hiểu thêm</a>
+                    <br />
+                    <a href="">Xem bản dịch</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="btnAll" @click="showCommentPopup()">Đọc tất cả đánh giá</button>
+        </div>
+      </div>
+    </div>
+    <!-- end review -->
+
+    <!-- surrounding -->
+    <div class="surrounding">
+      <div class="container">
+        <div class="surrounding__total">
+          <div class="sur__title">
+            <div class="surrounding__name">
+              <h3>Xung quanh khách sạn</h3>
+              <a href="">Vị trí tuyệt vời - Hiển thị bản đồ</a>
+            </div>
+            <div class="sur__button">
+              <button>Xem phòng trống</button>
+            </div>
+          </div>
           <div class="row">
             <div class="col-xl-4 col-md-6 col-12">
-              <div class="reviewer">
-                <div class="name">
-                  <img src="" alt="" />
-                  <div class="infor">
-                    <span style="font-weight: 600">Anatolii</span>
-                    <br />
-                    <span>Nga</span>
-                  </div>
+              <i class="fa-solid fa-person-walking"></i> <strong>Xung quanh có gì</strong>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Đảo Phú Quốc</div>
+                  <div class="sur__have--meters">0 m</div>
                 </div>
-                <div class="text">
-                  <p>
-                    “Very good inexpensive place, the guy in charge there speaks perfect English
-                    (which is VERY uncommon in Vietnam!), cozy bungalows, cleaning every 3-4 day
-                    which is sufficient for me, UNBELIEVABLE lonely beach (maybe 10 people per 1
-                    kilometer of the...”
-                  </p>
-                  <a href="">Tìm hiểu thêm</a>
-                  <br />
-                  <a href="">Xem bản dịch</a>
+              </div>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Vườn Quốc gia Phú Quốc</div>
+                  <div class="sur__have--meters">6 km</div>
+                </div>
+              </div>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Công Viên Bạch Đằng</div>
+                  <div class="sur__have--meters">8 km</div>
+                </div>
+              </div>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Suối Tiên - Fairy Stream</div>
+                  <div class="sur__have--meters">12 km</div>
+                </div>
+              </div>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Coi Nguon Museum</div>
+                  <div class="sur__have--meters">12 km</div>
+                </div>
+              </div>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Kidd Club</div>
+                  <div class="sur__have--meters">13 km</div>
+                </div>
+              </div>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Ream National Park</div>
+                  <div class="sur__have--meters">18 km</div>
                 </div>
               </div>
             </div>
             <div class="col-xl-4 col-md-6 col-12">
-              <div class="reviewer">
-                <div class="name">
-                  <img src="" alt="" />
-                  <div class="infor">
-                    <span style="font-weight: 600">Anatolii</span>
-                    <br />
-                    <span>Nga</span>
-                  </div>
+              <i class="fa-solid fa-utensils"></i> <strong>Nhà hàng & quán cà phê</strong>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Nhà hàng Mai Jo Refined Ông Lang</div>
+                  <div class="sur__have--meters">400 m</div>
                 </div>
-                <div class="text">
-                  <p>
-                    “Very good inexpensive place, the guy in charge there speaks perfect English
-                    (which is VERY uncommon in Vietnam!), cozy bungalows, cleaning every 3-4 day
-                    which is sufficient for me, UNBELIEVABLE lonely beach (maybe 10 people per 1
-                    kilometer of the...”
-                  </p>
-                  <a href="">Tìm hiểu thêm</a>
-                  <br />
-                  <a href="">Xem bản dịch</a>
+              </div>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Cafe/quán bar Island Life</div>
+                  <div class="sur__have--meters">600 m</div>
+                </div>
+              </div>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Cafe/quán bar Rock Bar</div>
+                  <div class="sur__have--meters">650 m</div>
                 </div>
               </div>
             </div>
             <div class="col-xl-4 col-md-6 col-12">
-              <div class="reviewer">
-                <div class="name">
-                  <img src="" alt="" />
-                  <div class="infor">
-                    <span style="font-weight: 600">Anatolii</span>
-                    <br />
-                    <span>Nga</span>
-                  </div>
-                </div>
-                <div class="text">
-                  <p>
-                    “Very good inexpensive place, the guy in charge there speaks perfect English
-                    (which is VERY uncommon in Vietnam!), cozy bungalows, cleaning every 3-4 day
-                    which is sufficient for me, UNBELIEVABLE lonely beach (maybe 10 people per 1
-                    kilometer of the...”
-                  </p>
-                  <a href="">Tìm hiểu thêm</a>
-                  <br />
-                  <a href="">Xem bản dịch</a>
+              <i class="fa-solid fa-umbrella-beach"></i> <strong>Các bãi biển trong khu vực</strong>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Bãi biển Ông Lang</div>
+                  <div class="sur__have--meters">1.4 km</div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-        <button class="btnAll" @click="showCommentPopup()">Đọc tất cả đánh giá</button>
-      </div>
-    </div>
-  </div>
-  <!-- end review -->
-
-  <!-- surrounding -->
-  <div class="surrounding">
-    <div class="container">
-      <div class="surrounding__total">
-        <div class="sur__title">
-          <div class="surrounding__name">
-            <h3>Xung quanh khách sạn</h3>
-            <a href="">Vị trí tuyệt vời - Hiển thị bản đồ</a>
-          </div>
-          <div class="sur__button">
-            <button>Xem phòng trống</button>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-xl-4 col-md-6 col-12">
-            <i class="fa-solid fa-person-walking"></i> <strong>Xung quanh có gì</strong>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Đảo Phú Quốc</div>
-                <div class="sur__have--meters">0 m</div>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Bãi biển Dương Đông</div>
+                  <div class="sur__have--meters">5 km</div>
+                </div>
               </div>
-            </div>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Vườn Quốc gia Phú Quốc</div>
-                <div class="sur__have--meters">6 km</div>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Bãi Gành Gió</div>
+                  <div class="sur__have--meters">5 km</div>
+                </div>
               </div>
-            </div>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Công Viên Bạch Đằng</div>
-                <div class="sur__have--meters">8 km</div>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Bãi biển Cửa Cạn</div>
+                  <div class="sur__have--meters">6 km</div>
+                </div>
               </div>
-            </div>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Suối Tiên - Fairy Stream</div>
-                <div class="sur__have--meters">12 km</div>
-              </div>
-            </div>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Coi Nguon Museum</div>
-                <div class="sur__have--meters">12 km</div>
-              </div>
-            </div>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Kidd Club</div>
-                <div class="sur__have--meters">13 km</div>
-              </div>
-            </div>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Ream National Park</div>
-                <div class="sur__have--meters">18 km</div>
-              </div>
-            </div>
-          </div>
-          <div class="col-xl-4 col-md-6 col-12">
-            <i class="fa-solid fa-utensils"></i> <strong>Nhà hàng & quán cà phê</strong>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Nhà hàng Mai Jo Refined Ông Lang</div>
-                <div class="sur__have--meters">400 m</div>
-              </div>
-            </div>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Cafe/quán bar Island Life</div>
-                <div class="sur__have--meters">600 m</div>
-              </div>
-            </div>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Cafe/quán bar Rock Bar</div>
-                <div class="sur__have--meters">650 m</div>
-              </div>
-            </div>
-          </div>
-          <div class="col-xl-4 col-md-6 col-12">
-            <i class="fa-solid fa-umbrella-beach"></i> <strong>Các bãi biển trong khu vực</strong>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Bãi biển Ông Lang</div>
-                <div class="sur__have--meters">1.4 km</div>
-              </div>
-            </div>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Bãi biển Dương Đông</div>
-                <div class="sur__have--meters">5 km</div>
-              </div>
-            </div>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Bãi Gành Gió</div>
-                <div class="sur__have--meters">5 km</div>
-              </div>
-            </div>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Bãi biển Cửa Cạn</div>
-                <div class="sur__have--meters">6 km</div>
-              </div>
-            </div>
-            <div class="sur__have">
-              <div class="sur__have--item">
-                <div class="sur__have--name">Bãi Trường</div>
-                <div class="sur__have--meters">9 km</div>
+              <div class="sur__have">
+                <div class="sur__have--item">
+                  <div class="sur__have--name">Bãi Trường</div>
+                  <div class="sur__have--meters">9 km</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- end surrounding -->
+    <!-- end surrounding -->
 
-  <!-- policy -->
-  <div class="policy" id="policy">
-    <div class="container">
-      <div class="policy__total">
-        <div class="policy__title">
-          <div class="policy__name">
-            <h3>Chính sách</h3>
-            <span>Duke Bungalow nhận yêu cầu đặc biệt - gửi yêu cầu trong bước kế tiếp!</span>
-          </div>
-          <div class="policy__button">
-            <button>Xem phòng trống</button>
-          </div>
-        </div>
-        <div class="policy__condition">
-          <div class="policy__condition--total">
-            <div class="policy__condition--title">
-              <i class="fa-solid fa-circle-info"></i> <strong>Hủy đặt phòng/ Trả trước</strong>
+    <!-- policy -->
+    <div class="policy" id="policy">
+      <div class="container">
+        <div class="policy__total">
+          <div class="policy__title">
+            <div class="policy__name">
+              <h3>Chính sách</h3>
+              <span>Duke Bungalow nhận yêu cầu đặc biệt - gửi yêu cầu trong bước kế tiếp!</span>
             </div>
-            <div class="policy__condition--text">
-              <p>Các chính sách hủy và thanh toán trước sẽ khác nhau tùy vào từng loại chỗ nghỉ.</p>
-              <p>
-                Vui lòng kiểm tra <a href="">các điều kiện</a> có thể được áp dụng cho mỗi lựa chọn
-                của bạn.
-              </p>
+            <div class="policy__button">
+              <button>Xem phòng trống</button>
             </div>
           </div>
-          <div class="policy__condition--total">
-            <div class="policy__condition--title">
-              <i class="fa-solid fa-hands-holding-child"></i> <strong>Trẻ em và giường</strong>
+          <div class="policy__condition">
+            <div class="policy__condition--total">
+              <div class="policy__condition--title">
+                <i class="fa-solid fa-circle-info"></i> <strong>Hủy đặt phòng/ Trả trước</strong>
+              </div>
+              <div class="policy__condition--text">
+                <p>
+                  Các chính sách hủy và thanh toán trước sẽ khác nhau tùy vào từng loại chỗ nghỉ.
+                </p>
+                <p>
+                  Vui lòng kiểm tra <a href="">các điều kiện</a> có thể được áp dụng cho mỗi lựa
+                  chọn của bạn.
+                </p>
+              </div>
             </div>
-            <div class="policy__condition--text">
-              <p><strong>Chính sách trẻ em</strong></p>
-              <p>Phù hợp cho tất cả trẻ em.</p>
-              <p>
-                Để xem thông tin giá và tình trạng phòng trống chính xác, vui lòng thêm số lượng và
-                độ tuổi của trẻ em trong nhóm của bạn khi tìm kiếm.
-              </p>
-              <p><strong>Chính sách trẻ em</strong></p>
-              <p>Chỗ nghỉ này không có nôi/cũi và giường phụ.</p>
+            <div class="policy__condition--total">
+              <div class="policy__condition--title">
+                <i class="fa-solid fa-hands-holding-child"></i> <strong>Trẻ em và giường</strong>
+              </div>
+              <div class="policy__condition--text">
+                <p><strong>Chính sách trẻ em</strong></p>
+                <p>Phù hợp cho tất cả trẻ em.</p>
+                <p>
+                  Để xem thông tin giá và tình trạng phòng trống chính xác, vui lòng thêm số lượng
+                  và độ tuổi của trẻ em trong nhóm của bạn khi tìm kiếm.
+                </p>
+                <p><strong>Chính sách trẻ em</strong></p>
+                <p>Chỗ nghỉ này không có nôi/cũi và giường phụ.</p>
+              </div>
             </div>
-          </div>
-          <div class="policy__condition--total">
-            <div class="policy__condition--title">
-              <i class="fa-solid fa-person"></i> <strong>Không giới hạn độ tuổi</strong>
+            <div class="policy__condition--total">
+              <div class="policy__condition--title">
+                <i class="fa-solid fa-person"></i> <strong>Không giới hạn độ tuổi</strong>
+              </div>
+              <div class="policy__condition--text">
+                <p>Không có yêu cầu về độ tuổi khi nhận phòng</p>
+              </div>
             </div>
-            <div class="policy__condition--text">
-              <p>Không có yêu cầu về độ tuổi khi nhận phòng</p>
+            <div class="policy__condition--total">
+              <div class="policy__condition--title">
+                <i class="fa-solid fa-credit-card"></i>
+                <strong>Chỉ thanh toán bằng tiền mặt</strong>
+              </div>
+              <div class="policy__condition--text">
+                <p>Chỗ nghỉ này chỉ chấp nhận thanh toán bằng tiền mặt.</p>
+              </div>
             </div>
-          </div>
-          <div class="policy__condition--total">
-            <div class="policy__condition--title">
-              <i class="fa-solid fa-credit-card"></i> <strong>Chỉ thanh toán bằng tiền mặt</strong>
-            </div>
-            <div class="policy__condition--text">
-              <p>Chỗ nghỉ này chỉ chấp nhận thanh toán bằng tiền mặt.</p>
-            </div>
-          </div>
-          <div class="policy__condition--total">
-            <div class="policy__condition--title">
-              <i class="fa-solid fa-ban-smoking"></i> <strong> Hút thuốc</strong>
-            </div>
-            <div class="policy__condition--text">
-              <p>Không cho phép hút thuốc.</p>
+            <div class="policy__condition--total">
+              <div class="policy__condition--title">
+                <i class="fa-solid fa-ban-smoking"></i> <strong> Hút thuốc</strong>
+              </div>
+              <div class="policy__condition--text">
+                <p>Không cho phép hút thuốc.</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- end policy -->
-  <TheFooter />
+    <!-- end policy -->
+    <TheFooter />
+  </div>
 </template>
 
 <style scoped>
-/* menu  */
+.hotel-details-container {
+  overflow-x: hidden;
+  width: 100vw;
+  height: 100vh;
+}
 
+.no-scoll {
+  overflow-y: hidden;
+}
+/* menu  */
 .menu__list {
   margin: 20px 0;
   border-bottom: 1px solid #777;
@@ -1190,35 +938,6 @@ export default {
 /* end menu  */
 
 /* overview  */
-.booking-form {
-  background-color: #febb02;
-  padding: 20px;
-  border-radius: 8px;
-  width: 300px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.booking-form h2 {
-  color: #333;
-  margin-bottom: 15px;
-}
-
-.booking-form label {
-  font-size: 14px;
-  color: #333;
-  display: block;
-  margin-top: 10px;
-}
-
-.booking-form input[type='text'] {
-  width: 100%;
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  margin-top: 5px;
-}
-
 .guest-room-dropdown {
   background: #fff;
   border: 1px solid #ccc;
@@ -1331,7 +1050,7 @@ export default {
 
 .overview__image {
   flex: 1;
-  margin-left: 30px;
+  /* margin-left: 30px; */
   height: 100%;
 }
 
@@ -1359,67 +1078,9 @@ export default {
   color: #0056b3;
 }
 
-.overview__image--list img {
-  background-position: 50% 50%;
-  background-repeat: no-repeat;
-  background-size: cover;
-  text-align: center;
-  cursor: pointer;
-}
-
 .overview__image--header {
   display: flex;
   align-items: center;
-}
-
-.overview__image--1 {
-  flex: 3.2;
-  overflow: hidden;
-  height: 100%;
-  object-fit: cover;
-  margin-right: 10px;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.overview__image--1 img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  flex: 1;
-  object-fit: cover;
-  margin-bottom: 10px;
-  aspect-ratio: 4/3;
-}
-.overview__image--2 {
-  display: block;
-  flex: 6.8;
-  overflow: hidden;
-  aspect-ratio: 4/3;
-  object-fit: cover;
-  margin-bottom: 10px;
-}
-
-.overview__image--2 img {
-  width: 100%;
-}
-
-.overview__image--footer {
-  display: flex;
-  justify-content: space-between;
-}
-
-.overview__image--footer img {
-  width: 19%;
-}
-
-.overview__image--footer .last {
-  background-image: url('https://cf.bstatic.com/xdata/images/hotel/max300/143636581.jpg?k=26a95beeee4ae833b355fc2ec7a150328b20a7b299d08008520a29606e00cb85&o=&hp=1');
-  background-position: 50% 50%;
-  background-repeat: no-repeat;
-  background-size: cover;
-  text-align: center;
-  cursor: pointer;
 }
 
 /* end overview  */
@@ -1466,140 +1127,228 @@ export default {
   font-size: 13px;
 }
 
-.information__login {
-  flex: 3;
-  padding: 15px 30px;
-  border: 1px solid #ddd;
-  display: inline-block;
-  height: 100%;
-  border-radius: 10px;
-}
-.information__login ul {
-  list-style-type: none;
-  padding: 5px;
-}
-
-.information__login ul i {
-  color: orange;
-}
-
-.information__login h3 {
-  font-size: 16px;
-  font-weight: bold;
-}
-
 /* end information  */
 
-/* price  */
-.price .col-3,
-.col-1,
-.col-2 {
-  padding: 5px;
-  border: 1px solid #1d85ae5e;
-  padding: 0;
-}
-
-.price .thead {
-  height: 100px;
-  width: auto;
-  color: white;
-  background-color: #4a73ae;
-  padding: 5px;
-  text-align: center;
+/* search */
+.search-bar {
+  margin-bottom: 15px;
+  max-width: 70%;
+  background-color: #ffb700;
+  height: 40px;
   display: flex;
-  justify-content: center;
-  position: sticky;
-  top: 0px;
-  font-size: 14px;
-  z-index: 999;
+  justify-content: space-around;
+  align-items: center;
+  box-sizing: border-box;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
 }
 
-.price .room--1 {
-  padding: 0px 5px;
-  border-bottom: 3px solid #5bbaff;
+.search-input {
+  height: 100%;
+  padding: 0 10px 0 40px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  background-repeat: no-repeat;
+  background-position: 10px center;
+  background-size: 16px;
+  width: 30%;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>');
 }
 
-.price .room--1 strong {
-  color: #0056b3;
-  text-decoration: underline;
-  cursor: pointer;
+.date-picker {
+  width: 40%;
+  height: 90%;
 }
 
-.price .room--1 ul {
-  list-style-type: none;
-  display: flex;
-  flex-wrap: wrap;
-  padding: 0;
-  font-size: 12px;
+.date-picker .search-input {
+  height: 100%;
+  padding: 0 10px 0 40px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  background-repeat: no-repeat;
+  background-position: 10px center;
+  background-size: 16px;
+  width: 100%;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>');
 }
 
-.price .room--1 ul li {
-  margin-right: 8px;
-  margin-bottom: 5px;
+.guest-room-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 40%;
+  height: 90%;
 }
 
-.price .room--1 ul i {
-  font-size: 10px;
-  margin-right: 5px;
+.guest-room-wrapper input {
+  width: 100%;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>');
 }
 
-.price--check i {
-  color: green;
-}
-
-.price__customer {
-  height: 150px;
-  padding: 0 5px;
-  border-bottom: 1px solid #1d85ae5e;
-  margin-top: 5px;
-}
-
-.price__customer span:first-child {
-  font-size: 14px;
-  color: red;
-  text-decoration: line-through;
-}
-
-.price__customer span {
-  font-size: 12px;
-}
-
-.price__customer .save {
-  padding: 5px 5px;
-  color: white;
-  background-color: green;
-  border-radius: 5px;
-}
-.price__customer ul {
-  margin: 0;
-  font-size: 13px;
-}
-.price__customer .check {
-  list-style-type: none;
-  padding: 0 20px;
-}
-.price__customer .check i {
-  margin-right: 5px;
-  color: green;
-}
-
-.price__customer select {
+#guest-room-selector {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  z-index: 100;
   width: 100%;
 }
 
+.guest-room-wrapper .selector-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.guest-room-wrapper .counter {
+  display: flex;
+  align-items: center;
+}
+
+.guest-room-wrapper button {
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  text-align: center;
+  line-height: 30px;
+  border: 1px solid #007bff;
+  background-color: #fff;
+  color: #007bff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.guest-room-wrapper button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.guest-room-wrapper span {
+  margin: 0 10px;
+  font-size: 16px;
+}
+
+.search-button {
+  background-color: #3576d2;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 4px;
+  font-size: 18px;
+  width: 18%;
+  height: 90%;
+}
+
+/* end search  */
+
+/* price  */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+}
+.table_header_3 {
+  background-color: #003b95;
+}
+th {
+  background-color: #4a73b6;
+  color: white;
+  padding: 12px;
+  text-align: center;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  vertical-align: top;
+  border-top: none;
+}
+
+.room-title {
+  color: #0066cc;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.price {
+  color: #333;
+  font-weight: bold;
+}
+
+.tax-info {
+  color: #666;
+  font-size: 12px;
+}
+
+.service {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.service li {
+  margin: 3px 0;
+  padding-left: 20px;
+  position: relative;
+  font-size: 12px;
+  color: gray;
+}
+
+.service li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #4caf50;
+}
+
+.room-info {
+  color: #2f2f2f;
+  font-size: 13px;
+  padding: 5px;
+}
+
+select {
+  padding: 2px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100px;
+}
+
+.benefits {
+  list-style: none;
+  padding: 0;
+}
+
+.benefits li {
+  margin: 5px 0;
+  padding-left: 20px;
+  position: relative;
+  font-size: 12px;
+  color: green;
+}
+
+.benefits li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #4caf50;
+}
 .price__content {
   padding: 0 5px;
   font-size: 13px;
   margin-top: 5px;
-  position: sticky;
   top: 105px;
 }
-
-.price__content ul {
-  padding-left: 25px;
-  margin-bottom: 5px;
-}
-
 .price__content button {
   width: 100%;
   color: white;
@@ -1610,7 +1359,10 @@ export default {
   padding: 5px 0;
   margin-bottom: 5px;
 }
-
+.price__content ul {
+  padding-left: 25px;
+  margin-bottom: 5px;
+}
 .price__content b {
   color: green;
   margin-left: 5px;
@@ -2068,4 +1820,97 @@ export default {
 }
 
 /* end policy */
+.gallery-container {
+  padding-left: 0px !important;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.featured-images {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  height: 400px;
+}
+
+.featured-left {
+  cursor: pointer;
+  flex: 1;
+}
+
+.featured-right {
+  cursor: pointer;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.featured-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.featured-right .featured-image {
+  height: calc(50% - 10px);
+}
+
+.thumbnail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.thumbnail-item {
+  position: relative;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.thumbnail-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.more-images {
+  cursor: pointer;
+}
+
+.more-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .featured-images {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .featured-right {
+    flex-direction: row;
+  }
+
+  .featured-right .featured-image {
+    height: 200px;
+    width: calc(50% - 10px);
+  }
+}
 </style>

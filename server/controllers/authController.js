@@ -106,8 +106,8 @@ const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert new user into the database
-    const insertQuery = 'INSERT INTO users (email, password_hash) VALUES (?, ?)';
-    const result = await queryAsync(insertQuery, [email, hashedPassword]);
+    const insertQuery = 'INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)';
+    const result = await queryAsync(insertQuery, [email, email.split("@")[0], hashedPassword]);
 
     // Create session with user ID from the insert result
     req.session.user = {

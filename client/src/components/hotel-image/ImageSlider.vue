@@ -1,29 +1,3 @@
-<template>
-    <div v-if="isOpen" class="overlay" @click.self="closePopup">
-        <div class="slider-popup">
-            <button class="close-button" @click="closePopup">&times;</button>
-
-            <div class="slider-content">
-                <button class="prev-button" @click="prevImage">&#10094;</button>
-                <div class="image-container">
-                    <img :src="images[currentImageIndex]" alt="Image Slider" />
-                </div>
-                <button class="next-button" @click="nextImage">&#10095;</button>
-            </div>
-
-            <div class="image-list">
-                <div class="image-indicator">{{ currentImageIndex + 1 }} / {{ images.length }}</div>
-                <!-- Thumbnail List -->
-                <div class="thumbnail-list">
-                    <img v-for="(image, index) in images" :key="index" :src="image"
-                        :class="{ active: index === currentImageIndex }" @click="setImage(index)"
-                        class="thumbnail-image" alt="Thumbnail" />
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
-
 <script>
 export default {
     props: {
@@ -58,7 +32,31 @@ export default {
     }
 }
 </script>
+<template>
+    <div v-if="isOpen" class="overlay" @click.self="closePopup">
+        <div class="slider-popup">
+            <button class="close-button" @click="closePopup">&times;</button>
 
+            <div class="slider-content">
+                <button class="prev-button" @click="prevImage">&#10094;</button>
+                <div class="image-container">
+                    <img :src="images[currentImageIndex]" alt="Image Slider" />
+                </div>
+                <button class="next-button" @click="nextImage">&#10095;</button>
+            </div>
+
+            <div class="image-list">
+                <div class="image-indicator">{{ currentImageIndex + 1 }} / {{ images.length }}</div>
+                <!-- Thumbnail List -->
+                <div class="thumbnail-list">
+                    <img v-for="(image, index) in images" :key="index" :src="image"
+                        :class="{ active: index === currentImageIndex }" @click="setImage(index)"
+                        class="thumbnail-image" alt="Thumbnail" />
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
 <style scoped>
 .overlay {
     position: fixed;

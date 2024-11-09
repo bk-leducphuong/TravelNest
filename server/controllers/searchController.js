@@ -10,7 +10,7 @@ const getSearchResults = async (req, res) => {
         if (!location || !adults || !children || !dateRange || !rooms) {
             return res
                 .status(400)
-                .json({ success: false, message: "Missing search criteria" });
+                .json({ success: false, hotels: [], message: "Missing search criteria" });
         }
 
         // Tổng số khách cần lưu trú
@@ -73,7 +73,7 @@ const getSearchResults = async (req, res) => {
         res.status(200).json({ success: true, hotels });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: "Internal Server Error" });
+        res.status(500).json({ success: false, hotels: [], message: "Internal Server Error" });
     }
 };
 

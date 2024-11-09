@@ -140,13 +140,6 @@ export default {
   },
   data() {
     return {
-      // search data
-      // selectedLocation: '',
-      // dateRange: '',
-      // adults: 2,
-      // children: 0,
-      // rooms: 1,
-
       locations: [
         { name: 'Phú Quốc', country: 'Việt Nam' },
         { name: 'Hà Nội', country: 'Việt Nam' },
@@ -226,8 +219,6 @@ export default {
     })
   },
   methods: {
-    ...mapActions('search', ['searchHotel']),
-
     toggleLocationPopup() {
       this.showLocationPopup = !this.showLocationPopup
     },
@@ -273,8 +264,6 @@ export default {
       }
       searchHistory.push(searchData)
       localStorage.setItem('recentSearches', JSON.stringify(searchHistory))
-
-      this.searchHotel(searchData) // store searchData in store vuex
 
       // Redirect user to search results page with query params
       this.$router.push({
@@ -565,15 +554,6 @@ body {
   margin: 0 10px;
   font-size: 16px;
 }
-
-/* .guest-room-wrapper-finish-button {
-  text-align: center;
-  cursor: pointer;
-  border-radius: 10px;
-  border: solid 1px;
-  border-color: #006ce4;
-  padding: 6px 4px 6px 4px ;
-} */
 
 .search-button {
   background-color: #3576d2;

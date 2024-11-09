@@ -62,6 +62,7 @@ const authRoutes = require('./routes/authRoutes');
 const homeRoutes = require('./routes/homeRoutes');
 const hostRoutes = require('./routes/hostRoutes');
 const paymentRoutes = require('./routes/paymentRoutes.js');
+const roomRoutes = require('./routes/roomRoutes.js');
 
 
 // Use Routes
@@ -71,6 +72,7 @@ app.use('/api/hotels', hotelRoutes);
 app.use('/api/auth', authRoutes); // Login route
 app.use('/api/host', hostRoutes); // Become a host route
 app.use('/api/payment', paymentRoutes);
+app.use('/api/room', roomRoutes);
 
 // Default route
 app.get('/', (req, res) => {
