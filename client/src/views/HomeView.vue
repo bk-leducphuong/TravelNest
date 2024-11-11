@@ -208,7 +208,7 @@ export default {
 </script>
 
 <template>
-  <TheHeader />
+  <TheHeader :isSearchOpen="true"/>
   <!-- home body -->
   <div class="home-container">
     <!-- Recently Search -->

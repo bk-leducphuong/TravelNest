@@ -1,13 +1,21 @@
 <script>
 import CheckOut from '@/components/book/CheckOut.vue'
+import TheHeader from '@/components/Header.vue'
+import { mapGetters, mapState } from 'vuex'
 export default {
   data() {
     return {
       currentStep: 2,
       steps: [1, 2, 3],
+      email: "",
+      firstName: "",
+      lastName: "",
+      phoneNumber: "",
     }
   },
   computed: {
+    ...mapGetters('book', ['getBookingInfor']),
+    ...mapGetters('search', ['getSearchData']),
     progress() {
       return ((this.currentStep - 1) / (this.steps.length - 1)) * 100
     }
@@ -21,33 +29,13 @@ export default {
     }
   },
   components: {
-    CheckOut
+    CheckOut,
+    TheHeader 
   }
 }
 </script>
 <template>
-  <!-- header  -->
-  <div class="header">
-    <div>
-      <div class="inner-wrap">
-        <div class="inner-logo">
-          <strong><a href="/">Booking.com</a></strong>
-        </div>
-        <div class="inner-login">
-          <ul>
-            <li><strong>VND</strong></li>
-            <li><img src="" alt="" /></li>
-            <li><i class="fa-regular fa-circle-question"></i></li>
-            <li><span>Đã là đối tác ?</span></li>
-            <li class="login">Đăng nhập</li>
-            <li class="guides">Trợ giúp</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- end header -->
-
+  <TheHeader :isSearchOpen="false"/>
   <!-- progress bar -->
 
   <div class="stepper-wrapper">
@@ -70,36 +58,43 @@ export default {
     <!-- left container -->
     <div class="sub_container1">
       <div class="hotel-info">
-        <div class="hotel-name">Mövenpick Hotel Hanoi Centre</div>
-        <div class="hotel-address">83A Ly Thuong Kiet Street, Hoan Kiem, Hanoi, Vietnam</div>
+        <div class="hotel-name">{{ getBookingInfor.hotel.name }}</div>
+        <div class="hotel-address">{{ getBookingInfor.hotel.address }}</div>
         <div class="rating">
-          <span class="rating-score">8.9</span>
+          <span class="rating-score">{{ getBookingInfor.hotel.overall_rating }}</span>
           <span>Great location</span>
-        </div>
-        <div class="amenities" style="font-size: 10px">
-          <div>✓ Free WiFi</div>
-          <div>✓ Airport shuttle</div>
-          <div>✓ Parking</div>
-          <div>✓ Restaurant</div>
-          <div>✓ Swimming Pool</div>
         </div>
       </div>
 
-      <div class="booking-details">
-        <h3>Your booking details</h3>
+      <div class="booking-details-container">
+        <h3 style="font-size: 20px">Chi tiết đặt phòng của bạn</h3>
         <div class="dates">
           <div class="date-box">
-            <strong>Check-in</strong>
-            <div>Fri 1 Nov 2024</div>
-            <div>From 14:00</div>
+            <strong>Nhận phòng</strong>
+            <div>{{ getSearchData.dateRange.split(' ')[1] }}</div>
+            <div>Từ {{ getBookingInfor.hotel.check_in_time }}</div>
           </div>
           <div class="date-box">
-            <strong>Check-out</strong>
-            <div>Sun 3 Nov 2024</div>
-            <div>Until 12:00</div>
+            <strong>Trả phòng</strong>
+            <div>{{ getSearchData.dateRange.split(' ')[3] }}</div>
+            <div>Đến {{ getBookingInfor.hotel.check_out_time }}</div>
           </div>
         </div>
-        <div>Total length of stay: 2 nights</div>
+        <div>Tổng thời gian lưu trú: 2 đêm</div>
+        <hr style="border: 1px solid #e7e7e7; margin-top: 16px" />
+        <div class="room-details">
+          Bạn đã chọn
+          <h6>
+            {{ getBookingInfor.totalRooms }} phòng cho {{ getSearchData.adults }} người lớn
+            <span v-if="getSearchData.children != 0">và 1 trẻ em</span>
+          </h6>
+          <div v-for="(room, index) in getBookingInfor.selectedRooms" :key="index">
+            {{ room.roomQuantity }} x {{ room.roomName }}
+          </div>
+        </div>
+        <div style="margin-top: 20px;">
+          <span class="back-button" @click="this.$router.go(-1)">Đổi lựa chọn của bạn</span>
+        </div>
       </div>
 
       <!-- price-->
@@ -109,7 +104,9 @@ export default {
         <div class="price-summary">
           <div class="main-price">
             <span class="price-label">Price</span>
-            <span class="price-amount">VND 6,840,000</span>
+            <span class="price-amount"
+              >VND {{ getBookingInfor.totalPrice.toLocaleString('vi-VN') }}</span
+            >
           </div>
           <div class="taxes-charges">+VND 916,560 taxes and charges</div>
         </div>
@@ -196,18 +193,18 @@ export default {
           <div class="two-columns">
             <div class="form-group">
               <label>First name <span class="required">*</span></label>
-              <input type="text" value="Đặng" style="width: 95%" />
+              <input v-model="firstName" type="text" value="Đặng" style="width: 95%" />
             </div>
 
             <div class="form-group">
               <label>Last name <span class="required">*</span></label>
-              <input type="text" value="Đình Khải" style="width: 92%" />
+              <input v-model="lastName" type="text" value="Đình Khải" style="width: 92%" />
             </div>
           </div>
 
           <div class="form-group">
             <label>Email address <span class="required">*</span></label>
-            <input type="email" value="oingucoolname@gmail.com" style="width: 96%" />
+            <input v-model="email" type="email" value="oingucoolname@gmail.com" style="width: 96%" />
             <div class="helper-text">Confirmation email goes to this address</div>
           </div>
 
@@ -224,7 +221,7 @@ export default {
               <select class="phone-code">
                 <option selected>VN +84</option>
               </select>
-              <input type="text" class="phone-number" value="0977 326 935" />
+              <input v-model="phoneNumber" type="text" class="phone-number" value="0977 326 935" />
             </div>
             <div class="helper-text">Needed by the property to validate your booking</div>
           </div>
@@ -409,71 +406,6 @@ export default {
   </div>
 </template>
 <style scoped>
-/* header */
-
-.header .inner-wrap {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 40px;
-  align-items: center;
-  background-color: #1a4fa0;
-}
-
-.header .inner-logo strong {
-  font-size: 24px;
-  color: #fff;
-}
-
-.header .inner-login ul {
-  display: flex;
-  color: #fff;
-  list-style-type: none;
-  align-items: center;
-  margin-bottom: 0;
-}
-
-.header .inner-login ul li {
-  padding: 10px;
-  margin-left: 15px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.inner-login ul li:hover {
-  background-color: #1a4fa0;
-}
-
-.header .inner-login ul li img {
-  border-radius: 50%;
-  height: 18px;
-  overflow: hidden;
-  width: auto;
-}
-
-.header .inner-login ul li span {
-  font-weight: 600;
-}
-
-/* Combine styles for .login and .guides classes */
-.header .inner-login ul .login,
-.header .inner-login ul .guides {
-  padding: 5px 10px;
-  color: #1d5fc2;
-  font-weight: 500;
-  background-color: #fff;
-  border-radius: 5px;
-}
-
-/* Combine hover effect for .login and .guides */
-.header .inner-login ul .login:hover,
-.header .inner-login ul .guides:hover {
-  background-color: #f0f6fde8;
-}
-
-/* end header  */
 
 /* step and process bar */
 .step {
@@ -602,7 +534,7 @@ export default {
 }
 
 .rating-score {
-  background: var(--primary-blue);
+  background: #003b95;
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
@@ -614,7 +546,8 @@ export default {
   color: #666;
 }
 
-.booking-details {
+/* booking details */
+.booking-details-container {
   background: white;
   padding: 20px;
   border-radius: 4px;
@@ -632,6 +565,13 @@ export default {
   flex: 1;
 }
 
+.back-button {
+  color: #006ce4;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* end booking details */
 .form-field label {
   display: block;
   margin-bottom: 4px;

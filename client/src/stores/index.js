@@ -9,7 +9,7 @@ import book from './book';
 
 const vuexSession = new VuexPersistence({
   storage: window.sessionStorage,
-  modules: ['search'],
+  modules: ['search', 'book'],
 });
 
 export default createStore({

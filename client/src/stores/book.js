@@ -3,21 +3,21 @@
 export default {
   namespaced: true,
   state: {
-    bookInfor: null // Store selected bookInfor  here
+    bookingInfor: null // Store selected bookingInfor  here
   },
   mutations: {
-    setBookInfor(state, bookInfor) {
-      state.bookInfor = bookInfor
+    setBookingInfor(state, bookingInfor) {
+      state.bookingInfor = bookingInfor
     }
   },
   actions: {
-    bookHotel({ commit }, bookInfor) {
-      commit('setBookInfor', bookInfor)
+    booking({ commit }, bookingInfor) {
+      commit('setBookingInfor', bookingInfor)
     }
   },
   getters: {
-    getBookInfor(state) {
-      return state.bookInfor
+    getBookingInfor(state) {
+      return state.bookingInfor
     }
   }
 }

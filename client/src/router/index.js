@@ -54,7 +54,8 @@ const routes = [
   {
     path: '/book',
     name: 'Book',
-    component: Book
+    component: Book,
+    meta: { requiresAuth: true }
   },
   {
     path: '/book/complete',
@@ -78,7 +79,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!stores.getters['auth/isAuthenticated']) {
-      next({ name: 'Login' }) // Redirect to login if not authenticated
+      next({ name: 'Login', query: { redirect: to.fullPath } }) // Redirect to login if not authenticated
     } else {
       next() // Proceed if authenticated
     }

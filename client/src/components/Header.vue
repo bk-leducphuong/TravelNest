@@ -37,7 +37,7 @@
   </div>
 
   <!-- Search bar -->
-  <div class="search">
+  <div class="search" v-if="isSearchOpen">
     <div class="container">
       <div class="search-bar">
         <!-- Location input -->
@@ -135,6 +135,12 @@ import { mapActions, mapState, mapGetters } from 'vuex'
 import AccountMenu from './user/AccountMenu.vue'
 
 export default {
+  props: {
+    isSearchOpen: {
+      type: Boolean,
+      required: true
+    }
+  },
   components: {
     AccountMenu
   },
@@ -199,24 +205,26 @@ export default {
     }
   },
   mounted() {
-    flatpickr(this.$refs.dateInput, {
-      dateFormat: 'd/m/Y', // Định dạng ngày
-      locale: 'vn', // Ngôn ngữ tiếng Việt cho tên ngày tháng
-      mode: 'range', // Cho phép chọn dải ngày
+    if (this.isSearchOpen) {
+      flatpickr(this.$refs.dateInput, {
+        dateFormat: 'd/m/Y', // Định dạng ngày
+        locale: 'vn', // Ngôn ngữ tiếng Việt cho tên ngày tháng
+        mode: 'range', // Cho phép chọn dải ngày
 
-      minDate: 'today', // Không cho phép chọn ngày trong quá khứ
-      showMonths: 2, // Hiển thị 2 tháng cạnh nhau
-      onChange: function (selectedDates, dateStr, instance) {},
-      mode: 'range',
-      locale: {
-        rangeSeparator: ' đến ' // Thay "to" bằng "đến"
-      },
-      onValueUpdate: function (selectedDates, dateStr, instance) {
-        // Thêm "Từ" vào trước ngày bắt đầu
-        const display = instance.element.value
-        instance.element.value = 'Từ ' + display
-      }
-    })
+        minDate: 'today', // Không cho phép chọn ngày trong quá khứ
+        showMonths: 2, // Hiển thị 2 tháng cạnh nhau
+        onChange: function (selectedDates, dateStr, instance) {},
+        mode: 'range',
+        locale: {
+          rangeSeparator: ' đến ' // Thay "to" bằng "đến"
+        },
+        onValueUpdate: function (selectedDates, dateStr, instance) {
+          // Thêm "Từ" vào trước ngày bắt đầu
+          const display = instance.element.value
+          instance.element.value = 'Từ ' + display
+        }
+      }) // Run immediately if `isSearchOpen` already has a value
+    }
   },
   methods: {
     toggleLocationPopup() {
@@ -276,7 +284,7 @@ export default {
           rooms: this.rooms
         }
       })
-    }
+    },
   }
 }
 </script>

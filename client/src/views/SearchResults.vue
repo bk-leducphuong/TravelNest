@@ -91,7 +91,7 @@ export default {
 }
 </script>
 <template>
-  <TheHeader />
+  <TheHeader :isSearchOpen="true"/>
   <MapComponent v-if="openMapPopup" :hotels="hotels" @close-map-popup="closeMapPopup" />
   <!-- inforSearch -->
   <div class="inforSearch">

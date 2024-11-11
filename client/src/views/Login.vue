@@ -151,7 +151,7 @@ export default {
         ? { email: this.email, password: this.password }
         : { email: this.email, password: this.password }
 
-      await this.login({ apiUrl: apiUrl, payload: payload })
+      await this.login({ apiUrl: apiUrl, payload: payload, redirectRoute: this.$route.query.redirect || '/'})
     },
     async socialLogin(provider) {
       // Ensure `provider` is one of the allowed providers

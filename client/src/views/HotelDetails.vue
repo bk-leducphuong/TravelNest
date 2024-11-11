@@ -3,7 +3,7 @@ import TheHeader from '@/components/Header.vue'
 import TheFooter from '@/components/Footer.vue'
 import MapComponent from '@/components/map/MapComponent.vue'
 import axios from 'axios'
-import { mapGetters } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import ImageGallery from '@/components/hotel-image/ImageGallery.vue'
 
 export default {
@@ -21,12 +21,17 @@ export default {
       hotelImages: [],
       initialThumbnailCount: 4,
 
+      // hotel details
       hotel: {},
       room_list: [],
       reviews: [],
       nearby_hotels: [],
       reviews_breakdown: [],
 
+      // selected rooms for booking
+      selectedRooms: [],
+
+      // popup
       openCommentPopup: false,
       openMapPopup: false,
       isImageGalleryOpen: false,
@@ -79,9 +84,17 @@ export default {
     },
     remainingImages() {
       return this.hotelImages.length - (3 + this.initialThumbnailCount)
+    },
+    // calculate total number and total price of selected rooms
+    totalSelectedRooms() {
+      return this.selectedRooms.reduce((total, option) => total + option.roomQuantity, 0)
+    },
+    totalPriceSelectedRooms() {
+      return this.selectedRooms.reduce((total, option) => total + option.totalPrice, 0)
     }
   },
   methods: {
+    ...mapActions('book', ['booking']),
     async getHotelDetails() {
       const response = await axios.get(`http://localhost:3000/api/hotels/${this.hotel_id}`)
       this.hotel = response.data.hotel
@@ -105,11 +118,11 @@ export default {
     /******** image gallery popup ********/
     openImageGallery() {
       this.isImageGalleryOpen = true
-      document.getElementById("hotelDetails").classList.add("no-scroll");
+      document.getElementById('hotelDetails').classList.add('no-scroll')
     },
     closeImageGallery() {
       this.isImageGalleryOpen = false
-      document.getElementById("hotelDetails").classList.remove("no-scroll");
+      document.getElementById('hotelDetails').classList.remove('no-scroll')
     },
     /*********** guest selection popup *******/
     toggleGuestSelector() {
@@ -141,7 +154,7 @@ export default {
 
       this.room_list = response.data.available_rooms
     },
-    calculateDaysBetween() {
+    calculateRoomPrice(price_per_night) {
       const [start, end] = this.dateRange.match(/\d{2}\/\d{2}\/\d{4}/g)
 
       const startDate = new Date(start.split('/').reverse().join('-'))
@@ -150,7 +163,59 @@ export default {
       const timeDiff = endDate - startDate
       const daysDiff = timeDiff / (1000 * 60 * 60 * 24)
 
-      return daysDiff + 1
+      const totalPrice = (daysDiff + 1) * Number(price_per_night)
+
+      return totalPrice
+    },
+    handleRoomSelection(event, room) {
+      const quantity = parseInt(event.target.value)
+
+      // Check if a selection already exists for this room
+      const existingSelectionIndex = this.selectedRooms.findIndex(
+        (option) => option.roomName === room.room_name
+      )
+
+      if (quantity === 0) {
+        // Remove selection if quantity is set to 0
+        if (existingSelectionIndex !== -1) {
+          this.selectedRooms.splice(existingSelectionIndex, 1)
+        }
+      } else {
+        const totalPrice = this.calculateRoomPrice(quantity * room.price_per_night)
+
+        const selection = {
+          roomQuantity: quantity,
+          roomName: room.room_name,
+          totalPrice: totalPrice
+        }
+
+        if (existingSelectionIndex !== -1) {
+          // Update the existing selection
+          this.selectedRooms[existingSelectionIndex] = selection
+        } else {
+          // Add new selection
+          this.selectedRooms.push(selection)
+        }
+      }
+    },
+    // this method will be called when user click book button
+    processBooking() {
+      if (this.selectedRooms.length != 0) {
+        const bookingInfor = {
+          hotel: {
+            name: this.hotel.name,
+            address: this.hotel.address,
+            overall_rating: this.hotel.overall_rating,
+            check_in_time: this.hotel.check_in_time,
+            check_out_time: this.hotel.check_out_time
+          },
+          totalPrice: this.totalPriceSelectedRooms,
+          totalRooms: this.totalSelectedRooms,
+          selectedRooms: this.selectedRooms
+        }
+        this.booking(bookingInfor)
+        this.$router.push('/book')
+      }
     }
   },
   mounted() {
@@ -181,9 +246,14 @@ export default {
 </script>
 <template>
   <div id="hotelDetails" class="hotel-details-container">
-    <TheHeader />
+    <TheHeader :isSearchOpen="true"/>
     <MapComponent v-if="openMapPopup" :hotels="[hotel]" @close-map-popup="closeMapPopup" />
-    <ImageGallery :room_list="room_list" :hotelImages="hotelImages" :isOpen="isImageGalleryOpen" @close="closeImageGallery" />
+    <ImageGallery
+      :room_list="room_list"
+      :hotelImages="hotelImages"
+      :isOpen="isImageGalleryOpen"
+      @close="closeImageGallery"
+    />
     <!-- menu  -->
     <div class="menu">
       <div class="container">
@@ -215,7 +285,7 @@ export default {
               <p><i class="fa-solid fa-location-dot"></i>{{ hotel.address }}</p>
             </div>
 
-            <div class="gallery-container" >
+            <div class="gallery-container">
               <!-- Featured large images -->
               <div class="featured-images">
                 <div class="featured-left" @click="openImageGallery">
@@ -413,7 +483,7 @@ export default {
           </tr>
         </thead>
         <tbody>
-          <tr class="room_1" v-for="room in room_list" :key="room.room_id">
+          <tr class="room_1" v-for="(room, index) in room_list" :key="room.room_id">
             <td>
               <a href="#" class="room-title">{{ room.room_name }}</a>
               <ul class="service">
@@ -433,9 +503,7 @@ export default {
             </td>
             <td>
               <div class="price">
-                {{
-                  (Number(room.price_per_night) * calculateDaysBetween()).toLocaleString('vi-VN')
-                }}
+                {{ calculateRoomPrice(room.price_per_night).toLocaleString('vi-VN') }}
               </div>
               <div class="tax-info">Đã bao gồm thuế và phí</div>
             </td>
@@ -446,23 +514,24 @@ export default {
               </ul>
             </td>
             <td>
-              <select name="" id="">
-                <option value="0">0</option>
-                <option value="0">1 (VND 315.090)</option>
-                <option value="0">2 (VND 630.180)</option>
-                <option value="0">3 (VND 945.270)</option>
-                <option value="0">4 (VND 1.260.360)</option>
-                <option value="0">5 (VND 1.575.450)</option>
+              <select @change="handleRoomSelection($event, room)">
+                <option value="0" selected>0</option>
+                <option v-for="n in room.total_rooms - room.booked_rooms" :key="n" :value="n">
+                  {{ n }} (VND
+                  {{ calculateRoomPrice(n * room.price_per_night).toLocaleString('vi-VN') }})
+                </option>
               </select>
             </td>
-            <td>
+            <td v-if="index === 0" :rowspan="room_list.length">
               <div class="price__content">
-                <button>Tôi sẽ đặt</button>
-                <ul>
-                  <li>Chỉ mất có 2 phút</li>
-                  <li>Xác nhận tức thời</li>
-                </ul>
-                <b><i class="fa-solid fa-address-card"></i> Không cần thẻ tín dụng </b>
+                <div class="booking-summary-rooms-and-price">
+                  {{ totalSelectedRooms }} Phòng
+                  <div class="total-price" style="font-size: 20px">
+                    VND {{ totalPriceSelectedRooms.toLocaleString('vi-VN') }}
+                  </div>
+                </div>
+                <button @click="processBooking">Tôi sẽ đặt</button>
+                <div style="color: red; font-size: 13px;" v-if="selectedRooms.length == 0">Vui lòng chọn phòng trước khi đặt</div>
               </div>
             </td>
           </tr>
@@ -1348,6 +1417,7 @@ select {
   font-size: 13px;
   margin-top: 5px;
   top: 105px;
+  position: sticky;
 }
 .price__content button {
   width: 100%;
