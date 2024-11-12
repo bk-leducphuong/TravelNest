@@ -1,0 +1,903 @@
+<template>
+  <!--  form-6  -->
+  <div class="form-6">
+    <div class="card" data-step>
+      <div class="steps">
+        <div class="stepss step-1">
+          <i class="fa-solid fa-circle-check"></i>
+          <div>
+            <span>Bước 1</span>
+            <br />
+            <span>
+              <h3>Thông tin chỗ nghỉ</h3>
+            </span>
+            <span
+              >Các thông tin cơ bản. Nhập tên chỗ nghỉ, địa chỉ, tiện nghi và nhiều hơn nữa.</span
+            >
+          </div>
+          <a href="/">Chỉnh sửa</a>
+        </div>
+        <hr />
+        <div class="stepss step-2">
+          <i class="fa-solid fa-bed"></i>
+          <div>
+            <span>Bước 2</span>
+            <br />
+            <span>
+              <h3>Phòng</h3>
+            </span>
+            <span
+              >Hãy cho chúng tôi biết về phòng đầu tiên của Quý vị. Sau khi đã thiết lập xong một
+              căn, Quý vị có thể thêm nhiều căn nữa.</span
+            >
+          </div>
+          <button1 id="addRoom">Thêm phòng</button1>
+        </div>
+        <hr />
+        <div class="stepss step-3">
+          <i class="fa-solid fa-image"></i>
+          <div>
+            <span>Bước 3</span>
+            <br />
+            <span>
+              <h3>Ảnh</h3>
+            </span>
+            <span
+              >Chia sẻ một số hình ảnh chỗ nghỉ của Quý vị để khách biết mình nên có những kỳ vọng
+              gì.</span
+            >
+          </div>
+          <button1 id="conkac">Thêm ảnh</button1>
+        </div>
+        <hr />
+        <div class="stepss step-4">
+          <i class="fa-solid fa-clipboard-list"></i>
+          <div>
+            <span>Bước 4</span>
+            <br />
+            <span>
+              <h3>Những bước cuối cùng</h3>
+            </span>
+            <span>Nhập thông tin thanh toán và hóa đơn trước khi mở để nhận đặt phòng.</span>
+          </div>
+          <strong>Thêm</strong>
+        </div>
+        <br />
+        <div class="form-button-container">
+          <button type="button" class="previous"  @click="$emit('previous')">Quay lại</button>
+          <button
+            style="
+              font-weight: bold;
+              font-size: 16px;
+              color: #0056b3;
+              background-color: #fff;
+              border: 1px solid #0056b3;
+            "
+            type="submit"
+            class="next"
+          >
+            Lưu thông tin
+          </button>
+        </div>
+      </div>
+      <div class="step-image">
+        <form action="">
+          <h3>Khách sạn của Quý vị trông ra sao</h3>
+          <p>
+            <strong>Đăng tải ít nhất 5 ảnh.</strong> Càng đăng nhiều, Quý vị càng có cơ hội nhận đặt
+            phòng. Quý vị có thể thêm ảnh sau.
+          </p>
+          <div class="upload-container" id="dropZone">
+            <i class="fa-regular fa-image"></i>
+            <h3>Kéo và thả hoặc</h3>
+            <label class="upload-button" for="fileInput">
+              <span>Đăng tải ảnh</span>
+            </label>
+            <input type="file" id="fileInput" accept="image/jpeg, image/png" multiple />
+            <p>jpg/jpeg hoặc png, tối đa 47MB mỗi file</p>
+          </div>
+        </form>
+        <button1 class="back1"><i class="fa-solid fa-arrow-left"></i></button1>
+        <br />
+        <div id="preview">
+          <br />
+        </div>
+      </div>
+      <div class="container1">
+        <h2>Chi tiết phòng</h2>
+
+        <div class="section">
+          <label>Đây là loại chỗ nghỉ gì?</label>
+          <select>
+            <option>Phòng giường đôi</option>
+            <option>Phòng giường đơn</option>
+            <option>Phòng gia đình</option>
+            <!-- Thêm các tùy chọn khác nếu cần -->
+          </select>
+        </div>
+
+        <div class="section">
+          <label>Quý vị có bao nhiêu phòng loại này?</label>
+          <input type="number" value="1" min="1" />
+        </div>
+
+        <div class="section">
+          <label>Có loại giường nào trong phòng này?</label>
+          <div class="bed-option">
+            <span
+              ><i class="fa-solid fa-bed"></i> Giường đơn<br /><small>Rộng 90 - 130 cm</small></span
+            >
+            <div class="counter">
+              <button1 onclick="decrement(this)">-</button1>
+              <input type="text" value="0" readonly />
+              <button1 onclick="increment(this)">+</button1>
+            </div>
+          </div>
+          <div class="bed-option">
+            <span
+              ><i class="fa-solid fa-bed"></i> Giường đôi<br /><small
+                >Rộng 131 - 150 cm</small
+              ></span
+            >
+            <div class="counter">
+              <button1 onclick="decrement(this)">-</button1>
+              <input type="text" value="0" readonly />
+              <button1 onclick="increment(this)">+</button1>
+            </div>
+          </div>
+          <div class="bed-option">
+            <span
+              ><i class="fa-solid fa-bed"></i> Giường lớn (cỡ King)<br /><small
+                >Rộng 151 - 180 cm</small
+              ></span
+            >
+            <div class="counter">
+              <button1 onclick="decrement(this)">-</button1>
+              <input type="text" value="0" readonly />
+              <button1 onclick="increment(this)">+</button1>
+            </div>
+          </div>
+          <div class="bed-option">
+            <span
+              ><i class="fa-solid fa-bed"></i> Giường cực lớn (cỡ Super-king)<br /><small
+                >Rộng 181 - 210 cm</small
+              ></span
+            >
+            <div class="counter">
+              <button1 onclick="decrement(this)">-</button1>
+              <input type="text" value="0" readonly />
+              <button1 onclick="increment(this)">+</button1>
+            </div>
+          </div>
+          <div class="add-option">
+            <i class="fa-solid fa-arrow-down"></i> Thêm các lựa chọn giường
+          </div>
+          <div class="erase-option"><i class="fa-solid fa-arrow-up"></i> Thu gọn các lựa chọn</div>
+          <div class="bed-option erase">
+            <span
+              ><i class="fa-solid fa-bed"></i> Giường tầng<br /><small>Nhiều kích cỡ</small></span
+            >
+            <div class="counter">
+              <button1 onclick="decrement(this)">-</button1>
+              <input type="text" value="0" readonly />
+              <button1 onclick="increment(this)">+</button1>
+            </div>
+          </div>
+          <div class="bed-option erase">
+            <span
+              ><i class="fa-solid fa-couch"></i> Giường sofa<br /><small>Nhiều kích cỡ</small></span
+            >
+            <div class="counter">
+              <button1 onclick="decrement(this)">-</button1>
+              <input type="text" value="0" readonly />
+              <button1 onclick="increment(this)">+</button1>
+            </div>
+          </div>
+          <div class="bed-option erase">
+            <span
+              ><i class="fa-solid fa-couch"></i> Nệm futon<br /><small>Nhiều kích cỡ</small></span
+            >
+            <div class="counter">
+              <button1 onclick="decrement(this)">-</button1>
+              <input type="text" value="0" readonly />
+              <button1 onclick="increment(this)">+</button1>
+            </div>
+          </div>
+          <br />
+          <div>
+            <label>Có bao nhiêu khách có thể nghỉ ở phòng này</label>
+            <div class="counter">
+              <button1 onclick="decrement(this)">-</button1>
+              <input type="text" value="0" readonly />
+              <button1 onclick="increment(this)">+</button1>
+            </div>
+            <br />
+            <label>Phòng này rộng bao nhiêu</label>
+            <div class="area-room">
+              <input type="number" value="1" min="1" />
+              <select>
+                <option value="">mét vuông</option>
+                <option value="">feet vuông</option>
+              </select>
+            </div>
+
+            <label for="">Có được hút thuốc trong phòng này không?</label>
+            <span style="margin-right: 10px"
+              ><input type="radio" name="smoking" value="yes" style="margin-right: 3px" /> Có</span
+            >
+            <span
+              ><input type="radio" name="smoking" value="no" style="margin-right: 3px" checked />
+              Không</span
+            >
+            <br />
+            <button1 id="save" style="margin-top: 10px; padding: 10px 20px">Lưu</button1>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- end form-6  -->
+</template>
+<style scoped>
+.card {
+  background-color: white;
+  border: none;
+  border-radius: 0.5rem;
+  max-width: 500px;
+  margin: 0 auto;
+  animation: fade 250ms ease-in-out forwards;
+  border-radius: 8px;
+  padding: 35px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  animation: slide 250ms 125ms ease-in-out both;
+}
+
+.next {
+  background-color: #0358d7;
+  color: white;
+  border: none;
+  padding-left: 70px;
+  padding-right: 70px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.next:hover {
+  background-color: #003b95;
+}
+
+.next:disabled {
+  background-color: #e0e0e0;
+  cursor: not-allowed;
+}
+
+.previous {
+  background-color: #0358d7;
+  color: white;
+  border: none;
+  padding-left: 70px;
+  padding-right: 70px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.previous:hover {
+  background-color: #003b95;
+}
+
+.previous:disabled {
+  background-color: #e0e0e0;
+  cursor: not-allowed;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 30px;
+  gap: 0px;
+}
+
+.form-group:last-child {
+  margin: 0;
+}
+
+.form-group > label {
+  font-weight: bold;
+  font-size: 0.8em;
+  color: #333;
+}
+
+.form-group > input {
+  border: 1px solid #333;
+  border-radius: 0.25em;
+  font-size: 1rem;
+  padding: 0.25em;
+}
+.form-group:nth-child(3n) {
+  display: flex;
+  align-items: baseline;
+}
+.step-title {
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: bold;
+}
+.title {
+  font-size: 28px;
+  margin-bottom: 40px;
+  font-weight: bold;
+}
+.sub-title {
+  margin-top: 6px;
+  font-size: 12px;
+}
+.divider {
+  border: none;
+  border-top: 1px solid #e7e7e7;
+  margin: 0;
+}
+.card.active {
+  animation: slide 250ms 125ms ease-in-out both;
+}
+
+.multi-step-form {
+  overflow: hidden;
+  position: relative;
+  margin-top: 50px;
+}
+
+.hide {
+  display: none;
+}
+.card .container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+.form-button-container {
+  display: flex;
+  justify-content: space-between;
+}
+.form-group .zip {
+  align-items: baseline;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.radio-group {
+  display: flex;
+  align-items: center;
+}
+
+.radio-group input[type='radio'] {
+  margin-right: 5px;
+}
+
+.radio-group label {
+  margin-right: 10px;
+  font-weight: normal;
+}
+.rating-form {
+  font-family: Arial, sans-serif;
+  max-width: 500px;
+  padding: 20px;
+}
+
+.rating-form h3 {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  font-weight: normal;
+}
+
+.rating-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rating-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.rating-option input[type='radio'] {
+  opacity: 0;
+  position: absolute;
+}
+
+.radio-custom {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  margin-right: 10px;
+  position: relative;
+}
+
+.rating-option input[type='radio']:checked + .radio-custom::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  background: #0066ff;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.rating-option input[type='radio']:checked + .radio-custom {
+  border-color: #0066ff;
+}
+
+.label-text {
+  margin-right: 10px;
+  font-weight: lighter;
+}
+
+.stars {
+  letter-spacing: 2px;
+}
+
+.rating-option input[type='radio']:focus + .radio-custom {
+  box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
+}
+
+.rating-option:hover .radio-custom {
+  border-color: #0066ff;
+}
+.facilities-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 2px;
+  margin-bottom: 24px;
+}
+
+.facility-item {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.facility-item input[type='checkbox'] {
+  opacity: 0;
+  position: absolute;
+}
+
+.checkbox-custom {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ccc;
+  border-radius: 4px;
+  margin-right: 10px;
+  position: relative;
+}
+
+.facility-item input[type='checkbox']:checked + .checkbox-custom::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: #0066ff;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 2px;
+}
+
+.facility-item input[type='checkbox']:checked + .checkbox-custom {
+  border-color: #0066ff;
+}
+
+.facility-item:hover .checkbox-custom {
+  border-color: #0066ff;
+}
+
+.facility-item input[type='checkbox']:focus + .checkbox-custom {
+  box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
+}
+.facilities-group span {
+  font-weight: lighter;
+}
+.time-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.check-time > label {
+  font-weight: bold;
+  display: block;
+}
+
+.time-inputs {
+  display: flex;
+  gap: 20px;
+}
+
+.time-input {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.sub-label {
+  display: block;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 5px;
+  order: -1; /* Đảm bảo label luôn ở trên */
+}
+.time-group label {
+  font-size: 12px;
+}
+.time-select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.radio-group {
+  display: flex;
+  gap: 24px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.radio-option input[type='radio'] {
+  opacity: 0;
+  position: absolute;
+}
+
+.radio-custom {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  margin-right: 10px;
+  position: relative;
+}
+
+.radio-option input[type='radio']:checked + .radio-custom::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  background: #0066ff;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.radio-option input[type='radio']:checked + .radio-custom {
+  border-color: #0066ff;
+}
+
+.radio-option:hover .radio-custom {
+  border-color: #0066ff;
+}
+
+.radio-option input[type='radio']:focus + .radio-custom {
+  box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
+}
+
+@keyframes slide {
+  0% {
+    transform: translateX(200%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.75);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+[data-next].disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: rgb(165, 165, 165);
+  color: #4b4b4b;
+}
+/* form-6 */
+h3 {
+    font-size: 19px !important;
+}
+form {
+    overflow-x: hidden !important;
+}
+.form-6 .card {
+  max-width: 700px;
+}
+
+.steps .stepss {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.steps .stepss i {
+  font-size: 30px;
+  width: 8%;
+  text-align: center;
+}
+.steps .step-1 i {
+  font-size: 30px;
+  color: green;
+}
+.steps .stepss div span h3 {
+  margin-bottom: 0;
+}
+
+.steps .stepss div {
+  margin-right: 5px;
+  width: 70%;
+}
+
+.steps .stepss a {
+  width: 15%;
+  display: inline-block;
+  text-align: center;
+}
+.steps .stepss strong {
+  width: 15%;
+  display: inline-block;
+  text-align: center;
+  color: #777;
+  cursor: not-allowed;
+}
+.step-2 button1 {
+  display: inline-block;
+  text-align: center;
+  color: #fff;
+  background-color: #0066ff;
+  border-radius: 5px;
+  padding: 10px;
+  border: none;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.step-2 button1:hover {
+  background-color: #0358d7;
+  cursor: pointer;
+}
+
+.step-3 button1 {
+  width: 15%;
+  display: inline-block;
+  text-align: center;
+  color: #0066ff;
+  border: 1px solid #0066ff;
+  border-radius: 5px;
+  padding: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.step-3 button1:hover {
+  background-color: #0066ff16;
+}
+
+#preview {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  max-width: 100%;
+}
+
+#preview img {
+  margin-top: 20px;
+  width: 100%;
+  height: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.upload-container {
+  border: 2px dashed #bbb;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  margin: 0 auto;
+  color: #555;
+}
+
+.upload-container img {
+  width: 80px;
+  height: auto;
+  margin-bottom: 10px;
+}
+
+.upload-container .upload-button {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 10px 20px;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.upload-container .upload-button:hover {
+  background-color: #0056b3;
+}
+
+.upload-container p {
+  font-size: 14px;
+  color: #888;
+}
+
+#fileInput {
+  display: none;
+}
+
+.step-image {
+  display: none;
+}
+
+.step-image .back1 {
+  display: inline-block;
+  text-align: center;
+  color: #fff;
+  background-color: #0066ff;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 20px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+.step-image .back1:hover {
+  background-color: #fff;
+  color: #0066ff;
+  border: 1px solid #0066ff;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+select,
+input[type='number'] {
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+.bed-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0;
+}
+.bed-option span {
+  flex: 1;
+}
+.counter {
+  display: flex;
+  align-items: center;
+}
+.counter button {
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+}
+.counter input {
+  width: 40px;
+  text-align: center;
+  border: none;
+}
+.add-option {
+  color: blue;
+  cursor: pointer;
+}
+
+button1 {
+  display: inline-block;
+  text-align: center;
+  color: #0066ff;
+  border: 1px solid #0066ff;
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-weight: 600;
+  font-size: 15px;
+  background-color: #fff;
+  text-align: center;
+  cursor: pointer;
+}
+
+button1:hover {
+  background-color: #0066ff1f;
+}
+
+.bed-option:focus span {
+  font-weight: bold;
+}
+.erase,
+.erase-option {
+  display: none;
+}
+
+.erase-option {
+  color: #0056b3;
+  cursor: pointer;
+}
+
+.area-room {
+  display: flex;
+  width: 40%;
+}
+
+.area-room input {
+  width: 60%;
+}
+
+.area-room select {
+  flex: 1;
+}
+
+.bed-option span {
+  font-size: 20px;
+}
+
+label {
+  font-size: 20px;
+}
+
+.container1 {
+  display: none;
+}
+
+/* end form-6 */
+</style>

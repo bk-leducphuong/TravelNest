@@ -45,12 +45,13 @@ import Form2 from '@/components/join-forms/Form2.vue'
 import Form3 from '@/components/join-forms/Form3.vue'
 import Form4 from '@/components/join-forms/Form4.vue'
 import Form5 from '@/components/join-forms/Form5.vue'
+import Form6 from '@/components/join-forms/Form6.vue'
 
 export default {
   data() {
     return {
       currentStep: 1,
-      steps: [1, 2, 3, 4, 5]
+      steps: [1, 2, 3, 4, 5, 6]
     }
   },
   computed: {
@@ -78,7 +79,8 @@ export default {
     Form2,
     Form3,
     Form4,
-    Form5
+    Form5,
+    Form6
   }
 }
 </script>

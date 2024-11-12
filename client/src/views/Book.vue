@@ -2,40 +2,61 @@
 import CheckOut from '@/components/book/CheckOut.vue'
 import TheHeader from '@/components/Header.vue'
 import { mapGetters, mapState } from 'vuex'
+import { useToast } from 'vue-toastification'
+
 export default {
+  setup() {
+    // Get toast interface
+    const toast = useToast()
+    // Make it available inside methods
+    return { toast }
+  },
   data() {
     return {
       currentStep: 2,
       steps: [1, 2, 3],
-      email: "",
-      firstName: "",
-      lastName: "",
-      phoneNumber: "",
+      // form data
+      email: null,
+      firstName: null,
+      lastName: null,
+      phoneNumber: null
     }
   },
   computed: {
     ...mapGetters('book', ['getBookingInfor']),
     ...mapGetters('search', ['getSearchData']),
+
     progress() {
       return ((this.currentStep - 1) / (this.steps.length - 1)) * 100
     }
   },
   methods: {
+    checkFormFulfillment() {
+      if (this.email && this.firstName && this.lastName && this.phoneNumber) {
+        return true
+      } else {
+        return false
+      }
+    },
     nextStep() {
       if (this.currentStep < this.steps.length) {
-        this.currentStep++
-        window.scrollTo(0, 0)
+        if (this.checkFormFulfillment()) {
+          this.currentStep++
+          window.scrollTo(0, 0)
+        } else {
+          this.toast.error('Please fullfill the form!')
+        }
       }
     }
   },
   components: {
     CheckOut,
-    TheHeader 
+    TheHeader
   }
 }
 </script>
 <template>
-  <TheHeader :isSearchOpen="false"/>
+  <TheHeader :isSearchOpen="false" />
   <!-- progress bar -->
 
   <div class="stepper-wrapper">
@@ -92,7 +113,7 @@ export default {
             {{ room.roomQuantity }} x {{ room.roomName }}
           </div>
         </div>
-        <div style="margin-top: 20px;">
+        <div style="margin-top: 20px">
           <span class="back-button" @click="this.$router.go(-1)">Đổi lựa chọn của bạn</span>
         </div>
       </div>
@@ -193,18 +214,24 @@ export default {
           <div class="two-columns">
             <div class="form-group">
               <label>First name <span class="required">*</span></label>
-              <input v-model="firstName" type="text" value="Đặng" style="width: 95%" />
+              <input v-model="firstName" type="text" value="Đặng" style="width: 95%" required />
             </div>
 
             <div class="form-group">
               <label>Last name <span class="required">*</span></label>
-              <input v-model="lastName" type="text" value="Đình Khải" style="width: 92%" />
+              <input v-model="lastName" type="text" value="Đình Khải" style="width: 92%" required />
             </div>
           </div>
 
           <div class="form-group">
             <label>Email address <span class="required">*</span></label>
-            <input v-model="email" type="email" value="oingucoolname@gmail.com" style="width: 96%" />
+            <input
+              v-model="email"
+              type="email"
+              value="oingucoolname@gmail.com"
+              style="width: 96%"
+              required
+            />
             <div class="helper-text">Confirmation email goes to this address</div>
           </div>
 
@@ -221,7 +248,13 @@ export default {
               <select class="phone-code">
                 <option selected>VN +84</option>
               </select>
-              <input v-model="phoneNumber" type="text" class="phone-number" value="0977 326 935" />
+              <input
+                v-model="phoneNumber"
+                type="text"
+                class="phone-number"
+                value="0977 326 935"
+                required
+              />
             </div>
             <div class="helper-text">Needed by the property to validate your booking</div>
           </div>
@@ -400,13 +433,21 @@ export default {
     <div class="sub_container2" v-if="currentStep == 3">
       <div class="hotel-info">
         <h1>How do you want to pay?</h1>
-        <CheckOut />
+        <CheckOut
+          :bookingInfor="getBookingInfor"
+          :searchData="getSearchData"
+          :userInfor="{
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            phoneNumber: phoneNumber
+          }"
+        />
       </div>
     </div>
   </div>
 </template>
 <style scoped>
-
 /* step and process bar */
 .step {
   text-align: center;

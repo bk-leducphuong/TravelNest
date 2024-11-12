@@ -2,7 +2,7 @@
 import TheHeader from '../components/Header.vue'
 import TheFooter from '../components/Footer.vue'
 import axios from 'axios'
-import { mapState } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 export default {
   components: {
@@ -46,7 +46,14 @@ export default {
     }
   },
   methods: {
+    ...mapActions('search', ['updateLocation', 'updateDateRange', 'updateAdults', 'updateChildren', 'updateRooms']),
     redirectToSearchResults(search) {
+      // update vuex store
+      this.updateLocation(search.location)
+      this.updateDateRange(search.dateRange)
+      this.updateAdults(search.adults)
+      this.updateChildren(search.children)
+      this.updateRooms(search.rooms)
       // Redirect user to search results page with query params
       this.$router.push({
         name: 'SearchResults',

@@ -184,6 +184,7 @@ export default {
         const totalPrice = this.calculateRoomPrice(quantity * room.price_per_night)
 
         const selection = {
+          room_id: room.room_id,
           roomQuantity: quantity,
           roomName: room.room_name,
           totalPrice: totalPrice
@@ -203,6 +204,7 @@ export default {
       if (this.selectedRooms.length != 0) {
         const bookingInfor = {
           hotel: {
+            hotel_id: this.hotel_id,
             name: this.hotel.name,
             address: this.hotel.address,
             overall_rating: this.hotel.overall_rating,

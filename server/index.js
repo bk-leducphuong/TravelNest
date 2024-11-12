@@ -11,13 +11,15 @@ const bodyParser = require('body-parser');
 require('./config/passportConfig.js');
 const app = express();
 
+const {webhookController} = require('./controllers/paymentController')
+
 // Allow nginx proxy
 app.set('trust proxy', 1);
 
+// webhook endpoint
+app.post('/api/payment/webhook',bodyParser.raw({type: 'application/json'}), webhookController)
+
 /******************************************* Middleware **********************************************/
-
-app.use(express.json()); // Parses incoming JSON requests
-
 // Serve static files from the 'public' directory
 app.use(express.static('public'));
 

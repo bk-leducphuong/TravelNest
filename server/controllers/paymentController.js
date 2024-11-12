@@ -9,13 +9,14 @@ const queryAsync = promisify(connection.query).bind(connection);
 
 const handlePayment = async (req, res) => {
   try {
-    const { paymentMethodId, amount } = req.body;
+    const { paymentMethodId, amount, currency, bookingDetails } = req.body;
 
     // Create a payment intent
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
-      currency: "usd",
+      currency,
       payment_method: paymentMethodId,
+      bookingDetails,
       confirm: true,
       return_url: "http://localhost:5173/book/complete",
     });
@@ -74,21 +75,21 @@ const sendConfirmationEmail = async (paymentIntent) => {
 
 // Recieve webhook events
 const webhookController = async (req, res) => {
-//   console.log("success!");
-console.log(req.body);
-  const sig = req.headers["stripe-signature"];
-  let event;
+  let event = req.body;
 
-  try {
-    // Verify webhook signature
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-  } catch (err) {
-    console.error("Webhook signature verification failed:", err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+  if (process.env.STRIPE_WEBHOOK_SECRET) {
+    const sig = req.headers["stripe-signature"];
+    try {
+      // Verify webhook signature
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
+    } catch (err) {
+      console.error("Webhook signature verification failed:", err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
   }
 
   // Handle specific event types
@@ -97,13 +98,14 @@ console.log(req.body);
 
     switch (event.type) {
       case "payment_intent.succeeded":
+        console.log(paymentIntent)
         // Store payment event
         await storePaymentEvent(event, paymentIntent);
 
         // Send confirmation email
-        if (paymentIntent.receipt_email) {
-          await sendConfirmationEmail(paymentIntent);
-        }
+        // if (paymentIntent.receipt_email) {
+        //   await sendConfirmationEmail(paymentIntent);
+        // }
         break;
 
       case "payment_intent.payment_failed":

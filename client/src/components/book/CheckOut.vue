@@ -1,21 +1,9 @@
 <template>
   <div class="payment-form">
     <form @submit.prevent="handleSubmit">
-      <!-- Add email field for receipt -->
-      <div class="form-group">
-        <label for="email">Email for receipt</label>
-        <input 
-          type="email" 
-          id="email" 
-          v-model="email" 
-          required 
-          class="form-control"
-        >
-      </div>
-
       <div id="card-element"></div>
       <div id="card-errors" role="alert"></div>
-      
+
       <!-- Payment Status Message -->
       <div v-if="paymentStatus" :class="['status-message', paymentStatus.type]">
         {{ paymentStatus.message }}
@@ -29,109 +17,128 @@
 </template>
 
 <script>
-import { loadStripe } from '@stripe/stripe-js';
+import { loadStripe } from '@stripe/stripe-js'
+import axios from 'axios';
 
 export default {
+  props: {
+    bookingInfor: {
+      type: Object,
+      required: true
+    },
+    searchData: {
+      type: Object,
+      required: true,
+    },
+    userInfor: {
+      type: Object,
+      required: true
+    }
+  },
   data() {
     return {
       stripe: null,
       card: null,
       processing: false,
-      email: '',
       paymentStatus: null
     }
   },
   async mounted() {
     // Initialize Stripe with your publishable key
-    this.stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
-    const elements = this.stripe.elements();
+    this.stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
+    const elements = this.stripe.elements()
 
     // Create card element
-    this.card = elements.create('card');
-    this.card.mount('#card-element');
+    this.card = elements.create('card')
+    this.card.mount('#card-element')
 
     // Handle real-time validation errors
     this.card.addEventListener('change', (event) => {
-      const displayError = document.getElementById('card-errors');
+      const displayError = document.getElementById('card-errors')
       if (event.error) {
-        displayError.textContent = event.error.message;
+        displayError.textContent = event.error.message
       } else {
-        displayError.textContent = '';
+        displayError.textContent = ''
       }
-    });
+    })
   },
   methods: {
     async handleSubmit() {
       try {
-        this.processing = true;
-        this.paymentStatus = null;
-        
+        this.processing = true
+        this.paymentStatus = null
+
         // Create payment method
         const { paymentMethod, error } = await this.stripe.createPaymentMethod({
           type: 'card',
           card: this.card,
-        });
+          billing_details: {
+            email: this.userInfor.email,
+            name: this.userInfor.lastName + this.userInfor.firstName,
+            phone: this.userInfor.phoneNumber
+          }
+        })
 
         if (error) {
-          throw new Error(error.message);
+          throw new Error(error.message)
         }
 
         // Send payment method ID and email to server
-        const response = await fetch('http://localhost:3000/api/payment', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        const response = await axios.post(
+          'http://localhost:3000/api/payment',
+          {
             paymentMethodId: paymentMethod.id,
-            amount: 1000, // Amount in cents
-            email: this.email, // Include email for receipt
-          }),
-        });
+            amount: this.bookingInfor.totalPrice, // Amount in cents
+            currency: 'vnd', // default 
+            bookingDetails: {
+              hotel_id: this.bookingInfor.hotel.hotel_id,
+              dateRange: this.searchData.dateRange, // checkin date and checkout date
+              bookedRooms: this.bookingInfor.selectedRooms
+            }
+          },
+          { withCredentials: true }
+        )
 
-        const result = await response.json();
+        const result = await response.json()
 
         if (result.error) {
-          throw new Error(result.error);
+          throw new Error(result.error)
         }
 
         // Handle the result
         if (result.clientSecret) {
           // Confirm the payment with Stripe.js
-          const { error: confirmError } = await this.stripe.confirmCardPayment(
-            result.clientSecret
-          );
+          const { error: confirmError } = await this.stripe.confirmCardPayment(result.clientSecret)
 
           if (confirmError) {
-            throw new Error(confirmError.message);
+            throw new Error(confirmError.message)
           }
 
           // Payment successful
           this.paymentStatus = {
             type: 'success',
             message: 'Payment successful! Check your email for confirmation.'
-          };
+          }
 
           // Reset form
-          this.email = '';
-          this.card.clear();
+          this.email = ''
+          this.card.clear()
         }
-        
       } catch (err) {
         this.paymentStatus = {
           type: 'error',
           message: err.message
-        };
+        }
       } finally {
-        this.processing = false;
+        this.processing = false
       }
-    },
+    }
   },
   beforeDestroy() {
     if (this.card) {
-      this.card.destroy();
+      this.card.destroy()
     }
-  },
+  }
 }
 </script>
 
@@ -140,17 +147,6 @@ export default {
   max-width: 500px;
   margin: 0 auto;
   padding: 20px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-control {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
 }
 
 #card-element {
