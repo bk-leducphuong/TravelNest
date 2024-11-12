@@ -35,7 +35,23 @@ export default {
         console.log('Login or register failed! Pls try again!', error)
       }
     },
-    async logout({ commit }) {
+    async loginAdmin({ commit }, { apiUrl, payload }) {
+      try {
+        const response = await axios.post(apiUrl, payload, { withCredentials: true })
+        if (response.data.success) {
+          commit('setEmail', payload.email)
+          commit('setAuthentication', true)
+
+          // Check for redirect query and navigate accordingly
+          router.push('/admin')
+        } else {
+          router.push('/admin/login')
+        }
+      } catch (error) {
+        console.log('Login or register failed! Pls try again!', error)
+      }
+    },
+    async logout({ commit }, {haveRedirect}) {
       // Perform logout logic (e.g., API call)
       try {
         await axios.post('http://localhost:3000/api/auth/logout', {}, { withCredentials: true })
@@ -44,7 +60,10 @@ export default {
         // Clear localStorage
         localStorage.removeItem('isAuthenticated')
 
-        router.push('/')
+        if (haveRedirect) {
+          router.push('/')
+        }
+        
       } catch (error) {
         console.error('Logout failed:', error)
       }

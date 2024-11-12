@@ -16,7 +16,6 @@ const handlePayment = async (req, res) => {
       amount,
       currency,
       payment_method: paymentMethodId,
-      bookingDetails,
       confirm: true,
       return_url: "http://localhost:5173/book/complete",
     });

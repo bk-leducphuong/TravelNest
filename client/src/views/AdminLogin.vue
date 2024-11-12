@@ -9,9 +9,9 @@
   </header>
 
   <div class="container" v-if="step === 1">
-    <h1>{{ $t('loginHeader') }}</h1>
+    <h4>{{ $t('loginHeader') }}</h4>
     <p>
-      Bạn có thể đăng nhập tài khoản Booking.com của mình để truy cập các dịch vụ của chúng tôi.
+      Nhập email để trở thành đối tác của chúng tôi 
     </p>
     <form @submit.prevent="checkEmail">
       <label for="email">Địa chỉ email</label>
@@ -41,16 +41,45 @@
 
   <div class="container" v-if="step === 2">
     <div>
-      <h1>{{ isNewUser ? 'Tạo mật khẩu' : 'Nhập mật khẩu của bạn' }}</h1>
+      <h4>
+        {{ isNewUser ? 'Hãy điền các thông tin để hoàn thiện đăng kí' : 'Nhập mật khẩu của bạn' }}
+      </h4>
       <p>
         {{
           isNewUser
-            ? 'Dùng ít nhất 10 ký tự, trong đó có chữ hoa, chữ thường và số.'
+            ? 'Mật khẩu phải có ít nhất 10 ký tự, trong đó có chữ hoa, chữ thường và số.'
             : 'Vui lòng nhập mật khẩu Booking.com của bạn cho'
         }}
       </p>
     </div>
     <form @submit.prevent="registerOrLogin">
+      <div>
+        <label for="password" v-if="isNewUser">Tên</label>
+        <input
+          type="text"
+          placeholder="Nhập mật khẩu"
+          v-model="firstName"
+          required
+        />
+      </div>
+      <div>
+        <label for="password" v-if="isNewUser">Họ</label>
+        <input
+          type="text"
+          placeholder="Nhập mật khẩu"
+          v-model="lastName"
+          required
+        />
+      </div>
+      <div>
+        <label for="password" v-if="isNewUser">Số điện thoại</label>
+        <input
+          type="text"
+          placeholder="Nhập mật khẩu"
+          v-model="phoneNumber"
+          required
+        />
+      </div>
       <div>
         <label for="password">Mật khẩu</label>
         <input
@@ -92,39 +121,44 @@
 
 <script>
 import axios from 'axios' // Import Axios
-import { mapActions } from 'vuex'
-import { useToast } from "vue-toastification";
+import { mapActions, mapGetters } from 'vuex'
+import { useToast } from 'vue-toastification'
 
 export default {
   setup() {
-      // Get toast interface
-      const toast = useToast();
-      // Make it available inside methods
-      return { toast }
+    // Get toast interface
+    const toast = useToast()
+    // Make it available inside methods
+    return { toast }
   },
   data() {
     return {
       step: 1, // Step 1: Email, Step 2: Password
       email: '',
       password: '',
+      // for new user
+      lastName: '',
+      firstName: '',
+      phoneNumber:'',
       confirmPassword: '',
+
       isNewUser: false
     }
   },
   computed: {
+    ...mapGetters('auth', ['isAuthenticated']),
     passwordMismatch() {
       return this.isNewUser && this.password !== this.confirmPassword
     }
   },
   methods: {
-    ...mapActions('auth', ['login']), // Map the login action
-
+    ...mapActions('auth', ['loginAdmin', 'logout']), // Map the login action
     checkEmail() {
       // Call to API to check if email exists
       axios
         .post('http://localhost:3000/api/auth/check-email', {
           email: this.email,
-          userRole: 'customer'
+          userRole: 'partner' 
         })
         .then((response) => {
           if (response.data.exists) {
@@ -144,15 +178,24 @@ export default {
       if (this.passwordMismatch) {
         return // Prevent proceeding if passwords do not match
       }
+
+      // logout as a customer before starting with admin
+      if (this.isAuthenticated) {
+        await this.logout({haveRedirect: false})
+      }
+
       const apiUrl = this.isNewUser
-        ? 'http://localhost:3000/api/auth/register'
-        : 'http://localhost:3000/api/auth/login'
+        ? 'http://localhost:3000/api/auth/admin/register'
+        : 'http://localhost:3000/api/auth/admin/login'
 
       const payload = this.isNewUser
-        ? { email: this.email, password: this.password, userRole: 'customer'}
-        : { email: this.email, password: this.password, userRole: 'customer' }
+        ? { email: this.email, password: this.password, userRole: 'partner', firstName: this.firstName, lastName: this.lastName, phoneNumber: this.phoneNumber }
+        : { email: this.email, password: this.password, userRole: 'partner' }
 
-      await this.login({ apiUrl: apiUrl, payload: payload, redirectRoute: this.$route.query.redirect || '/'})
+      await this.loginAdmin({
+        apiUrl: apiUrl,
+        payload: payload,
+      })
     },
     async socialLogin(provider) {
       // Ensure `provider` is one of the allowed providers
