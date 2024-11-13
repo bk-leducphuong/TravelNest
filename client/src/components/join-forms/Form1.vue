@@ -1,20 +1,34 @@
 <script>
+import { mapActions } from 'vuex'
+
 export default {
   data() {
     return {
       formData: {
-        streetName: '',
-        zipCode: '',
-        city: ''
+        streetName: null,
+        zipCode: null,
+        city: null
       }
+    }
+  },
+  computed: {
+    checkForNext() {
+      return this.formData.streetName && this.formData.zipCode && this.formData.city ? true : false
+    }
+  },
+  methods: {
+    ...mapActions('join', ['collectFormData']),
+    goNext() {
+      this.collectFormData({ formData: this.formData, step: 1 })
+      this.$emit('next')
     }
   }
 }
 </script>
 <template>
-  <form data-multi-step class="multi-step-form">
+  <form class="multi-step-form">
     <!--  form-1  -->
-    <div class="card" data-step>
+    <div class="card">
       <div class="question">
         <h3 class="title">Chỗ nghỉ Quý vị muốn đăng ký nằm ở đâu?</h3>
       </div>
@@ -30,7 +44,7 @@ export default {
         <label for="city">Thành phố</label>
         <input type="text" name="city" v-model="formData.city" id="city" />
       </div>
-      <button type="button" class="next" @click="$emit('next')">Tiếp tục</button>
+      <button type="button" class="next" @click="goNext" :disabled="!checkForNext">Tiếp tục</button>
     </div>
   </form>
 </template>

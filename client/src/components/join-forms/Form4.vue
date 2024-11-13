@@ -1,20 +1,36 @@
 <script>
+import { mapActions } from 'vuex'
 export default {
   data() {
     return {
-      formData: {}
+      formData: {
+        hotelName: null,
+        rating: null
+      }
+    }
+  },
+  computed: {
+    checkForNext() {
+      return this.formData.hotelName && this.formData.rating ? true : false
+    }
+  },
+  methods: {
+    ...mapActions('join', ['collectFormData']),
+    goNext() {
+      this.collectFormData({ formData: this.formData, step: 4 })
+      this.$emit('next')
     }
   }
 }
 </script>
 <template>
   <form class="multi-step-form">
-    <div class="card" >
+    <div class="card">
       <h3 class="title">Cho chúng tôi biết thêm về khách sạn của quý vị</h3>
       <div class="form-group">
         <h4 class="step-title">Khách sạn của Quý vị tên gì?</h4>
         <label for="alt-name">Tên chỗ nghỉ</label>
-        <input type="text" name="alt-name" id="alt-name" />
+        <input type="text" name="alt-name" id="alt-name" v-model="formData.hotelName" />
         <p class="sub-title">Tên này sẽ được hiển thị tới khách khi họ tìm kiếm chỗ nghỉ.</p>
       </div>
       <hr class="divider" />
@@ -28,35 +44,35 @@ export default {
           </label>
 
           <label class="rating-option">
-            <input type="radio" name="rating" value="1" />
+            <input type="radio" name="rating" value="1" v-model="formData.rating" />
             <span class="radio-custom"></span>
             <span class="label-text">1 sao</span>
             <span class="stars">⭐</span>
           </label>
 
           <label class="rating-option">
-            <input type="radio" name="rating" value="2" />
+            <input type="radio" name="rating" value="2" v-model="formData.rating" />
             <span class="radio-custom"></span>
             <span class="label-text">2 sao</span>
             <span class="stars">⭐⭐</span>
           </label>
 
           <label class="rating-option">
-            <input type="radio" name="rating" value="3" />
+            <input type="radio" name="rating" value="3" v-model="formData.rating" />
             <span class="radio-custom"></span>
             <span class="label-text">3 sao</span>
             <span class="stars">⭐⭐⭐</span>
           </label>
 
           <label class="rating-option">
-            <input type="radio" name="rating" value="4" />
+            <input type="radio" name="rating" value="4" v-model="formData.rating" />
             <span class="radio-custom"></span>
             <span class="label-text">4 sao</span>
             <span class="stars">⭐⭐⭐⭐</span>
           </label>
 
           <label class="rating-option">
-            <input type="radio" name="rating" value="5" />
+            <input type="radio" name="rating" value="5" v-model="formData.rating" />
             <span class="radio-custom"></span>
             <span class="label-text">5 sao</span>
             <span class="stars">⭐⭐⭐⭐⭐</span>
@@ -65,7 +81,9 @@ export default {
       </div>
       <div class="form-button-container">
         <button type="button" class="previous" @click="$emit('previous')">Quay lại</button>
-        <button type="button" class="next" @click="$emit('next')">Tiếp tục</button>
+        <button type="button" class="next" @click="goNext" :disabled="!checkForNext">
+          Tiếp tục
+        </button>
       </div>
     </div>
   </form>

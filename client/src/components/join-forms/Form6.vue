@@ -1,8 +1,106 @@
+<script>
+export default {
+  data() {
+    return {
+      roomDetails: {
+        roomType: null,
+        numberOfRooms: 0,
+        numberOfGuests: 0,
+        roomArea: 0,
+        allowSmoke: null
+      },
+      previews: [], // Array to store preview URLs
+
+      defaultBedOptions: [
+        {
+          index: 0,
+          name: 'Giường đơn',
+          width: '90 - 130',
+          quantity: 0
+        },
+        {
+          index: 1,
+          name: 'Giường đôi',
+          width: '131 - 150',
+          quantity: 0
+        },
+        {
+          index: 2,
+          name: 'Giường lớn (cỡ King)',
+          width: '151 - 180',
+          quantity: 0
+        },
+        {
+          index: 3,
+          name: 'Giường cực lớn (cỡ Super-King)',
+          width: '181 - 210',
+          quantity: 0
+        }
+      ],
+
+      isAddRoomOpened: false,
+      isAddImageOpened: false,
+      isMainFormOpened: true
+    }
+  },
+  methods: {
+    handleFiles(event) {
+      const files = event.target.files
+
+      // Iterate through each selected file
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader()
+
+        // Load the file and push its data URL to the previews array
+        reader.onload = (e) => {
+          this.previews.push(e.target.result)
+        }
+
+        // Read file as Data URL
+        reader.readAsDataURL(file)
+      })
+    },
+    // add image popup
+    openAddImagePopup() {
+      this.isMainFormOpened = false
+      this.isAddImageOpened = true
+    },
+    closeAddImagePopup() {
+      this.isAddImageOpened = false
+      this.isMainFormOpened = true
+    },
+    // add room popup
+    openAddRoomPopup() {
+      this.isMainFormOpened = false
+      this.isAddRoomOpened = true
+    },
+    closeAddRoomPopup() {
+      this.isAddRoomOpened = false
+      this.isMainFormOpened = true
+    },
+    // method for increasing and decreasing button
+    increment(index) {
+      this.defaultBedOptions.map((bed) => {
+        if (bed.index == index) {
+          bed.quantity++
+        }
+      })
+    },
+    decrement(index) {
+      this.defaultBedOptions.map((bed) => {
+        if (bed.index == index && bed.quantity > 0) {
+          bed.quantity--
+        }
+      })
+    }
+  }
+}
+</script>
 <template>
   <!--  form-6  -->
   <div class="form-6">
-    <div class="card" data-step>
-      <div class="steps">
+    <div class="card">
+      <div class="steps" v-if="isMainFormOpened">
         <div class="stepss step-1">
           <i class="fa-solid fa-circle-check"></i>
           <div>
@@ -31,7 +129,7 @@
               căn, Quý vị có thể thêm nhiều căn nữa.</span
             >
           </div>
-          <button1 id="addRoom">Thêm phòng</button1>
+          <button id="addRoom" @click="openAddRoomPopup">Thêm phòng</button>
         </div>
         <hr />
         <div class="stepss step-3">
@@ -47,7 +145,7 @@
               gì.</span
             >
           </div>
-          <button1 id="conkac">Thêm ảnh</button1>
+          <button id="conkac" @click="openAddImagePopup()">Thêm ảnh</button>
         </div>
         <hr />
         <div class="stepss step-4">
@@ -64,7 +162,7 @@
         </div>
         <br />
         <div class="form-button-container">
-          <button type="button" class="previous"  @click="$emit('previous')">Quay lại</button>
+          <button type="button" class="previous" @click="$emit('previous')">Quay lại</button>
           <button
             style="
               font-weight: bold;
@@ -80,7 +178,9 @@
           </button>
         </div>
       </div>
-      <div class="step-image">
+
+      <!-- add image popup -->
+      <div class="step-image" v-if="isAddImageOpened">
         <form action="">
           <h3>Khách sạn của Quý vị trông ra sao</h3>
           <p>
@@ -93,17 +193,35 @@
             <label class="upload-button" for="fileInput">
               <span>Đăng tải ảnh</span>
             </label>
-            <input type="file" id="fileInput" accept="image/jpeg, image/png" multiple />
+            <input
+              type="file"
+              id="fileInput"
+              accept="image/jpeg, image/png"
+              multiple
+              @change="handleFiles"
+            />
             <p>jpg/jpeg hoặc png, tối đa 47MB mỗi file</p>
           </div>
         </form>
-        <button1 class="back1"><i class="fa-solid fa-arrow-left"></i></button1>
+        <button class="back1" @click="closeAddImagePopup">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
         <br />
         <div id="preview">
+          <img
+            v-for="(preview, index) in previews"
+            :key="index"
+            :src="preview"
+            alt="Image preview"
+            class="preview-image"
+          />
           <br />
         </div>
       </div>
-      <div class="container1">
+      <!-- end add image popup -->
+
+      <!-- add room popup -->
+      <div class="container1" v-if="isAddRoomOpened">
         <h2>Chi tiết phòng</h2>
 
         <div class="section">
@@ -118,55 +236,21 @@
 
         <div class="section">
           <label>Quý vị có bao nhiêu phòng loại này?</label>
-          <input type="number" value="1" min="1" />
+          <input type="number" value="1" min="1" v-model="roomDetails.numberOfRooms" />
         </div>
 
         <div class="section">
           <label>Có loại giường nào trong phòng này?</label>
-          <div class="bed-option">
+          <div class="bed-option" v-for="(bed, index) in defaultBedOptions" :key="index">
             <span
-              ><i class="fa-solid fa-bed"></i> Giường đơn<br /><small>Rộng 90 - 130 cm</small></span
-            >
-            <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
-              <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
-            </div>
-          </div>
-          <div class="bed-option">
-            <span
-              ><i class="fa-solid fa-bed"></i> Giường đôi<br /><small
-                >Rộng 131 - 150 cm</small
+              ><i class="fa-solid fa-bed"></i>{{ bed.name }}<br /><small
+                >Rộng {{ bed.width }} cm</small
               ></span
             >
             <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
-              <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
-            </div>
-          </div>
-          <div class="bed-option">
-            <span
-              ><i class="fa-solid fa-bed"></i> Giường lớn (cỡ King)<br /><small
-                >Rộng 151 - 180 cm</small
-              ></span
-            >
-            <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
-              <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
-            </div>
-          </div>
-          <div class="bed-option">
-            <span
-              ><i class="fa-solid fa-bed"></i> Giường cực lớn (cỡ Super-king)<br /><small
-                >Rộng 181 - 210 cm</small
-              ></span
-            >
-            <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
-              <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
+              <button @click="decrement(index)">-</button>
+              <input type="text" :value="bed.quantity" readonly />
+              <button @click="increment(index)">+</button>
             </div>
           </div>
           <div class="add-option">
@@ -178,9 +262,9 @@
               ><i class="fa-solid fa-bed"></i> Giường tầng<br /><small>Nhiều kích cỡ</small></span
             >
             <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
+              <button onclick="decrement(this)">-</button>
               <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
+              <button onclick="increment(this)">+</button>
             </div>
           </div>
           <div class="bed-option erase">
@@ -188,9 +272,9 @@
               ><i class="fa-solid fa-couch"></i> Giường sofa<br /><small>Nhiều kích cỡ</small></span
             >
             <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
+              <button onclick="decrement(this)">-</button>
               <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
+              <button onclick="increment(this)">+</button>
             </div>
           </div>
           <div class="bed-option erase">
@@ -198,23 +282,21 @@
               ><i class="fa-solid fa-couch"></i> Nệm futon<br /><small>Nhiều kích cỡ</small></span
             >
             <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
+              <button onclick="decrement(this)">-</button>
               <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
+              <button onclick="increment(this)">+</button>
             </div>
           </div>
           <br />
           <div>
             <label>Có bao nhiêu khách có thể nghỉ ở phòng này</label>
-            <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
-              <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
+            <div class="number-guest" >
+              
+              <input type="number"  min="1" v-model="roomDetails.numberOfGuests" />
             </div>
-            <br />
             <label>Phòng này rộng bao nhiêu</label>
             <div class="area-room">
-              <input type="number" value="1" min="1" />
+              <input type="number"  min="1" v-model="roomDetails.roomArea" />
               <select>
                 <option value="">mét vuông</option>
                 <option value="">feet vuông</option>
@@ -223,17 +305,37 @@
 
             <label for="">Có được hút thuốc trong phòng này không?</label>
             <span style="margin-right: 10px"
-              ><input type="radio" name="smoking" value="yes" style="margin-right: 3px" /> Có</span
+              ><input
+                type="radio"
+                name="smoking"
+                value="yes"
+                style="margin-right: 3px"
+                v-model="roomDetails.allowSmoke"
+              />
+              Có</span
             >
             <span
-              ><input type="radio" name="smoking" value="no" style="margin-right: 3px" checked />
+              ><input
+                type="radio"
+                name="smoking"
+                value="no"
+                style="margin-right: 3px"
+                v-model="roomDetails.allowSmoke"
+              />
               Không</span
             >
             <br />
-            <button1 id="save" style="margin-top: 10px; padding: 10px 20px">Lưu</button1>
+            <button
+              id="save"
+              style="margin-top: 10px; padding: 10px 20px"
+              @click="closeAddRoomPopup"
+            >
+              Lưu
+            </button>
           </div>
         </div>
       </div>
+      <!-- end add room popup -->
     </div>
   </div>
 
@@ -643,13 +745,15 @@ select {
 }
 /* form-6 */
 h3 {
-    font-size: 19px !important;
+  font-size: 19px !important;
 }
-form {
-    overflow-x: hidden !important;
+
+.form-6 {
+  overflow-x: hidden !important;
 }
-.form-6 .card {
-  max-width: 700px;
+
+.card {
+  max-width: 600px;
 }
 
 .steps .stepss {
@@ -688,7 +792,8 @@ form {
   color: #777;
   cursor: not-allowed;
 }
-.step-2 button1 {
+.step-2 button {
+  width: 15%;
   display: inline-block;
   text-align: center;
   color: #fff;
@@ -700,12 +805,12 @@ form {
   font-size: 15px;
 }
 
-.step-2 button1:hover {
+.step-2 button:hover {
   background-color: #0358d7;
   cursor: pointer;
 }
 
-.step-3 button1 {
+.step-3 button {
   width: 15%;
   display: inline-block;
   text-align: center;
@@ -719,7 +824,7 @@ form {
   cursor: pointer;
 }
 
-.step-3 button1:hover {
+.step-3 button:hover {
   background-color: #0066ff16;
 }
 
@@ -780,10 +885,6 @@ form {
   display: none;
 }
 
-.step-image {
-  display: none;
-}
-
 .step-image .back1 {
   display: inline-block;
   text-align: center;
@@ -829,8 +930,6 @@ input[type='number'] {
   align-items: center;
 }
 .counter button {
-  width: 30px;
-  height: 30px;
   font-size: 18px;
 }
 .counter input {
@@ -843,7 +942,7 @@ input[type='number'] {
   cursor: pointer;
 }
 
-button1 {
+button {
   display: inline-block;
   text-align: center;
   color: #0066ff;
@@ -857,7 +956,7 @@ button1 {
   cursor: pointer;
 }
 
-button1:hover {
+button:hover {
   background-color: #0066ff1f;
 }
 
@@ -876,11 +975,10 @@ button1:hover {
 
 .area-room {
   display: flex;
-  width: 40%;
 }
 
 .area-room input {
-  width: 60%;
+  max-width: 50%;
 }
 
 .area-room select {
@@ -893,10 +991,6 @@ button1:hover {
 
 label {
   font-size: 20px;
-}
-
-.container1 {
-  display: none;
 }
 
 /* end form-6 */

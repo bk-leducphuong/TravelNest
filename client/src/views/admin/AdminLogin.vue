@@ -53,29 +53,29 @@
       </p>
     </div>
     <form @submit.prevent="registerOrLogin">
-      <div>
-        <label for="password" v-if="isNewUser">Tên</label>
+      <div v-if="isNewUser">
+        <label for="password">Tên</label>
         <input
           type="text"
-          placeholder="Nhập mật khẩu"
+          placeholder="Nhập tên của bạn"
           v-model="firstName"
           required
         />
       </div>
-      <div>
-        <label for="password" v-if="isNewUser">Họ</label>
+      <div v-if="isNewUser">
+        <label for="password" >Họ</label>
         <input
           type="text"
-          placeholder="Nhập mật khẩu"
+          placeholder="Nhập họ của bạn"
           v-model="lastName"
           required
         />
       </div>
-      <div>
-        <label for="password" v-if="isNewUser">Số điện thoại</label>
+      <div v-if="isNewUser">
+        <label for="password" >Số điện thoại</label>
         <input
           type="text"
-          placeholder="Nhập mật khẩu"
+          placeholder="Nhập số điện thoại của bạn"
           v-model="phoneNumber"
           required
         />

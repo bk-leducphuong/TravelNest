@@ -1,136 +1,183 @@
 <script>
+import { mapActions } from 'vuex'
 export default {
   data() {
     return {
-      formData: {}
+      formData: {
+        services: []
+      }
+    }
+  },
+  computed: {
+    checkForNext() {
+      return this.formData.services.length != 0 ? true : false
+    }
+  },
+  methods: {
+    ...mapActions('join', ['collectFormData']),
+    goNext() {
+      this.collectFormData({ formData: this.formData, step: 3 })
+      this.$emit('next')
     }
   }
 }
 </script>
 <template>
   <form class="multi-step-form">
-    <div class="card" data-step>
+    <div class="card">
       <div class="question">
         <h3 class="title">Khách có thể sử dụng gì tại khách sạn của Quý vị?</h3>
       </div>
       <div class="facilities-group">
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="restaurant" />
+          <input type="checkbox" name="facilities" value="restaurant" v-model="formData.services" />
           <span class="checkbox-custom"></span>
           <span>Nhà hàng</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="room-service" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="room-service"
+            v-model="formData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Dịch vụ phòng</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="bar" />
+          <input type="checkbox" name="facilities" value="bar" v-model="formData.services" />
           <span class="checkbox-custom"></span>
           <span>Quầy bar</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="24h-service" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="24h-service"
+            v-model="formData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Lễ tân 24 giờ</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="sauna" />
+          <input type="checkbox" name="facilities" value="sauna" v-model="formData.services" />
           <span class="checkbox-custom"></span>
           <span>Phòng xông hơi</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="fitness" />
+          <input type="checkbox" name="facilities" value="fitness" v-model="formData.services" />
           <span class="checkbox-custom"></span>
           <span>Trung tâm thể dục</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="garden" />
+          <input type="checkbox" name="facilities" value="garden" v-model="formData.services" />
           <span class="checkbox-custom"></span>
           <span>Sân vườn</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="terrace" />
+          <input type="checkbox" name="facilities" value="terrace" v-model="formData.services" />
           <span class="checkbox-custom"></span>
           <span>Sân thượng / hiên</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="non-smoking" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="non-smoking"
+            v-model="formData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Phòng không hút thuốc</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="airport-shuttle" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="airport-shuttle"
+            v-model="formData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Xe đưa đón sân bay</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="family-room" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="family-room"
+            v-model="formData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Phòng gia đình</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="spa" />
+          <input type="checkbox" name="facilities" value="spa" v-model="formData.services" />
           <span class="checkbox-custom"></span>
           <span>Trung tâm Spa & chăm sóc sức khỏe</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="jacuzzi" />
+          <input type="checkbox" name="facilities" value="jacuzzi" v-model="formData.services" />
           <span class="checkbox-custom"></span>
           <span>Bồn tắm nóng/bể sục (Jacuzzi)</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="free-wifi" />
+          <input type="checkbox" name="facilities" value="free-wifi" v-model="formData.services" />
           <span class="checkbox-custom"></span>
           <span>WiFi miễn phí</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="air-conditioning" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="air-conditioning"
+            v-model="formData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Điều hòa nhiệt độ</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="water-park" />
+          <input type="checkbox" name="facilities" value="water-park" v-model="formData.services" />
           <span class="checkbox-custom"></span>
           <span>Công viên nước</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="ev-station" />
+          <input type="checkbox" name="facilities" value="ev-station" v-model="formData.services" />
           <span class="checkbox-custom"></span>
           <span>Trạm sạc xe điện</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="pool" />
+          <input type="checkbox" name="facilities" value="pool" v-model="formData.services" />
           <span class="checkbox-custom"></span>
           <span>Hồ bơi</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="beach" />
+          <input type="checkbox" name="facilities" value="beach" v-model="formData.services" />
           <span class="checkbox-custom"></span>
           <span>Bãi biển</span>
         </label>
       </div>
       <div class="form-button-container">
         <button type="button" class="previous" @click="$emit('previous')">Quay lại</button>
-        <button type="button" class="next" @click="$emit('next')">Tiếp tục</button>
+        <button type="button" class="next" @click="goNext" :disabled="!checkForNext">
+          Tiếp tục
+        </button>
       </div>
     </div>
   </form>

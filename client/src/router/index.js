@@ -10,7 +10,8 @@ import Book from '@/views/Book.vue'
 
 import stores from '@/stores'
 import Complete from '@/components/book/Complete.vue'
-import AdminLogin from '@/views/AdminLogin.vue'
+import AdminLogin from '@/views/admin/AdminLogin.vue'
+import AdminHome from '@/views/admin/AdminHome.vue'
 
 const routes = [
   // route for customer
@@ -35,7 +36,6 @@ const routes = [
     name: 'JoinForm',
     component: JoinForm
   },
-  // hotel routes
   {
     path: '/hotels/:hotel_id',
     name: 'HotelDetails',
@@ -64,11 +64,16 @@ const routes = [
     name: 'Complete',
     component: Complete
   },
-  // route for partner
+  // route for partner/admin
   {
     path: '/admin/login',
     name: 'AdminLogin',
     component: AdminLogin
+  },
+  {
+    path: '/admin/home',
+    name: 'AdminHome',
+    component: AdminHome
   },
   // Catch-all route (for 404s)
   {
