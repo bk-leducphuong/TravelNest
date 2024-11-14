@@ -127,7 +127,7 @@
             <span class="nav-text">Saved</span>
           </a>
 
-          <a href="#" class="nav-item" @click="this.logout">
+          <a href="#" class="nav-item" @click="this.logout({haveRedirect: true})">
             <svg
               class="nav-icon"
               viewBox="0 0 24 24"

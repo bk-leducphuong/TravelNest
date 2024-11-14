@@ -10,8 +10,10 @@ import Book from '@/views/Book.vue'
 
 import stores from '@/stores'
 import Complete from '@/components/book/Complete.vue'
+import AdminLogin from '@/views/AdminLogin.vue'
 
 const routes = [
+  // route for customer
   {
     path: '/',
     name: 'Home',
@@ -61,6 +63,12 @@ const routes = [
     path: '/book/complete',
     name: 'Complete',
     component: Complete
+  },
+  // route for partner
+  {
+    path: '/admin/login',
+    name: 'AdminLogin',
+    component: AdminLogin
   },
   // Catch-all route (for 404s)
   {

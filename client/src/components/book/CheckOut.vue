@@ -99,7 +99,7 @@ export default {
           { withCredentials: true }
         )
 
-        const result = await response.json()
+        const result = await response.data
 
         if (result.error) {
           throw new Error(result.error)

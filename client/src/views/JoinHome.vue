@@ -14,7 +14,7 @@
               <li><img src="" alt="" /></li>
               <li><i class="fa-regular fa-circle-question"></i></li>
               <li><span>Đã là đối tác ?</span></li>
-              <li class="login">Đăng nhập</li>
+              <li class="login" v-on:click="this.$router.push('/admin/login')">Đăng nhập</li>
               <li class="guides">Trợ giúp</li>
             </ul>
           </div>
@@ -87,13 +87,9 @@
   border-radius: 5px;
   display: flex;
   align-items: center;
-  cursor: pointer;
   font-size: 14px;
 }
 
-.header .inner-login ul li:hover {
-  background-color: #1a4fa0;
-}
 
 .header .inner-login ul li img {
   border-radius: 50%;
@@ -112,6 +108,13 @@
   background-color: #fff;
   border-radius: 5px;
 }
+.login {
+  cursor: pointer;
+}
+.guides {
+  cursor: pointer;
+}
+
 .header .inner-login ul .guides {
   padding: 5px 10px;
   color: #1d5fc2;
