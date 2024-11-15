@@ -1,27 +1,21 @@
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 export default {
   data() {
     return {
-      formData: {
-        coordinates: {
-          latitude: 123.2313, // test
-          longitude: 23.23131 
-        }
-      }
+      
     }
   },
   computed: {
+    ...mapGetters('join', ['getJoinFormData']),
     checkForNext() {
-      return this.formData.coordinates.latitude && this.formData.coordinates.longitude
+      return this.getJoinFormData.coordinates.latitude && this.getJoinFormData.coordinates.longitude
         ? true
         : false
     }
   },
   methods: {
-    ...mapActions('join', ['collectFormData']),
     goNext() {
-      this.collectFormData({ formData: this.formData, step: 2 })
       this.$emit('next')
     }
   }

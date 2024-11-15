@@ -1,61 +1,38 @@
 <script>
+import { useToast } from 'vue-toastification'
+import axios from 'axios'
+import { mapGetters } from 'vuex'
+
 export default {
+  setup() {
+    // Get toast interface
+    const toast = useToast()
+    // Make it available inside methods
+    return { toast }
+  },
   data() {
     return {
-      roomDetails: {
-        roomType: null,
-        numberOfRooms: 0,
-        numberOfGuests: 0,
-        roomArea: 0,
-        allowSmoke: null
-      },
-      previews: [], // Array to store preview URLs
-
-      defaultBedOptions: [
-        {
-          index: 0,
-          name: 'Giường đơn',
-          width: '90 - 130',
-          quantity: 0
-        },
-        {
-          index: 1,
-          name: 'Giường đôi',
-          width: '131 - 150',
-          quantity: 0
-        },
-        {
-          index: 2,
-          name: 'Giường lớn (cỡ King)',
-          width: '151 - 180',
-          quantity: 0
-        },
-        {
-          index: 3,
-          name: 'Giường cực lớn (cỡ Super-King)',
-          width: '181 - 210',
-          quantity: 0
-        }
-      ],
-
       isAddRoomOpened: false,
       isAddImageOpened: false,
-      isMainFormOpened: true
+      isMainFormOpened: true,
+      isPaymentPopupOpened: false
     }
+  },
+  computed: {
+    ...mapGetters('join', ['getJoinFormData'])
   },
   methods: {
     handleFiles(event) {
       const files = event.target.files
+      this.getJoinFormData.imageFiles = [...this.getJoinFormData.imageFiles, ...files]
 
       // Iterate through each selected file
       Array.from(files).forEach((file) => {
         const reader = new FileReader()
-
         // Load the file and push its data URL to the previews array
         reader.onload = (e) => {
-          this.previews.push(e.target.result)
+          this.getJoinFormData.imagePreviews.push(e.target.result)
         }
-
         // Read file as Data URL
         reader.readAsDataURL(file)
       })
@@ -68,6 +45,7 @@ export default {
     closeAddImagePopup() {
       this.isAddImageOpened = false
       this.isMainFormOpened = true
+      // this.uploadImage()
     },
     // add room popup
     openAddRoomPopup() {
@@ -78,20 +56,73 @@ export default {
       this.isAddRoomOpened = false
       this.isMainFormOpened = true
     },
+    // establish payment method popup
+    openPaymentPopup() {
+      this.isPaymentPopupOpened = true
+      this.isMainFormOpened = false
+    },
+    closePaymentPopup() {
+      this.isPaymentPopupOpened = false
+      this.isMainFormOpened = true
+    },
+    chooseOnlinePayment() {
+      if (!this.getJoinFormData.haveOnlinePayment) {
+        this.getJoinFormData.haveOnlinePayment = true
+        this.getJoinFormData.haveOfflinePayment = false
+      } 
+    },
+    chooseOfflinePayment() {
+      if (!this.getJoinFormData.haveOfflinePayment) {
+        this.getJoinFormData.haveOnlinePayment = false
+        Object.keys(this.getJoinFormData.haveOnlinePayment).forEach(infor => {
+          infor = null
+        })
+
+        this.getJoinFormData.haveOfflinePayment = true
+      }
+    },
     // method for increasing and decreasing button
     increment(index) {
-      this.defaultBedOptions.map((bed) => {
+      this.getJoinFormData.bedOptions.map((bed) => {
         if (bed.index == index) {
           bed.quantity++
         }
       })
     },
     decrement(index) {
-      this.defaultBedOptions.map((bed) => {
+      this.getJoinFormData.bedOptions.map((bed) => {
         if (bed.index == index && bed.quantity > 0) {
           bed.quantity--
         }
       })
+    },
+    // upload image
+    async uploadImage() {
+      if (this.getJoinFormData.imageFiles.length < 5) {
+        this.toast.error('Bạn chưa chọn đủ số lượng ảnh!')
+      }
+
+      const formData = new FormData()
+      this.getJoinFormData.imageFiles.forEach((imageFile) => {
+        formData.append('images', imageFile)
+      })
+
+      try {
+        const response = await axios.post(
+          'http://localhost:3000/api/join/upload-photos',
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            },
+            withCredentials: true
+          }
+        )
+
+        response.data.success ? console.log('Upload successfully!') : console.log('Upload failed!')
+      } catch (error) {
+        console.error('Error uploading image:', error)
+      }
     }
   }
 }
@@ -113,7 +144,7 @@ export default {
               >Các thông tin cơ bản. Nhập tên chỗ nghỉ, địa chỉ, tiện nghi và nhiều hơn nữa.</span
             >
           </div>
-          <a href="/">Chỉnh sửa</a>
+          <span>Hoàn thành</span>
         </div>
         <hr />
         <div class="stepss step-2">
@@ -158,7 +189,7 @@ export default {
             </span>
             <span>Nhập thông tin thanh toán và hóa đơn trước khi mở để nhận đặt phòng.</span>
           </div>
-          <strong>Thêm</strong>
+          <a @click="openPaymentPopup" style="font-weight: bold; color: #0056b3">Thêm</a>
         </div>
         <br />
         <div class="form-button-container">
@@ -209,7 +240,7 @@ export default {
         <br />
         <div id="preview">
           <img
-            v-for="(preview, index) in previews"
+            v-for="(preview, index) in getJoinFormData.imagePreviews"
             :key="index"
             :src="preview"
             alt="Image preview"
@@ -236,12 +267,17 @@ export default {
 
         <div class="section">
           <label>Quý vị có bao nhiêu phòng loại này?</label>
-          <input type="number" value="1" min="1" v-model="roomDetails.numberOfRooms" />
+          <input
+            type="number"
+            value="1"
+            min="1"
+            v-model="getJoinFormData.roomDetails.numberOfRooms"
+          />
         </div>
 
         <div class="section">
           <label>Có loại giường nào trong phòng này?</label>
-          <div class="bed-option" v-for="(bed, index) in defaultBedOptions" :key="index">
+          <div class="bed-option" v-for="(bed, index) in getJoinFormData.bedOptions" :key="index">
             <span
               ><i class="fa-solid fa-bed"></i>{{ bed.name }}<br /><small
                 >Rộng {{ bed.width }} cm</small
@@ -290,13 +326,12 @@ export default {
           <br />
           <div>
             <label>Có bao nhiêu khách có thể nghỉ ở phòng này</label>
-            <div class="number-guest" >
-              
-              <input type="number"  min="1" v-model="roomDetails.numberOfGuests" />
+            <div class="number-guest">
+              <input type="number" min="1" v-model="getJoinFormData.roomDetails.numberOfGuests" />
             </div>
             <label>Phòng này rộng bao nhiêu</label>
             <div class="area-room">
-              <input type="number"  min="1" v-model="roomDetails.roomArea" />
+              <input type="number" min="1" v-model="getJoinFormData.roomDetails.roomArea" />
               <select>
                 <option value="">mét vuông</option>
                 <option value="">feet vuông</option>
@@ -310,7 +345,7 @@ export default {
                 name="smoking"
                 value="yes"
                 style="margin-right: 3px"
-                v-model="roomDetails.allowSmoke"
+                v-model="getJoinFormData.roomDetails.allowSmoke"
               />
               Có</span
             >
@@ -320,7 +355,7 @@ export default {
                 name="smoking"
                 value="no"
                 style="margin-right: 3px"
-                v-model="roomDetails.allowSmoke"
+                v-model="getJoinFormData.roomDetails.allowSmoke"
               />
               Không</span
             >
@@ -336,6 +371,67 @@ export default {
         </div>
       </div>
       <!-- end add room popup -->
+
+      <!-- establish payment method -->
+      <div class="container1" v-if="isPaymentPopupOpened">
+        <div class="popup-header">
+          <h2>Choose Payment Method</h2>
+          <p>Select how you'd like to pay for your property listing</p>
+        </div>
+        <div class="payment-options">
+          <!-- Online Payment Option -->
+          <div class="payment-option" :class="{selected: getJoinFormData.haveOnlinePayment}">
+            <div class="option-header">
+              <input type="radio" name="payment-method" id="online" @click="chooseOnlinePayment"/>
+              <label class="option-title" for="online">Pay Online</label>
+              <div class="card-icons">
+                <div class="card-icon">
+                  <img src="../../assets/icons/visa.png" alt="Visa" />
+                </div>
+                <div class="card-icon">
+                  <img src="../../assets/icons/card.png" alt="Mastercard" />
+                </div>
+              </div>
+            </div>
+            <div class="card-form" v-if="getJoinFormData.haveOnlinePayment">
+              <div class="form-row">
+                <label for="card-number">Card Number</label>
+                <input type="text" id="card-number" placeholder="1234 5678 9012 3456" v-model="getJoinFormData.onlinePaymentMethodInfor.cardNumber"/>
+              </div>
+              <div class="form-row">
+                <label for="card-name">Cardholder Name</label>
+                <input type="text" id="card-name" placeholder="John Doe" v-model="getJoinFormData.onlinePaymentMethodInfor.cardHolderName"/>
+              </div>
+              <div class="card-details">
+                <div class="form-row">
+                  <label for="expiry">Expiry Date</label>
+                  <input type="text" id="expiry" placeholder="MM/YY" v-model="getJoinFormData.onlinePaymentMethodInfor.expiryDate"/>
+                </div>
+                <div class="form-row">
+                  <label for="cvv">CVC</label>
+                  <input type="text" id="cvv" placeholder="123" v-model="getJoinFormData.onlinePaymentMethodInfor.CVC" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Offline Payment Option -->
+          <div class="payment-option" :class="{selected: getJoinFormData.haveOfflinePayment}">
+            <div class="option-header">
+              <input type="radio" name="payment-method" id="offline" @click="chooseOfflinePayment"/>
+              <label class="option-title" for="offline">Pay Offline</label>
+            </div>
+            <p style="color: #666; font-size: 14px; margin: 0">
+              Make payment at our office location. Our staff will assist you with the process.
+            </p>
+          </div>
+
+          <div class="popup-buttons">
+            <button class="btn btn-cancel" @click="closePaymentPopup">Cancel</button>
+            <button class="btn btn-confirm" @click="closePaymentPopup">Confirm Payment</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -994,4 +1090,176 @@ label {
 }
 
 /* end form-6 */
+
+/* establish payment method */
+/* Header styles */
+.popup-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.popup-header h2 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: 24px;
+}
+
+.popup-header p {
+  color: #7f8c8d;
+  margin: 10px 0 0;
+  font-size: 14px;
+}
+
+/* Payment options */
+.payment-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.payment-option {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.payment-option:hover {
+  border-color: #003b95;
+  background: #f8f9fa;
+}
+
+.payment-option.selected {
+  border-color: #003b95;
+  background: #f0f7ff;
+}
+
+.option-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.option-header input[type='radio'] {
+  margin-right: 15px;
+}
+
+.option-title {
+  flex-grow: 1;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.card-icons {
+  display: flex;
+  gap: 10px;
+}
+
+.card-icon {
+  width: 40px;
+  height: 25px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-icon img {
+  width: -webkit-fill-available;
+}
+
+/* Card form */
+.card-form {
+  margin-top: 15px;
+  display: none;
+}
+
+.selected .card-form {
+  display: block;
+}
+
+.form-row {
+  margin-bottom: 15px;
+}
+
+.form-row label {
+  display: block;
+  margin-bottom: 5px;
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+.form-row input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.card-details {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 15px;
+}
+
+/* Buttons */
+.popup-buttons {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 12px 25px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel {
+  background: #f8f9fa;
+  border: 1px solid #dcdfe6;
+  color: #606266;
+}
+
+.btn-cancel:hover {
+  background: #f2f2f2;
+}
+
+.btn-confirm {
+  background: #003b95;
+  border: none;
+  color: white;
+}
+
+.btn-confirm:hover {
+  background: #003b95;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .payment-popup {
+    padding: 20px;
+  }
+
+  .card-details {
+    grid-template-columns: 1fr;
+  }
+
+  .popup-buttons {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
 </style>

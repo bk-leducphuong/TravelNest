@@ -38,7 +38,9 @@ const storePaymentEvent = async (event, paymentIntent) => {
     const buyerQuery = "SELECT owner_id FROM hotels WHERE hotel_id = ?";
     const hotelId = paymentIntent.metadata.hotel_id; // Lấy từ metadata của Payment Intent
     const sellerId = paymentIntent.metadata.seller_id; 
+    
     const buyerResult = await queryAsync(buyerQuery, [hotelId]);
+
     const buyerId = buyerResult[0]?.owner_id;
     const paymentMethod = paymentIntent.payment_method;
    // console.log("method: ",paymentMethod);

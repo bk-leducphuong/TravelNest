@@ -1,34 +1,26 @@
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 export default {
   data() {
     return {
-      formData: {
-        checkInFrom: null,
-        checkInTo: null,
-        checkOutFrom: null,
-        checkOutTo: null,
-        haveChildren: null,
-        havePet: null
-      }
+      
     }
   },
   computed: {
+    ...mapGetters('join', ['getJoinFormData']),
     checkForNext() {
-      return this.formData.checkInFrom &&
-        this.formData.checkInTo &&
-        this.formData.checkOutFrom &&
-        this.formData.checkOutTo &&
-        this.formData.haveChildren &&
-        this.formData.havePet
+      return this.getJoinFormData.checkInFrom &&
+        this.getJoinFormData.checkInTo &&
+        this.getJoinFormData.checkOutFrom &&
+        this.getJoinFormData.checkOutTo &&
+        this.getJoinFormData.haveChildren &&
+        this.getJoinFormData.havePet
         ? true
         : false
     }
   },
   methods: {
-    ...mapActions('join', ['collectFormData']),
     goNext() {
-      this.collectFormData({ formData: this.formData, step: 1 })
       this.$emit('next')
     },
 
@@ -48,11 +40,11 @@ export default {
             <label>Nhận phòng</label>
             <div class="time-inputs">
               <div class="time-input">
-                <input type="time" class="time-select" id="checkInFrom" v-model="formData.checkInFrom">
+                <input type="time" class="time-select" id="checkInFrom" v-model="getJoinFormData.checkInFrom">
                 <label class="sub-label" for="checkInFrom">Từ</label>
               </div>
               <div class="time-input">
-                <input type="time" class="time-select" id="checkInTo" v-model="formData.checkInTo">
+                <input type="time" class="time-select" id="checkInTo" v-model="getJoinFormData.checkInTo">
                   
                 <label class="sub-label" for="checkInTo">Đến</label>
               </div>
@@ -62,11 +54,11 @@ export default {
             <label>Trả phòng</label>
             <div class="time-inputs">
               <div class="time-input">
-                <input type="time" class="time-select" id="checkOutFrom" v-model="formData.checkOutFrom">
+                <input type="time" class="time-select" id="checkOutFrom" v-model="getJoinFormData.checkOutFrom">
                 <label class="sub-label" for="checkOutFrom">Từ</label>
               </div>
               <div class="time-input">
-                <input type="time" class="time-select" id="checkOutTo" v-model="formData.checkOutTo">
+                <input type="time" class="time-select" id="checkOutTo" v-model="getJoinFormData.checkOutTo">
                 <label class="sub-label" for="checkOutTo">Đến</label>
               </div>
             </div>
@@ -81,12 +73,12 @@ export default {
         <h3 class="sub-title">Quý vị có tiếp đón trẻ em không?</h3>
         <div class="radio-group">
           <label class="radio-option">
-            <input type="radio" name="children" value="true" v-model="formData.haveChildren" />
+            <input type="radio" name="children" value="true" v-model="getJoinFormData.haveChildren" />
             <span class="radio-custom"></span>
             <span>Có</span>
           </label>
           <label class="radio-option">
-            <input type="radio" name="children" value="false" v-model="formData.haveChildren" />
+            <input type="radio" name="children" value="false" v-model="getJoinFormData.haveChildren" />
             <span class="radio-custom"></span>
             <span>Không</span>
           </label>
@@ -97,12 +89,12 @@ export default {
         <h3 class="sub-title">Quý vị có cho phép vật nuôi không?</h3>
         <div class="radio-group">
           <label class="radio-option">
-            <input type="radio" name="pets" value="true" v-model="formData.havePet" />
+            <input type="radio" name="pets" value="true" v-model="getJoinFormData.havePet" />
             <span class="radio-custom"></span>
             <span>Có</span>
           </label>
           <label class="radio-option">
-            <input type="radio" name="pets" value="false" v-model="formData.havePet" />
+            <input type="radio" name="pets" value="false" v-model="getJoinFormData.havePet" />
             <span class="radio-custom"></span>
             <span>Không</span>
           </label>

@@ -1,25 +1,20 @@
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 export default {
   data() {
     return {
-      formData: {
-        streetName: null,
-        zipCode: null,
-        city: null
-      }
+      
     }
   },
   computed: {
+    ...mapGetters('join', ['getJoinFormData']),
     checkForNext() {
-      return this.formData.streetName && this.formData.zipCode && this.formData.city ? true : false
+      return this.getJoinFormData.streetName && this.getJoinFormData.zipCode && this.getJoinFormData.city ? true : false
     }
   },
   methods: {
-    ...mapActions('join', ['collectFormData']),
     goNext() {
-      this.collectFormData({ formData: this.formData, step: 1 })
       this.$emit('next')
     }
   }
@@ -34,15 +29,15 @@ export default {
       </div>
       <div class="form-group">
         <label for="Street_name">Tên đường và số nhà</label>
-        <input type="text" name="Street_name" v-model="formData.streetName" id="Street_name" />
+        <input type="text" name="Street_name" v-model="getJoinFormData.streetName" id="Street_name" />
       </div>
       <div class="form-group">
         <label for="zip_code">Mã bưu chính</label>
-        <input type="text" name="zip_code" v-model="formData.zipCode" id="zip_code" />
+        <input type="text" name="zip_code" v-model="getJoinFormData.zipCode" id="zip_code" />
       </div>
       <div class="form-group">
         <label for="city">Thành phố</label>
-        <input type="text" name="city" v-model="formData.city" id="city" />
+        <input type="text" name="city" v-model="getJoinFormData.city" id="city" />
       </div>
       <button type="button" class="next" @click="goNext" :disabled="!checkForNext">Tiếp tục</button>
     </div>

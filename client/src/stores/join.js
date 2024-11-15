@@ -8,7 +8,10 @@ export default {
       city: null,
 
       // form 2
-      coordinates: null,
+      coordinates: {
+        latitude: 23.12312, // test values
+        longitude: 123.12312,
+      },
 
       // form 3
       services: [],
@@ -24,42 +27,60 @@ export default {
       checkOutTo: null,
       haveChildren: null,
       havePet: null,
-    },
-  },
-  mutations: {
-    setJoinFormData(state, { formData, step }) {
-      // Ensure the mutation modifies the joinFormData object within state
-      switch (step) {
-        case 1:
-          state.joinFormData.streetName = formData.streetName;
-          state.joinFormData.zipCode = formData.zipCode;
-          state.joinFormData.city = formData.city;
-          break;
-        case 2:
-          state.joinFormData.coordinates = formData.coordinates;
-          break;
-        case 3:
-          state.joinFormData.services = formData.services;
-          break;
-        case 4:
-          state.joinFormData.hotelName = formData.hotelName;
-          state.joinFormData.rating = formData.rating;
-          break;
-        case 5:
-          state.joinFormData.checkInFrom = formData.checkInFrom;
-          state.joinFormData.checkInTo = formData.checkInTo;
-          state.joinFormData.checkOutFrom = formData.checkOutFrom;
-          state.joinFormData.checkOutTo = formData.checkOutTo;
-          state.joinFormData.haveChildren = formData.haveChildren;
-          state.joinFormData.havePet = formData.havePet;
-          break;
+
+      // form 6
+      roomDetails: {
+        roomType: null,
+        numberOfRooms: 0,
+        numberOfGuests: 0,
+        roomArea: 0,
+        allowSmoke: null
+      },
+      bedOptions: [
+        {
+          index: 0,
+          name: 'Giường đơn',
+          width: '90 - 130',
+          quantity: 0
+        },
+        {
+          index: 1,
+          name: 'Giường đôi',
+          width: '131 - 150',
+          quantity: 0
+        },
+        {
+          index: 2,
+          name: 'Giường lớn (cỡ King)',
+          width: '151 - 180',
+          quantity: 0
+        },
+        {
+          index: 3,
+          name: 'Giường cực lớn (cỡ Super-King)',
+          width: '181 - 210',
+          quantity: 0
+        }
+      ],
+      imagePreviews: [], // Array to store preview URLs
+      imageFiles: [],
+
+      haveOnlinePayment: false,
+      haveOfflinePayment: false,
+
+      onlinePaymentMethodInfor: {
+        cardNumber: null,
+        cardHolderName: null,
+        expiryDate: null,
+        CVC: null
       }
     },
   },
+  mutations: {
+    
+  },
   actions: {
-    collectFormData({ commit }, payload) {
-      commit('setJoinFormData', payload);
-    },
+    
   },
   getters: {
     getJoinFormData(state) {

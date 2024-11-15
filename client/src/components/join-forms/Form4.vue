@@ -1,23 +1,17 @@
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 export default {
   data() {
-    return {
-      formData: {
-        hotelName: null,
-        rating: null
-      }
-    }
+    return {}
   },
   computed: {
+    ...mapGetters('join', ['getJoinFormData']),
     checkForNext() {
-      return this.formData.hotelName && this.formData.rating ? true : false
+      return this.getJoinFormData.hotelName && this.getJoinFormData.rating ? true : false
     }
   },
   methods: {
-    ...mapActions('join', ['collectFormData']),
     goNext() {
-      this.collectFormData({ formData: this.formData, step: 4 })
       this.$emit('next')
     }
   }
@@ -30,7 +24,7 @@ export default {
       <div class="form-group">
         <h4 class="step-title">Khách sạn của Quý vị tên gì?</h4>
         <label for="alt-name">Tên chỗ nghỉ</label>
-        <input type="text" name="alt-name" id="alt-name" v-model="formData.hotelName" />
+        <input type="text" name="alt-name" id="alt-name" v-model="getJoinFormData.hotelName" />
         <p class="sub-title">Tên này sẽ được hiển thị tới khách khi họ tìm kiếm chỗ nghỉ.</p>
       </div>
       <hr class="divider" />
@@ -44,35 +38,35 @@ export default {
           </label>
 
           <label class="rating-option">
-            <input type="radio" name="rating" value="1" v-model="formData.rating" />
+            <input type="radio" name="rating" value="1" v-model="getJoinFormData.rating" />
             <span class="radio-custom"></span>
             <span class="label-text">1 sao</span>
             <span class="stars">⭐</span>
           </label>
 
           <label class="rating-option">
-            <input type="radio" name="rating" value="2" v-model="formData.rating" />
+            <input type="radio" name="rating" value="2" v-model="getJoinFormData.rating" />
             <span class="radio-custom"></span>
             <span class="label-text">2 sao</span>
             <span class="stars">⭐⭐</span>
           </label>
 
           <label class="rating-option">
-            <input type="radio" name="rating" value="3" v-model="formData.rating" />
+            <input type="radio" name="rating" value="3" v-model="getJoinFormData.rating" />
             <span class="radio-custom"></span>
             <span class="label-text">3 sao</span>
             <span class="stars">⭐⭐⭐</span>
           </label>
 
           <label class="rating-option">
-            <input type="radio" name="rating" value="4" v-model="formData.rating" />
+            <input type="radio" name="rating" value="4" v-model="getJoinFormData.rating" />
             <span class="radio-custom"></span>
             <span class="label-text">4 sao</span>
             <span class="stars">⭐⭐⭐⭐</span>
           </label>
 
           <label class="rating-option">
-            <input type="radio" name="rating" value="5" v-model="formData.rating" />
+            <input type="radio" name="rating" value="5" v-model="getJoinFormData.rating" />
             <span class="radio-custom"></span>
             <span class="label-text">5 sao</span>
             <span class="stars">⭐⭐⭐⭐⭐</span>

@@ -1,22 +1,17 @@
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 export default {
   data() {
-    return {
-      formData: {
-        services: []
-      }
-    }
+    return {}
   },
   computed: {
+    ...mapGetters('join', ['getJoinFormData']),
     checkForNext() {
-      return this.formData.services.length != 0 ? true : false
+      return this.getJoinFormData.services.length != 0 ? true : false
     }
   },
   methods: {
-    ...mapActions('join', ['collectFormData']),
     goNext() {
-      this.collectFormData({ formData: this.formData, step: 3 })
       this.$emit('next')
     }
   }
@@ -30,7 +25,12 @@ export default {
       </div>
       <div class="facilities-group">
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="restaurant" v-model="formData.services" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="restaurant"
+            v-model="getJoinFormData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Nhà hàng</span>
         </label>
@@ -40,14 +40,14 @@ export default {
             type="checkbox"
             name="facilities"
             value="room-service"
-            v-model="formData.services"
+            v-model="getJoinFormData.services"
           />
           <span class="checkbox-custom"></span>
           <span>Dịch vụ phòng</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="bar" v-model="formData.services" />
+          <input type="checkbox" name="facilities" value="bar" v-model="getJoinFormData.services" />
           <span class="checkbox-custom"></span>
           <span>Quầy bar</span>
         </label>
@@ -57,32 +57,52 @@ export default {
             type="checkbox"
             name="facilities"
             value="24h-service"
-            v-model="formData.services"
+            v-model="getJoinFormData.services"
           />
           <span class="checkbox-custom"></span>
           <span>Lễ tân 24 giờ</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="sauna" v-model="formData.services" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="sauna"
+            v-model="getJoinFormData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Phòng xông hơi</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="fitness" v-model="formData.services" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="fitness"
+            v-model="getJoinFormData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Trung tâm thể dục</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="garden" v-model="formData.services" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="garden"
+            v-model="getJoinFormData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Sân vườn</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="terrace" v-model="formData.services" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="terrace"
+            v-model="getJoinFormData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Sân thượng / hiên</span>
         </label>
@@ -92,7 +112,7 @@ export default {
             type="checkbox"
             name="facilities"
             value="non-smoking"
-            v-model="formData.services"
+            v-model="getJoinFormData.services"
           />
           <span class="checkbox-custom"></span>
           <span>Phòng không hút thuốc</span>
@@ -103,7 +123,7 @@ export default {
             type="checkbox"
             name="facilities"
             value="airport-shuttle"
-            v-model="formData.services"
+            v-model="getJoinFormData.services"
           />
           <span class="checkbox-custom"></span>
           <span>Xe đưa đón sân bay</span>
@@ -114,26 +134,36 @@ export default {
             type="checkbox"
             name="facilities"
             value="family-room"
-            v-model="formData.services"
+            v-model="getJoinFormData.services"
           />
           <span class="checkbox-custom"></span>
           <span>Phòng gia đình</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="spa" v-model="formData.services" />
+          <input type="checkbox" name="facilities" value="spa" v-model="getJoinFormData.services" />
           <span class="checkbox-custom"></span>
           <span>Trung tâm Spa & chăm sóc sức khỏe</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="jacuzzi" v-model="formData.services" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="jacuzzi"
+            v-model="getJoinFormData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Bồn tắm nóng/bể sục (Jacuzzi)</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="free-wifi" v-model="formData.services" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="free-wifi"
+            v-model="getJoinFormData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>WiFi miễn phí</span>
         </label>
@@ -143,32 +173,52 @@ export default {
             type="checkbox"
             name="facilities"
             value="air-conditioning"
-            v-model="formData.services"
+            v-model="getJoinFormData.services"
           />
           <span class="checkbox-custom"></span>
           <span>Điều hòa nhiệt độ</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="water-park" v-model="formData.services" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="water-park"
+            v-model="getJoinFormData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Công viên nước</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="ev-station" v-model="formData.services" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="ev-station"
+            v-model="getJoinFormData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Trạm sạc xe điện</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="pool" v-model="formData.services" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="pool"
+            v-model="getJoinFormData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Hồ bơi</span>
         </label>
 
         <label class="facility-item">
-          <input type="checkbox" name="facilities" value="beach" v-model="formData.services" />
+          <input
+            type="checkbox"
+            name="facilities"
+            value="beach"
+            v-model="getJoinFormData.services"
+          />
           <span class="checkbox-custom"></span>
           <span>Bãi biển</span>
         </label>
