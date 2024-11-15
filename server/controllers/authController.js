@@ -3,6 +3,12 @@ const bcrypt = require("bcryptjs");
 const { promisify } = require("util");
 const passport = require("passport");
 
+const {
+  isValidEmailFormat,
+  validateEmail,
+  validateEmailDomain,
+} = require("../utils/emailValidation.js");
+
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
 
@@ -35,20 +41,41 @@ const checkEmail = async (req, res) => {
         .json({ error: true, message: "Please provide a valid email" });
     }
 
+    // Validate email format
+    if (!isValidEmailFormat(email)) {
+      return res
+        .status(400)
+        .json({ error: true, message: "Invalid email format" });
+    }
+    // Validate email domain
+    if (!(await validateEmailDomain(email))) {
+      return res
+        .status(400)
+        .json({ error: true, message: "Invalid email domain" });
+    }
+
     // Query the database to find the user
     const query = "SELECT * FROM users WHERE email = ? AND user_role = ?";
     const results = await queryAsync(query, [email, userRole]);
 
     if (results.length > 0) {
-      // Email exists
+      // Email exists then show login page
       return res
         .status(200)
-        .json({ exists: true, message: "Email is already registered" });
+        .json({ exists: true });
     } else {
-      // Email does not exist
+      // Email does not exist then show register page
+
+      // Validate active email
+      if (!(await validateEmail(email))) {
+        return res
+          .status(400)
+          .json({ error: true, message: "Email dont exist" });
+      }
+
       return res
         .status(200)
-        .json({ exists: false, message: "Email is not available" });
+        .json({ exists: false });
     }
   } catch (error) {
     console.error("Error checking email:", error);
@@ -291,7 +318,7 @@ const registerAdmin = async (req, res) => {
       username,
       hashedPassword,
       userRole,
-      phoneNumber
+      phoneNumber,
     ]);
 
     // Create session with user ID from the insert result
