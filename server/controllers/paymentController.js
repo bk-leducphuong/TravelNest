@@ -11,6 +11,7 @@ const handlePayment = async (req, res) => {
   try {
     const { paymentMethodId, amount, currency, bookingDetails } = req.body;
     const seller_id = req.session.user.user_id;
+    //console.log("booking detail: ",bookingDetails);
 
     // Create a payment intent
     const paymentIntent = await stripe.paymentIntents.create({
@@ -121,9 +122,11 @@ const createOrderConfirmationEmail = (paymentIntent) => {
   };
 };
 
-// Utility function to send confirmation email
+// Utility function to send confirmation emails
 const sendConfirmationEmail = async (paymentIntent) => {
   try {
+    // console.log("user: ",process.env.NODEMAILER_EMAIL);
+    // console.log("password: ",process.env.NODEMAILER_PASSWORD)
     const { subject, html } = createOrderConfirmationEmail(paymentIntent);
 
     await transporter.sendMail({
@@ -176,9 +179,11 @@ const webhookController = async (req, res) => {
 
       case "payment_intent.succeeded":
         const paymentMethodId = paymentIntent.payment_method;
+        let receiptEmail = null; // Biến để lưu email người nhận
       if (paymentMethodId) {
         try {
           const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+          receiptEmail = paymentMethod.billing_details.email;
       
         } catch (err) {
           console.error("Error retrieving payment method:", err.message);
@@ -189,12 +194,21 @@ const webhookController = async (req, res) => {
 
         // Store payment event
         await storePaymentEvent(event, paymentIntent);
-        console.log("ok sucess");
+       console.log("gmail: ",receiptEmail) ;
 
-        // Send confirmation email
-        // if (paymentIntent.receipt_email) {
-        //   await sendConfirmationEmail(paymentIntent);
-        // }
+       if (receiptEmail) {
+        try {
+            // Sử dụng email vừa lấy để gửi email xác nhận
+            paymentIntent.receipt_email = receiptEmail;
+            console.log("email: ",paymentIntent.receipt_email);
+            await sendConfirmationEmail(paymentIntent);
+            console.log("Confirmation email sent.");
+        } catch (err) {
+            console.error("Error sending confirmation email:", err.message);
+        }
+    } else {
+        console.log("No email provided for this payment.");
+    }
         break;
       
       

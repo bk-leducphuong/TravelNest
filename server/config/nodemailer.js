@@ -1,10 +1,9 @@
 const nodemailer = require('nodemailer')
+require('dotenv').config();  // Tải các biến môi trường từ file .env
 
 // Email transporter configuration
 const transporter = nodemailer.createTransport({
-  host: 'localhost:3000',
-  port: 587,
-  secure: false,
+  service: 'gmail',  // Sử dụng Gmail SMTP server
   auth: {
     user: process.env.NODEMAILER_EMAIL,
     pass: process.env.NODEMAILER_PASSWORD
