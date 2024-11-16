@@ -6,6 +6,7 @@ import auth from './auth';
 import user from './user';
 import search from './search';
 import book from './book';
+import join from './join';
 
 const vuexSession = new VuexPersistence({
   storage: window.sessionStorage,
@@ -17,7 +18,8 @@ export default createStore({
     auth,
     user,
     search,
-    book
+    book,
+    join
   },
   plugins: [vuexSession.plugin],
 });

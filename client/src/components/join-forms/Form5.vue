@@ -1,16 +1,36 @@
 <script>
+import { mapActions, mapGetters, mapState } from 'vuex'
 export default {
   data() {
     return {
-      formData: {}
+      
     }
+  },
+  computed: {
+    ...mapGetters('join', ['getJoinFormData']),
+    checkForNext() {
+      return this.getJoinFormData.checkInFrom &&
+        this.getJoinFormData.checkInTo &&
+        this.getJoinFormData.checkOutFrom &&
+        this.getJoinFormData.checkOutTo &&
+        this.getJoinFormData.haveChildren &&
+        this.getJoinFormData.havePet
+        ? true
+        : false
+    }
+  },
+  methods: {
+    goNext() {
+      this.$emit('next')
+    },
+
   }
 }
 </script>
 <template>
   <form class="multi-step-form">
     <!--  form-5  -->
-    <div class="card" >
+    <div class="card">
       <h2 class="title">Quy định chung</h2>
 
       <div class="form-section">
@@ -20,11 +40,12 @@ export default {
             <label>Nhận phòng</label>
             <div class="time-inputs">
               <div class="time-input">
-                <select class="time-select" id="checkInFrom"></select>
+                <input type="time" class="time-select" id="checkInFrom" v-model="getJoinFormData.checkInFrom">
                 <label class="sub-label" for="checkInFrom">Từ</label>
               </div>
               <div class="time-input">
-                <select class="time-select" id="checkInTo"></select>
+                <input type="time" class="time-select" id="checkInTo" v-model="getJoinFormData.checkInTo">
+                  
                 <label class="sub-label" for="checkInTo">Đến</label>
               </div>
             </div>
@@ -33,11 +54,11 @@ export default {
             <label>Trả phòng</label>
             <div class="time-inputs">
               <div class="time-input">
-                <select class="time-select" id="checkOutFrom"></select>
+                <input type="time" class="time-select" id="checkOutFrom" v-model="getJoinFormData.checkOutFrom">
                 <label class="sub-label" for="checkOutFrom">Từ</label>
               </div>
               <div class="time-input">
-                <select class="time-select" id="checkOutTo"></select>
+                <input type="time" class="time-select" id="checkOutTo" v-model="getJoinFormData.checkOutTo">
                 <label class="sub-label" for="checkOutTo">Đến</label>
               </div>
             </div>
@@ -52,12 +73,12 @@ export default {
         <h3 class="sub-title">Quý vị có tiếp đón trẻ em không?</h3>
         <div class="radio-group">
           <label class="radio-option">
-            <input type="radio" name="children" value="yes" checked />
+            <input type="radio" name="children" value="true" v-model="getJoinFormData.haveChildren" />
             <span class="radio-custom"></span>
             <span>Có</span>
           </label>
           <label class="radio-option">
-            <input type="radio" name="children" value="no" />
+            <input type="radio" name="children" value="false" v-model="getJoinFormData.haveChildren" />
             <span class="radio-custom"></span>
             <span>Không</span>
           </label>
@@ -68,17 +89,12 @@ export default {
         <h3 class="sub-title">Quý vị có cho phép vật nuôi không?</h3>
         <div class="radio-group">
           <label class="radio-option">
-            <input type="radio" name="pets" value="yes" />
+            <input type="radio" name="pets" value="true" v-model="getJoinFormData.havePet" />
             <span class="radio-custom"></span>
             <span>Có</span>
           </label>
           <label class="radio-option">
-            <input type="radio" name="pets" value="request" />
-            <span class="radio-custom"></span>
-            <span>Theo yêu cầu</span>
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="pets" value="no" checked />
+            <input type="radio" name="pets" value="false" v-model="getJoinFormData.havePet" />
             <span class="radio-custom"></span>
             <span>Không</span>
           </label>
@@ -86,7 +102,9 @@ export default {
       </div>
       <div class="form-button-container">
         <button type="button" class="previous" @click="$emit('previous')">Quay lại</button>
-        <button type="button" class="next" @click="$emit('next')">Tiếp tục</button>
+        <button type="button" class="next" @click="goNext" :disabled="!checkForNext">
+          Tiếp tục
+        </button>
       </div>
     </div>
     <!--  form-5  -->
@@ -149,6 +167,7 @@ export default {
   background-color: #e0e0e0;
   cursor: not-allowed;
 }
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -160,41 +179,47 @@ export default {
   margin: 0;
 }
 
-.form-group > label {
+.form-group>label {
   font-weight: bold;
   font-size: 0.8em;
   color: #333;
 }
 
-.form-group > input {
+.form-group>input {
   border: 1px solid #333;
   border-radius: 0.25em;
   font-size: 1rem;
   padding: 0.25em;
 }
+
 .form-group:nth-child(3n) {
   display: flex;
   align-items: baseline;
 }
+
 .step-title {
   margin-bottom: 10px;
   font-size: 16px;
   font-weight: bold;
 }
+
 .title {
   font-size: 28px;
   margin-bottom: 40px;
   font-weight: bold;
 }
+
 .sub-title {
   margin-top: 6px;
   font-size: 12px;
 }
+
 .divider {
   border: none;
   border-top: 1px solid #e7e7e7;
   margin: 0;
 }
+
 .card.active {
   animation: slide 250ms 125ms ease-in-out both;
 }
@@ -208,17 +233,20 @@ export default {
 .hide {
   display: none;
 }
+
 .card .container {
   max-width: 600px;
   margin: 0 auto;
   padding: 20px;
   font-family: Arial, sans-serif;
 }
+
 .form-button-container {
   display: flex;
   flex-direction: row;
   gap: 25px;
 }
+
 .form-group .zip {
   align-items: baseline;
 }
@@ -250,6 +278,7 @@ select {
   margin-right: 10px;
   font-weight: normal;
 }
+
 .rating-form {
   font-family: Arial, sans-serif;
   max-width: 500px;
@@ -289,7 +318,7 @@ select {
   position: relative;
 }
 
-.rating-option input[type='radio']:checked + .radio-custom::after {
+.rating-option input[type='radio']:checked+.radio-custom::after {
   content: '';
   width: 12px;
   height: 12px;
@@ -301,7 +330,7 @@ select {
   transform: translate(-50%, -50%);
 }
 
-.rating-option input[type='radio']:checked + .radio-custom {
+.rating-option input[type='radio']:checked+.radio-custom {
   border-color: #0066ff;
 }
 
@@ -314,13 +343,14 @@ select {
   letter-spacing: 2px;
 }
 
-.rating-option input[type='radio']:focus + .radio-custom {
+.rating-option input[type='radio']:focus+.radio-custom {
   box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
 }
 
 .rating-option:hover .radio-custom {
   border-color: #0066ff;
 }
+
 .facilities-group {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -349,7 +379,7 @@ select {
   position: relative;
 }
 
-.facility-item input[type='checkbox']:checked + .checkbox-custom::after {
+.facility-item input[type='checkbox']:checked+.checkbox-custom::after {
   content: '';
   width: 10px;
   height: 10px;
@@ -361,7 +391,7 @@ select {
   border-radius: 2px;
 }
 
-.facility-item input[type='checkbox']:checked + .checkbox-custom {
+.facility-item input[type='checkbox']:checked+.checkbox-custom {
   border-color: #0066ff;
 }
 
@@ -369,19 +399,21 @@ select {
   border-color: #0066ff;
 }
 
-.facility-item input[type='checkbox']:focus + .checkbox-custom {
+.facility-item input[type='checkbox']:focus+.checkbox-custom {
   box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
 }
+
 .facilities-group span {
   font-weight: lighter;
 }
+
 .time-group {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.check-time > label {
+.check-time>label {
   font-weight: bold;
   display: block;
 }
@@ -402,11 +434,14 @@ select {
   font-size: 0.9rem;
   color: #666;
   margin-bottom: 5px;
-  order: -1; /* Đảm bảo label luôn ở trên */
+  order: -1;
+  /* Đảm bảo label luôn ở trên */
 }
+
 .time-group label {
   font-size: 12px;
 }
+
 .time-select {
   width: 100%;
   padding: 8px;
@@ -440,7 +475,7 @@ select {
   position: relative;
 }
 
-.radio-option input[type='radio']:checked + .radio-custom::after {
+.radio-option input[type='radio']:checked+.radio-custom::after {
   content: '';
   width: 12px;
   height: 12px;
@@ -452,7 +487,7 @@ select {
   transform: translate(-50%, -50%);
 }
 
-.radio-option input[type='radio']:checked + .radio-custom {
+.radio-option input[type='radio']:checked+.radio-custom {
   border-color: #0066ff;
 }
 
@@ -460,7 +495,7 @@ select {
   border-color: #0066ff;
 }
 
-.radio-option input[type='radio']:focus + .radio-custom {
+.radio-option input[type='radio']:focus+.radio-custom {
   box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
 }
 
@@ -469,6 +504,7 @@ select {
     transform: translateX(200%);
     opacity: 0;
   }
+
   100% {
     transform: translateX(0);
     opacity: 1;
@@ -480,15 +516,18 @@ select {
     transform: scale(1);
     opacity: 1;
   }
+
   50% {
     transform: scale(0.75);
     opacity: 0;
   }
+
   100% {
     opacity: 0;
     transform: scale(0);
   }
 }
+
 [data-next].disabled {
   opacity: 0.5;
   cursor: not-allowed;

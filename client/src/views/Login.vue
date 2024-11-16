@@ -137,7 +137,12 @@ export default {
           this.step = 2
         })
         .catch((error) => {
-          console.error('Error checking email:', error)
+          if (error.response && error.response.status === 400) {
+            const errorMessage = error.response.data.message || 'Invalid input!'
+            this.toast.error(`Error: ${errorMessage}`)
+          } else {
+            this.toast.error('Unexpected error occurred. Please try again.')
+          }
         })
     },
     async registerOrLogin() {

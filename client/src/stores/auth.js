@@ -43,7 +43,7 @@ export default {
           commit('setAuthentication', true)
 
           // Check for redirect query and navigate accordingly
-          router.push('/admin')
+          router.push('/admin/home')
         } else {
           router.push('/admin/login')
         }

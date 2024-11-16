@@ -1,8 +1,137 @@
+<script>
+import { useToast } from 'vue-toastification'
+import axios from 'axios'
+import { mapGetters } from 'vuex'
+
+export default {
+  setup() {
+    // Get toast interface
+    const toast = useToast()
+    // Make it available inside methods
+    return { toast }
+  },
+  data() {
+    return {
+      isAddRoomOpened: false,
+      isAddImageOpened: false,
+      isMainFormOpened: true,
+      isPaymentPopupOpened: false
+    }
+  },
+  computed: {
+    ...mapGetters('join', ['getJoinFormData'])
+  },
+  methods: {
+    handleFiles(event) {
+      const files = event.target.files
+      this.getJoinFormData.imageFiles = [...this.getJoinFormData.imageFiles, ...files]
+
+      // Iterate through each selected file
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader()
+        // Load the file and push its data URL to the previews array
+        reader.onload = (e) => {
+          this.getJoinFormData.imagePreviews.push(e.target.result)
+        }
+        // Read file as Data URL
+        reader.readAsDataURL(file)
+      })
+    },
+    // add image popup
+    openAddImagePopup() {
+      this.isMainFormOpened = false
+      this.isAddImageOpened = true
+    },
+    closeAddImagePopup() {
+      this.isAddImageOpened = false
+      this.isMainFormOpened = true
+      // this.uploadImage()
+    },
+    // add room popup
+    openAddRoomPopup() {
+      this.isMainFormOpened = false
+      this.isAddRoomOpened = true
+    },
+    closeAddRoomPopup() {
+      this.isAddRoomOpened = false
+      this.isMainFormOpened = true
+    },
+    // establish payment method popup
+    openPaymentPopup() {
+      this.isPaymentPopupOpened = true
+      this.isMainFormOpened = false
+    },
+    closePaymentPopup() {
+      this.isPaymentPopupOpened = false
+      this.isMainFormOpened = true
+    },
+    chooseOnlinePayment() {
+      if (!this.getJoinFormData.haveOnlinePayment) {
+        this.getJoinFormData.haveOnlinePayment = true
+        this.getJoinFormData.haveOfflinePayment = false
+      } 
+    },
+    chooseOfflinePayment() {
+      if (!this.getJoinFormData.haveOfflinePayment) {
+        this.getJoinFormData.haveOnlinePayment = false
+        Object.keys(this.getJoinFormData.haveOnlinePayment).forEach(infor => {
+          infor = null
+        })
+
+        this.getJoinFormData.haveOfflinePayment = true
+      }
+    },
+    // method for increasing and decreasing button
+    increment(index) {
+      this.getJoinFormData.bedOptions.map((bed) => {
+        if (bed.index == index) {
+          bed.quantity++
+        }
+      })
+    },
+    decrement(index) {
+      this.getJoinFormData.bedOptions.map((bed) => {
+        if (bed.index == index && bed.quantity > 0) {
+          bed.quantity--
+        }
+      })
+    },
+    // upload image
+    async uploadImage() {
+      if (this.getJoinFormData.imageFiles.length < 5) {
+        this.toast.error('Bạn chưa chọn đủ số lượng ảnh!')
+      }
+
+      const formData = new FormData()
+      this.getJoinFormData.imageFiles.forEach((imageFile) => {
+        formData.append('images', imageFile)
+      })
+
+      try {
+        const response = await axios.post(
+          'http://localhost:3000/api/join/upload-photos',
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            },
+            withCredentials: true
+          }
+        )
+
+        response.data.success ? console.log('Upload successfully!') : console.log('Upload failed!')
+      } catch (error) {
+        console.error('Error uploading image:', error)
+      }
+    }
+  }
+}
+</script>
 <template>
   <!--  form-6  -->
   <div class="form-6">
-    <div class="card" data-step>
-      <div class="steps">
+    <div class="card">
+      <div class="steps" v-if="isMainFormOpened">
         <div class="stepss step-1">
           <i class="fa-solid fa-circle-check"></i>
           <div>
@@ -15,7 +144,7 @@
               >Các thông tin cơ bản. Nhập tên chỗ nghỉ, địa chỉ, tiện nghi và nhiều hơn nữa.</span
             >
           </div>
-          <a href="/">Chỉnh sửa</a>
+          <span>Hoàn thành</span>
         </div>
         <hr />
         <div class="stepss step-2">
@@ -31,7 +160,7 @@
               căn, Quý vị có thể thêm nhiều căn nữa.</span
             >
           </div>
-          <button1 id="addRoom">Thêm phòng</button1>
+          <button id="addRoom" @click="openAddRoomPopup">Thêm phòng</button>
         </div>
         <hr />
         <div class="stepss step-3">
@@ -47,7 +176,7 @@
               gì.</span
             >
           </div>
-          <button1 id="conkac">Thêm ảnh</button1>
+          <button id="conkac" @click="openAddImagePopup()">Thêm ảnh</button>
         </div>
         <hr />
         <div class="stepss step-4">
@@ -60,11 +189,11 @@
             </span>
             <span>Nhập thông tin thanh toán và hóa đơn trước khi mở để nhận đặt phòng.</span>
           </div>
-          <strong>Thêm</strong>
+          <a @click="openPaymentPopup" style="font-weight: bold; color: #0056b3">Thêm</a>
         </div>
         <br />
         <div class="form-button-container">
-          <button type="button" class="previous"  @click="$emit('previous')">Quay lại</button>
+          <button type="button" class="previous" @click="$emit('previous')">Quay lại</button>
           <button
             style="
               font-weight: bold;
@@ -80,7 +209,9 @@
           </button>
         </div>
       </div>
-      <div class="step-image">
+
+      <!-- add image popup -->
+      <div class="step-image" v-if="isAddImageOpened">
         <form action="">
           <h3>Khách sạn của Quý vị trông ra sao</h3>
           <p>
@@ -93,17 +224,35 @@
             <label class="upload-button" for="fileInput">
               <span>Đăng tải ảnh</span>
             </label>
-            <input type="file" id="fileInput" accept="image/jpeg, image/png" multiple />
+            <input
+              type="file"
+              id="fileInput"
+              accept="image/jpeg, image/png"
+              multiple
+              @change="handleFiles"
+            />
             <p>jpg/jpeg hoặc png, tối đa 47MB mỗi file</p>
           </div>
         </form>
-        <button1 class="back1"><i class="fa-solid fa-arrow-left"></i></button1>
+        <button class="back1" @click="closeAddImagePopup">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
         <br />
         <div id="preview">
+          <img
+            v-for="(preview, index) in getJoinFormData.imagePreviews"
+            :key="index"
+            :src="preview"
+            alt="Image preview"
+            class="preview-image"
+          />
           <br />
         </div>
       </div>
-      <div class="container1">
+      <!-- end add image popup -->
+
+      <!-- add room popup -->
+      <div class="container1" v-if="isAddRoomOpened">
         <h2>Chi tiết phòng</h2>
 
         <div class="section">
@@ -118,55 +267,26 @@
 
         <div class="section">
           <label>Quý vị có bao nhiêu phòng loại này?</label>
-          <input type="number" value="1" min="1" />
+          <input
+            type="number"
+            value="1"
+            min="1"
+            v-model="getJoinFormData.roomDetails.numberOfRooms"
+          />
         </div>
 
         <div class="section">
           <label>Có loại giường nào trong phòng này?</label>
-          <div class="bed-option">
+          <div class="bed-option" v-for="(bed, index) in getJoinFormData.bedOptions" :key="index">
             <span
-              ><i class="fa-solid fa-bed"></i> Giường đơn<br /><small>Rộng 90 - 130 cm</small></span
-            >
-            <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
-              <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
-            </div>
-          </div>
-          <div class="bed-option">
-            <span
-              ><i class="fa-solid fa-bed"></i> Giường đôi<br /><small
-                >Rộng 131 - 150 cm</small
+              ><i class="fa-solid fa-bed"></i>{{ bed.name }}<br /><small
+                >Rộng {{ bed.width }} cm</small
               ></span
             >
             <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
-              <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
-            </div>
-          </div>
-          <div class="bed-option">
-            <span
-              ><i class="fa-solid fa-bed"></i> Giường lớn (cỡ King)<br /><small
-                >Rộng 151 - 180 cm</small
-              ></span
-            >
-            <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
-              <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
-            </div>
-          </div>
-          <div class="bed-option">
-            <span
-              ><i class="fa-solid fa-bed"></i> Giường cực lớn (cỡ Super-king)<br /><small
-                >Rộng 181 - 210 cm</small
-              ></span
-            >
-            <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
-              <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
+              <button @click="decrement(index)">-</button>
+              <input type="text" :value="bed.quantity" readonly />
+              <button @click="increment(index)">+</button>
             </div>
           </div>
           <div class="add-option">
@@ -178,9 +298,9 @@
               ><i class="fa-solid fa-bed"></i> Giường tầng<br /><small>Nhiều kích cỡ</small></span
             >
             <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
+              <button onclick="decrement(this)">-</button>
               <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
+              <button onclick="increment(this)">+</button>
             </div>
           </div>
           <div class="bed-option erase">
@@ -188,9 +308,9 @@
               ><i class="fa-solid fa-couch"></i> Giường sofa<br /><small>Nhiều kích cỡ</small></span
             >
             <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
+              <button onclick="decrement(this)">-</button>
               <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
+              <button onclick="increment(this)">+</button>
             </div>
           </div>
           <div class="bed-option erase">
@@ -198,23 +318,20 @@
               ><i class="fa-solid fa-couch"></i> Nệm futon<br /><small>Nhiều kích cỡ</small></span
             >
             <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
+              <button onclick="decrement(this)">-</button>
               <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
+              <button onclick="increment(this)">+</button>
             </div>
           </div>
           <br />
           <div>
             <label>Có bao nhiêu khách có thể nghỉ ở phòng này</label>
-            <div class="counter">
-              <button1 onclick="decrement(this)">-</button1>
-              <input type="text" value="0" readonly />
-              <button1 onclick="increment(this)">+</button1>
+            <div class="number-guest">
+              <input type="number" min="1" v-model="getJoinFormData.roomDetails.numberOfGuests" />
             </div>
-            <br />
             <label>Phòng này rộng bao nhiêu</label>
             <div class="area-room">
-              <input type="number" value="1" min="1" />
+              <input type="number" min="1" v-model="getJoinFormData.roomDetails.roomArea" />
               <select>
                 <option value="">mét vuông</option>
                 <option value="">feet vuông</option>
@@ -223,14 +340,95 @@
 
             <label for="">Có được hút thuốc trong phòng này không?</label>
             <span style="margin-right: 10px"
-              ><input type="radio" name="smoking" value="yes" style="margin-right: 3px" /> Có</span
+              ><input
+                type="radio"
+                name="smoking"
+                value="yes"
+                style="margin-right: 3px"
+                v-model="getJoinFormData.roomDetails.allowSmoke"
+              />
+              Có</span
             >
             <span
-              ><input type="radio" name="smoking" value="no" style="margin-right: 3px" checked />
+              ><input
+                type="radio"
+                name="smoking"
+                value="no"
+                style="margin-right: 3px"
+                v-model="getJoinFormData.roomDetails.allowSmoke"
+              />
               Không</span
             >
             <br />
-            <button1 id="save" style="margin-top: 10px; padding: 10px 20px">Lưu</button1>
+            <button
+              id="save"
+              style="margin-top: 10px; padding: 10px 20px"
+              @click="closeAddRoomPopup"
+            >
+              Lưu
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- end add room popup -->
+
+      <!-- establish payment method -->
+      <div class="container1" v-if="isPaymentPopupOpened">
+        <div class="popup-header">
+          <h2>Choose Payment Method</h2>
+          <p>Select how you'd like to pay for your property listing</p>
+        </div>
+        <div class="payment-options">
+          <!-- Online Payment Option -->
+          <div class="payment-option" :class="{selected: getJoinFormData.haveOnlinePayment}">
+            <div class="option-header">
+              <input type="radio" name="payment-method" id="online" @click="chooseOnlinePayment"/>
+              <label class="option-title" for="online">Pay Online</label>
+              <div class="card-icons">
+                <div class="card-icon">
+                  <img src="../../assets/icons/visa.png" alt="Visa" />
+                </div>
+                <div class="card-icon">
+                  <img src="../../assets/icons/card.png" alt="Mastercard" />
+                </div>
+              </div>
+            </div>
+            <div class="card-form" v-if="getJoinFormData.haveOnlinePayment">
+              <div class="form-row">
+                <label for="card-number">Card Number</label>
+                <input type="text" id="card-number" placeholder="1234 5678 9012 3456" v-model="getJoinFormData.onlinePaymentMethodInfor.cardNumber"/>
+              </div>
+              <div class="form-row">
+                <label for="card-name">Cardholder Name</label>
+                <input type="text" id="card-name" placeholder="John Doe" v-model="getJoinFormData.onlinePaymentMethodInfor.cardHolderName"/>
+              </div>
+              <div class="card-details">
+                <div class="form-row">
+                  <label for="expiry">Expiry Date</label>
+                  <input type="text" id="expiry" placeholder="MM/YY" v-model="getJoinFormData.onlinePaymentMethodInfor.expiryDate"/>
+                </div>
+                <div class="form-row">
+                  <label for="cvv">CVC</label>
+                  <input type="text" id="cvv" placeholder="123" v-model="getJoinFormData.onlinePaymentMethodInfor.CVC" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Offline Payment Option -->
+          <div class="payment-option" :class="{selected: getJoinFormData.haveOfflinePayment}">
+            <div class="option-header">
+              <input type="radio" name="payment-method" id="offline" @click="chooseOfflinePayment"/>
+              <label class="option-title" for="offline">Pay Offline</label>
+            </div>
+            <p style="color: #666; font-size: 14px; margin: 0">
+              Make payment at our office location. Our staff will assist you with the process.
+            </p>
+          </div>
+
+          <div class="popup-buttons">
+            <button class="btn btn-cancel" @click="closePaymentPopup">Cancel</button>
+            <button class="btn btn-confirm" @click="closePaymentPopup">Confirm Payment</button>
           </div>
         </div>
       </div>
@@ -643,13 +841,15 @@ select {
 }
 /* form-6 */
 h3 {
-    font-size: 19px !important;
+  font-size: 19px !important;
 }
-form {
-    overflow-x: hidden !important;
+
+.form-6 {
+  overflow-x: hidden !important;
 }
-.form-6 .card {
-  max-width: 700px;
+
+.card {
+  max-width: 600px;
 }
 
 .steps .stepss {
@@ -688,7 +888,8 @@ form {
   color: #777;
   cursor: not-allowed;
 }
-.step-2 button1 {
+.step-2 button {
+  width: 15%;
   display: inline-block;
   text-align: center;
   color: #fff;
@@ -700,12 +901,12 @@ form {
   font-size: 15px;
 }
 
-.step-2 button1:hover {
+.step-2 button:hover {
   background-color: #0358d7;
   cursor: pointer;
 }
 
-.step-3 button1 {
+.step-3 button {
   width: 15%;
   display: inline-block;
   text-align: center;
@@ -719,7 +920,7 @@ form {
   cursor: pointer;
 }
 
-.step-3 button1:hover {
+.step-3 button:hover {
   background-color: #0066ff16;
 }
 
@@ -780,10 +981,6 @@ form {
   display: none;
 }
 
-.step-image {
-  display: none;
-}
-
 .step-image .back1 {
   display: inline-block;
   text-align: center;
@@ -829,8 +1026,6 @@ input[type='number'] {
   align-items: center;
 }
 .counter button {
-  width: 30px;
-  height: 30px;
   font-size: 18px;
 }
 .counter input {
@@ -843,7 +1038,7 @@ input[type='number'] {
   cursor: pointer;
 }
 
-button1 {
+button {
   display: inline-block;
   text-align: center;
   color: #0066ff;
@@ -857,7 +1052,7 @@ button1 {
   cursor: pointer;
 }
 
-button1:hover {
+button:hover {
   background-color: #0066ff1f;
 }
 
@@ -876,11 +1071,10 @@ button1:hover {
 
 .area-room {
   display: flex;
-  width: 40%;
 }
 
 .area-room input {
-  width: 60%;
+  max-width: 50%;
 }
 
 .area-room select {
@@ -895,9 +1089,177 @@ label {
   font-size: 20px;
 }
 
-.container1 {
+/* end form-6 */
+
+/* establish payment method */
+/* Header styles */
+.popup-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.popup-header h2 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: 24px;
+}
+
+.popup-header p {
+  color: #7f8c8d;
+  margin: 10px 0 0;
+  font-size: 14px;
+}
+
+/* Payment options */
+.payment-options {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.payment-option {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.payment-option:hover {
+  border-color: #003b95;
+  background: #f8f9fa;
+}
+
+.payment-option.selected {
+  border-color: #003b95;
+  background: #f0f7ff;
+}
+
+.option-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.option-header input[type='radio'] {
+  margin-right: 15px;
+}
+
+.option-title {
+  flex-grow: 1;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.card-icons {
+  display: flex;
+  gap: 10px;
+}
+
+.card-icon {
+  width: 40px;
+  height: 25px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-icon img {
+  width: -webkit-fill-available;
+}
+
+/* Card form */
+.card-form {
+  margin-top: 15px;
   display: none;
 }
 
-/* end form-6 */
+.selected .card-form {
+  display: block;
+}
+
+.form-row {
+  margin-bottom: 15px;
+}
+
+.form-row label {
+  display: block;
+  margin-bottom: 5px;
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+.form-row input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.card-details {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 15px;
+}
+
+/* Buttons */
+.popup-buttons {
+  margin-top: 30px;
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 12px 25px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel {
+  background: #f8f9fa;
+  border: 1px solid #dcdfe6;
+  color: #606266;
+}
+
+.btn-cancel:hover {
+  background: #f2f2f2;
+}
+
+.btn-confirm {
+  background: #003b95;
+  border: none;
+  color: white;
+}
+
+.btn-confirm:hover {
+  background: #003b95;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .payment-popup {
+    padding: 20px;
+  }
+
+  .card-details {
+    grid-template-columns: 1fr;
+  }
+
+  .popup-buttons {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
 </style>

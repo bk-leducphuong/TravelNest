@@ -10,9 +10,7 @@
 
   <div class="container" v-if="step === 1">
     <h4>{{ $t('loginHeader') }}</h4>
-    <p>
-      Nhập email để trở thành đối tác của chúng tôi 
-    </p>
+    <p>Nhập email để trở thành đối tác của chúng tôi</p>
     <form @submit.prevent="checkEmail">
       <label for="email">Địa chỉ email</label>
       <input
@@ -23,6 +21,7 @@
         placeholder="Nhập địa chỉ email của bạn"
         required
       />
+
       <button type="submit" class="btn">Tiếp tục với email</button>
     </form>
     <p>hoặc sử dụng một trong các lựa chọn này</p>
@@ -53,29 +52,19 @@
       </p>
     </div>
     <form @submit.prevent="registerOrLogin">
-      <div>
-        <label for="password" v-if="isNewUser">Tên</label>
-        <input
-          type="text"
-          placeholder="Nhập mật khẩu"
-          v-model="firstName"
-          required
-        />
+      <div v-if="isNewUser">
+        <label for="password">Tên</label>
+        <input type="text" placeholder="Nhập tên của bạn" v-model="firstName" required />
       </div>
-      <div>
-        <label for="password" v-if="isNewUser">Họ</label>
-        <input
-          type="text"
-          placeholder="Nhập mật khẩu"
-          v-model="lastName"
-          required
-        />
+      <div v-if="isNewUser">
+        <label for="password">Họ</label>
+        <input type="text" placeholder="Nhập họ của bạn" v-model="lastName" required />
       </div>
-      <div>
-        <label for="password" v-if="isNewUser">Số điện thoại</label>
+      <div v-if="isNewUser">
+        <label for="password">Số điện thoại</label>
         <input
           type="text"
-          placeholder="Nhập mật khẩu"
+          placeholder="Nhập số điện thoại của bạn"
           v-model="phoneNumber"
           required
         />
@@ -139,9 +128,8 @@ export default {
       // for new user
       lastName: '',
       firstName: '',
-      phoneNumber:'',
+      phoneNumber: '',
       confirmPassword: '',
-
       isNewUser: false
     }
   },
@@ -158,7 +146,7 @@ export default {
       axios
         .post('http://localhost:3000/api/auth/check-email', {
           email: this.email,
-          userRole: 'partner' 
+          userRole: 'partner'
         })
         .then((response) => {
           if (response.data.exists) {
@@ -171,7 +159,12 @@ export default {
           this.step = 2
         })
         .catch((error) => {
-          console.error('Error checking email:', error)
+          if (error.response && error.response.status === 400) {
+            const errorMessage = error.response.data.message || 'Invalid input!'
+            this.toast.error(`Error: ${errorMessage}`)
+          } else {
+            this.toast.error('Unexpected error occurred. Please try again.')
+          }
         })
     },
     async registerOrLogin() {
@@ -181,7 +174,7 @@ export default {
 
       // logout as a customer before starting with admin
       if (this.isAuthenticated) {
-        await this.logout({haveRedirect: false})
+        await this.logout({ haveRedirect: false })
       }
 
       const apiUrl = this.isNewUser
@@ -189,41 +182,20 @@ export default {
         : 'http://localhost:3000/api/auth/admin/login'
 
       const payload = this.isNewUser
-        ? { email: this.email, password: this.password, userRole: 'partner', firstName: this.firstName, lastName: this.lastName, phoneNumber: this.phoneNumber }
+        ? {
+            email: this.email,
+            password: this.password,
+            userRole: 'partner',
+            firstName: this.firstName,
+            lastName: this.lastName,
+            phoneNumber: this.phoneNumber
+          }
         : { email: this.email, password: this.password, userRole: 'partner' }
 
       await this.loginAdmin({
         apiUrl: apiUrl,
-        payload: payload,
+        payload: payload
       })
-    },
-    async socialLogin(provider) {
-      // Ensure `provider` is one of the allowed providers
-      const allowedProviders = ['facebook', 'google', 'apple']
-      if (!allowedProviders.includes(provider)) {
-        console.error('Invalid provider')
-        return
-      }
-
-      // Show loading state (could be a UI change, like a spinner)
-      this.isLoading = true
-
-      try {
-        const queryUrl = `http://localhost:3000/api/auth/login-${provider}`
-        const response = await axios.get(queryUrl, { withCredentials: true })
-
-        if (response.data.success) {
-          this.$router.push('/')
-          this.toast.success('Successfully logged in!') // Example for user feedback
-        } else {
-          this.toast.error('Login failed. Please try again.')
-        }
-      } catch (error) {
-        console.error('Error during social login:', error)
-        this.toast.error('An error occurred during login. Please try again.')
-      } finally {
-        this.isLoading = false // Remove loading state
-      }
     }
   }
 }

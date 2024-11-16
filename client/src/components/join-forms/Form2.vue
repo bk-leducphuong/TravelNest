@@ -1,10 +1,22 @@
 <script>
+import { mapActions, mapGetters, mapState } from 'vuex'
 export default {
   data() {
     return {
-      formData: {
-        
-      }
+      
+    }
+  },
+  computed: {
+    ...mapGetters('join', ['getJoinFormData']),
+    checkForNext() {
+      return this.getJoinFormData.coordinates.latitude && this.getJoinFormData.coordinates.longitude
+        ? true
+        : false
+    }
+  },
+  methods: {
+    goNext() {
+      this.$emit('next')
     }
   }
 }
@@ -20,16 +32,14 @@ export default {
           trí chính xác của chỗ nghỉ, sau đó nhấn để thả ghim.
         </p>
         <div class="map-container">
-          <img
-            src=""
-            alt="Map placeholder"
-            style="width: 100%; height: 100%; object-fit: cover"
-          />
+          <img src="" alt="Map placeholder" style="width: 100%; height: 100%; object-fit: cover" />
         </div>
       </div>
       <div class="form-button-container">
         <button type="button" class="previous" @click="$emit('previous')">Quay lại</button>
-        <button type="button" class="next" @click="$emit('next')">Tiếp tục</button>
+        <button type="button" class="next" @click="goNext" :disabled="!checkForNext">
+          Tiếp tục
+        </button>
       </div>
     </div>
   </form>
