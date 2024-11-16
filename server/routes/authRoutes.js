@@ -13,6 +13,9 @@ const {
 } = require("../controllers/authController");
 const passport = require("passport");
 
+// otp verification
+const { sendOtp, verifyOtp } = require("../utils/otpVerification.js");
+
 /********************** For customer *****************/
 // Check authentication
 router.get("/check-auth", checkAuth);
@@ -37,5 +40,32 @@ router.get(
 /********************** For partner/admin *******************/
 router.post("/admin/login", loginAdmin);
 router.post("/admin/register", registerAdmin);
+
+/********************** OTP Verification *******************/
+router.post("/send-otp", async (req, res) => {
+  const { phoneNumber } = req.body;
+  try {
+    const otp = await sendOtp(phoneNumber);
+    res.json({ success: true, otp: otp });
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+router.post("/verify-otp", async (req, res) => {
+  const { phoneNumber, otp } = req.body;
+  try {
+    const isValid = await verifyOtp(phoneNumber, otp);
+    if (isValid) {
+      res.json({ success: true, message: "OTP verified successfully" });
+    } else {
+      res.json({ success: false, message: "Invalid OTP" });
+    }
+  } catch (error) {
+    console.error("Error verifying OTP:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
 
 module.exports = router;

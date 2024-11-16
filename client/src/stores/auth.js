@@ -6,7 +6,10 @@ export default {
   namespaced: true,
   state: {
     email: '',
-    isAuthenticated: JSON.parse(localStorage.getItem('isAuthenticated')) || false
+    role: '',
+    isAuthenticated: JSON.parse(localStorage.getItem('isAuthenticated')) || false,
+    otp: '',
+    otpVerified: false
   },
   mutations: {
     setEmail(state, email) {
@@ -16,6 +19,15 @@ export default {
       state.isAuthenticated = status
       // Save to localStorage for persistence across refresh
       localStorage.setItem('isAuthenticated', status)
+    },
+    setUserRole(state, role) {
+      state.role = role
+    },
+    setOtp(state, otp) {
+      state.otp = otp
+    },
+    setOtpVerified(state, status) { // for OTP verification
+      state.otpVerified = status        
     }
   },
   actions: {
@@ -25,7 +37,7 @@ export default {
         if (response.data.success) {
           commit('setEmail', payload.email)
           commit('setAuthentication', true)
-
+          commit('setUserRole', payload.userRole)
           // Check for redirect query and navigate accordingly
           router.push(redirectRoute)
         } else {
@@ -41,14 +53,14 @@ export default {
         if (response.data.success) {
           commit('setEmail', payload.email)
           commit('setAuthentication', true)
+          commit('setUserRole', payload.userRole)
 
           // Check for redirect query and navigate accordingly
           router.push('/admin/home')
-        } else {
-          router.push('/admin/login')
         }
       } catch (error) {
-        console.log('Login or register failed! Pls try again!', error)
+        console.log('Login or register failed! Pls try again!', error.response.data.message)
+        this.toast.error('Login or register failed! Pls try again!')
       }
     },
     async logout({ commit }, {haveRedirect}) {
@@ -77,6 +89,35 @@ export default {
       } else {
         commit('setAuthentication', false) // Reset state if not authenticated
       }
+    },
+    async sendOtp({ commit }, { phoneNumber }) {
+      try {
+        const response = await axios.post('http://localhost:3000/api/auth/send-otp', {
+          phoneNumber: phoneNumber
+        })
+        if (response.data.success) {
+          commit('setOtp', response.data.otp)
+        } else {
+          console.log('OTP not sent!')
+        }
+      } catch (error) {
+        console.error('Error during OTP sending:', error)
+      }
+    },
+    async verifyOtp({ commit }, { phoneNumber, otp }) {
+      try {
+        const response = await axios.post('http://localhost:3000/api/auth/verify-otp', {
+          phoneNumber: phoneNumber,
+          otp: otp
+        })
+        if (response.data.success) {
+          commit('setOtpVerified', true)
+        } else {
+          commit('setOtpVerified', false)
+        }
+      } catch (error) {
+        console.error('Error during OTP verification:', error)
+      }
     }
   },
   getters: {
@@ -85,6 +126,15 @@ export default {
     },
     isAuthenticated(state) {
       return state.isAuthenticated
+    },
+    getOtp(state) {
+      return state.otp
+    },
+    isOtpVerified(state) {      
+      return state.otpVerified  
+    },
+    getUserRole(state) {      
+      return state.role 
     }
   }
 }

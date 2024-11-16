@@ -13,7 +13,7 @@ const app = express();
 
 const {webhookController} = require('./controllers/paymentController')
 
-// Allow nginx proxy
+// Allow nginx proxy'
 app.set('trust proxy', 1);
 
 // webhook endpoint

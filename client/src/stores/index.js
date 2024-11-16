@@ -10,7 +10,16 @@ import join from './join';
 
 const vuexSession = new VuexPersistence({
   storage: window.sessionStorage,
-  modules: ['search', 'book'],
+  reducer: (state) => ({
+    auth: {
+      email: state.auth.email,
+      role: state.auth.role,
+      isAuthenticated: state.auth.isAuthenticated,
+    },
+    // Persist the entire `search` and `book` modules
+    search: state.search,
+    book: state.book,
+  }),
 });
 
 export default createStore({

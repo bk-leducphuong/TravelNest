@@ -11,6 +11,7 @@
   "author": "Le Duc Phuong & Manh Xuan Thai",
   "license": "ISC",
   "dependencies": {
+    "@infobip-api/sdk": "^0.3.2",
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",

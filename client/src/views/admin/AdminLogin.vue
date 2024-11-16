@@ -51,7 +51,7 @@
         }}
       </p>
     </div>
-    <form @submit.prevent="registerOrLogin">
+    <form @submit.prevent="submitSecondForm">
       <div v-if="isNewUser">
         <label for="password">Tên</label>
         <input type="text" placeholder="Nhập tên của bạn" v-model="firstName" required />
@@ -91,7 +91,7 @@
           placeholder="Nhập mật khẩu"
           required
         />
-        <p v-if="passwordMismatch" class="error">Mật khẩu không khớp!</p>
+        <p v-if="passwordMismatch" class="error" style="color: red;">Mật khẩu không khớp!</p>
       </div>
 
       <button type="submit" class="btn">{{ isNewUser ? 'Tạo tài khoản' : 'Đăng nhập' }}</button>
@@ -106,14 +106,24 @@
     </p>
     <p>Bảo lưu mọi quyền.<br />Bản quyền (2006 - 2024) - Booking.com™</p>
   </div>
+
+  <OtpVerification
+    v-if="openVerificationPopup"
+    :phone-number="phoneNumber"
+    @update-is-verified="updateIsVerified"
+  />
 </template>
 
 <script>
 import axios from 'axios' // Import Axios
 import { mapActions, mapGetters } from 'vuex'
 import { useToast } from 'vue-toastification'
+import OtpVerification from '@/components/admin/otp-verification/OtpVerification.vue'
 
 export default {
+  components: {
+    OtpVerification
+  },
   setup() {
     // Get toast interface
     const toast = useToast()
@@ -130,17 +140,30 @@ export default {
       firstName: '',
       phoneNumber: '',
       confirmPassword: '',
-      isNewUser: false
+      isNewUser: false,
+
+      // for OTP verification
+      isVerified: false,
+      openVerificationPopup: false
     }
   },
   computed: {
-    ...mapGetters('auth', ['isAuthenticated']),
+    ...mapGetters('auth', ['isAuthenticated', 'getOtp']),
     passwordMismatch() {
       return this.isNewUser && this.password !== this.confirmPassword
     }
   },
   methods: {
-    ...mapActions('auth', ['loginAdmin', 'logout']), // Map the login action
+    ...mapActions('auth', ['loginAdmin', 'logout', 'sendOtp']), // Map the login action,
+    updateIsVerified(status) {
+      this.isVerified = status
+      if (status) {
+        this.registerOrLogin()
+      }else {
+        this.toast.error('OTP verification failed!')
+        this.$router.push('/admin/login')
+      }
+    },
     checkEmail() {
       // Call to API to check if email exists
       axios
@@ -168,19 +191,13 @@ export default {
         })
     },
     async registerOrLogin() {
-      if (this.passwordMismatch) {
-        return // Prevent proceeding if passwords do not match
-      }
-
       // logout as a customer before starting with admin
       if (this.isAuthenticated) {
         await this.logout({ haveRedirect: false })
       }
-
       const apiUrl = this.isNewUser
         ? 'http://localhost:3000/api/auth/admin/register'
         : 'http://localhost:3000/api/auth/admin/login'
-
       const payload = this.isNewUser
         ? {
             email: this.email,
@@ -191,11 +208,29 @@ export default {
             phoneNumber: this.phoneNumber
           }
         : { email: this.email, password: this.password, userRole: 'partner' }
-
       await this.loginAdmin({
         apiUrl: apiUrl,
         payload: payload
       })
+    },
+    async runOtpVerification() {
+      try {
+        // send OTP
+        await this.sendOtp({ phoneNumber: this.phoneNumber })
+        if (this.getOtp) {
+          this.toast.success('OTP đã được gửi đến điện thoại của bạn!')
+        } else {
+          this.toast.error('Không thể gửi OTP đến điện thoại của bạn!')
+        }
+
+        // open otp verification popup
+        this.openVerificationPopup = true
+      } catch (error) {
+        console.error('Error during OTP verification:', error)
+      }
+    },
+    submitSecondForm() {
+      this.isNewUser ? this.runOtpVerification() : this.registerOrLogin()
     }
   }
 }

@@ -9,6 +9,8 @@ const {
   validateEmailDomain,
 } = require("../utils/emailValidation.js");
 
+
+
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
 
@@ -297,8 +299,8 @@ const registerAdmin = async (req, res) => {
 
     // Check if user already exists
     const existingUserQuery =
-      "SELECT * FROM users WHERE email = ? AND user_role = ?";
-    const existingUser = await queryAsync(existingUserQuery, [email, userRole]);
+      "SELECT * FROM users WHERE email = ? AND user_role = ? AND phone_number = ?";
+    const existingUser = await queryAsync(existingUserQuery, [email, userRole, phoneNumber]);
 
     if (existingUser.length > 0) {
       return res
