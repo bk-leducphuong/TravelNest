@@ -15,7 +15,7 @@ export default {
   },
   methods: {
     ...mapActions('user', ['updateUserLocation']), // Access the user module action
-
+    ...mapActions('auth', ['checkAuth']), 
     handleConsent(accepted) {
       if (accepted) {
         // User accepted cookies, you can initialize tracking here
@@ -65,6 +65,8 @@ export default {
     }
   },
   mounted() {
+    this.checkAuth();
+    
     this.updateLanguage();
 
     // Fetch user location and update Vuex store

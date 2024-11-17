@@ -7,7 +7,7 @@ export default {
   state: {
     email: '',
     role: '',
-    isAuthenticated: JSON.parse(localStorage.getItem('isAuthenticated')) || false,
+    isAuthenticated: false,
     otp: '',
     otpVerified: false
   },
@@ -17,8 +17,6 @@ export default {
     },
     setAuthentication(state, status) {
       state.isAuthenticated = status
-      // Save to localStorage for persistence across refresh
-      localStorage.setItem('isAuthenticated', status)
     },
     setUserRole(state, role) {
       state.role = role
@@ -26,8 +24,9 @@ export default {
     setOtp(state, otp) {
       state.otp = otp
     },
-    setOtpVerified(state, status) { // for OTP verification
-      state.otpVerified = status        
+    setOtpVerified(state, status) {
+      // for OTP verification
+      state.otpVerified = status
     }
   },
   actions: {
@@ -40,11 +39,10 @@ export default {
           commit('setUserRole', payload.userRole)
           // Check for redirect query and navigate accordingly
           router.push(redirectRoute)
-        } else {
-          router.push('/login')
         }
       } catch (error) {
-        console.log('Login or register failed! Pls try again!', error)
+        this.toast.error('Login or register failed! Pls try again!')
+        router.push('/login')
       }
     },
     async loginAdmin({ commit }, { apiUrl, payload }) {
@@ -63,7 +61,7 @@ export default {
         this.toast.error('Login or register failed! Pls try again!')
       }
     },
-    async logout({ commit }, {haveRedirect}) {
+    async logout({ commit }, { haveRedirect }) {
       // Perform logout logic (e.g., API call)
       try {
         await axios.post('http://localhost:3000/api/auth/logout', {}, { withCredentials: true })
@@ -75,7 +73,6 @@ export default {
         if (haveRedirect) {
           router.push('/')
         }
-        
       } catch (error) {
         console.error('Logout failed:', error)
       }
@@ -86,6 +83,11 @@ export default {
       })
       if (response.data.isAuthenticated) {
         commit('setAuthentication', true) // Restore state from localStorage
+        if (response.data.userRole === 'customer') {
+          commit('setUserRole', response.data.userRole)
+        } else if (response.data.userRole === 'partner') {
+          commit('setUserRole', response.data.userRole)
+        }
       } else {
         commit('setAuthentication', false) // Reset state if not authenticated
       }
@@ -127,14 +129,15 @@ export default {
     isAuthenticated(state) {
       return state.isAuthenticated
     },
+
+    getUserRole(state) {
+      return state.role
+    },
     getOtp(state) {
       return state.otp
     },
-    isOtpVerified(state) {      
-      return state.otpVerified  
-    },
-    getUserRole(state) {      
-      return state.role 
+    isOtpVerified(state) {
+      return state.otpVerified
     }
   }
 }

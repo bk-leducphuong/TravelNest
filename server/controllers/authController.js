@@ -9,8 +9,6 @@ const {
   validateEmailDomain,
 } = require("../utils/emailValidation.js");
 
-
-
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
 
@@ -19,7 +17,11 @@ const queryAsync = promisify(connection.query).bind(connection);
 const checkAuth = (req, res) => {
   try {
     if (req.session.user && req.session.user.user_id) {
-      return res.status(200).json({ isAuthenticated: true });
+      if (req.session.user.userRole === 'customer') {
+        return res.status(200).json({ isAuthenticated: true, userRole: req.session.user.userRole });
+      } else if (req.session.user.userRole === 'partner') {
+        return res.status(200).json({ isAuthenticated: true, userRole: req.session.user.userRole });
+      }
     } else {
       return res.status(200).json({ isAuthenticated: false });
     }
@@ -124,6 +126,7 @@ const loginUser = async (req, res) => {
     // Create session if password matches
     req.session.user = {
       user_id: user.user_id,
+      userRole: user.user_role
     };
 
     // Respond with success message
@@ -166,6 +169,7 @@ const registerUser = async (req, res) => {
     // Create session with user ID from the insert result
     req.session.user = {
       user_id: result.insertId, // Get the user ID from the result of the insert query
+      userRole: userRole
     };
 
     // Send success response
@@ -282,6 +286,7 @@ const loginAdmin = async (req, res) => {
     // Create session if password matches
     req.session.user = {
       user_id: user.user_id,
+      userRole: user.user_role
     };
 
     // Respond with success message
@@ -326,6 +331,7 @@ const registerAdmin = async (req, res) => {
     // Create session with user ID from the insert result
     req.session.user = {
       user_id: result.insertId, // Get the user ID from the result of the insert query
+      userRole: userRole
     };
 
     // Send success response

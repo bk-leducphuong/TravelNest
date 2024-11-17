@@ -13,8 +13,6 @@ const vuexSession = new VuexPersistence({
   reducer: (state) => ({
     auth: {
       email: state.auth.email,
-      role: state.auth.role,
-      isAuthenticated: state.auth.isAuthenticated,
     },
     // Persist the entire `search` and `book` modules
     search: state.search,
