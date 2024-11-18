@@ -253,8 +253,8 @@ export default {
     <ImageGallery
       :room_list="room_list"
       :hotelImages="hotelImages"
-      :isOpen="isImageGalleryOpen"
-      @close="closeImageGallery"
+      :isOpenImageGallery="isImageGalleryOpen"
+      @close-image-gallery="closeImageGallery"
     />
     <!-- menu  -->
     <div class="menu">
@@ -472,7 +472,7 @@ export default {
     </div>
 
     <!-- price -->
-    <div class="container">
+    <div class="container" id="price">
       <table>
         <thead>
           <tr class="table_header">

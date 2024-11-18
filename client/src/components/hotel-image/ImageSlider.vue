@@ -5,7 +5,7 @@ export default {
             type: Array,
             required: true
         },
-        isOpen: {
+        isImageSliderOpen: {
             type: Boolean,
             required: true
         }
@@ -27,13 +27,13 @@ export default {
             this.currentImageIndex = index;
         },
         closePopup() {
-            this.$emit('close')
+            this.$emit('close-image-slider')
         }
     }
 }
 </script>
 <template>
-    <div v-if="isOpen" class="overlay" @click.self="closePopup">
+    <div v-if="isImageSliderOpen" class="image-slider-overlay" @click.self="closePopup">
         <div class="slider-popup">
             <button class="close-button" @click="closePopup">&times;</button>
 
@@ -58,7 +58,7 @@ export default {
     </div>
 </template>
 <style scoped>
-.overlay {
+.image-slider-overlay {
     position: fixed;
     top: 0;
     left: 0;

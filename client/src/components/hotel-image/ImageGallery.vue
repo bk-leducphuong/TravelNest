@@ -1,11 +1,16 @@
 <script>
+import ImageSlider from './ImageSlider.vue'
+
 export default {
+  components: {
+    ImageSlider
+  },
   props: {
     room_list: {
       type: Array,
       required: true
     },
-    isOpen: {
+    isOpenImageGallery: {
       type: Boolean,
       required: true
     },
@@ -14,15 +19,44 @@ export default {
       requied: true
     }
   },
-  methods: {
-    closePopup() {
-      this.$emit('close')
+  data() {
+    return {
+      currentSelectedRoomId: 0,
+      currentImages: this.hotelImages,
+      isImageSliderOpen: false
     }
+  },
+  methods: {
+    // select room
+    selectRoom(room) {
+      if (room === 0) {
+        this.currentImages = this.hotelImages
+        this.currentSelectedRoomId = 0
+        return
+      }
+      this.currentSelectedRoomId = room.room_id
+      this.currentImages = JSON.parse(room.room_image_urls)
+    },
+    // close image gallery popup
+    closePopup() {
+      this.$emit('close-image-gallery')
+    },
+    // open and close image slider popup
+    openImageSlider() {
+      this.isImageSliderOpen = true
+    },
+    closeImageSlider() {
+      this.isImageSliderOpen = false
+    }
+  },
+  mounted() {
+    this.selectRoom(0)
   }
 }
 </script>
 <template>
-  <div class="overlay" v-if="isOpen">
+  <ImageSlider v-if="isImageSliderOpen" :images="currentImages" :isImageSliderOpen="isImageSliderOpen" @close-image-slider="closeImageSlider" />
+  <div class="overlay" v-if="isOpenImageGallery">
     <div class="hotel-card">
       <div class="hotel-header">
         <div class="hotel-title">
@@ -35,13 +69,13 @@ export default {
       </div>
 
       <div class="room-types">
-        <div class="room-card">
+        <div class="room-card" :class="{selected: currentSelectedRoomId === 0}" @click="selectRoom(0)">
           <img src=" " alt="Overview" class="room-image" />
           <div class="room-info">
             <div class="room-type">Tổng quan</div>
           </div>
         </div>
-        <div class="room-card" v-for="room in room_list" :key="room.room_id">
+        <div class="room-card" v-for="room in room_list" :key="room.room_id" @click="selectRoom(room)" :class="{selected: currentSelectedRoomId === room.room_id}">
           <img
             :src="JSON.parse(room.room_image_urls)[0]"
             :alt="room.room_name"
@@ -55,7 +89,14 @@ export default {
       </div>
 
       <div class="gallery">
-        <img :src="image" alt="Room 1" class="gallery-image" v-for="(image, index) in hotelImages" :key="index"/>
+        <img
+          :src="image"
+          alt="Room 1"
+          class="gallery-image"
+          v-for="(image, index) in currentImages"
+          :key="index"
+          @click="openImageSlider"
+        />
       </div>
     </div>
   </div>
@@ -71,7 +112,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 99999999;
+  z-index: 9;
 }
 
 .hotel-card {
@@ -142,6 +183,11 @@ export default {
   border: 1px solid #eee;
   border-radius: 8px;
   overflow: hidden;
+  cursor: pointer;
+}
+
+.selected{
+  border: 2px solid #0066ff;
 }
 
 .room-image {
@@ -162,12 +208,12 @@ export default {
 }
 
 .gallery {
-    height: 100%;
+  height: 300px;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
   margin-top: 30px;
-  overflow-y: auto;
+  overflow-y: scroll;
 }
 
 .gallery-image {
@@ -175,5 +221,6 @@ export default {
   height: 250px;
   object-fit: cover;
   border-radius: 8px;
+  cursor: pointer;
 }
 </style>
