@@ -10,7 +10,7 @@ export default {
       // form 2
       coordinates: {
         latitude: 23.12312, // test values
-        longitude: 123.12312,
+        longitude: 123.12312
       },
 
       // form 3
@@ -61,31 +61,31 @@ export default {
           width: '181 - 210',
           quantity: 0
         }
-      ],
-      imagePreviews: [], // Array to store preview URLs
-      imageFiles: [],
+      ]
 
-      haveOnlinePayment: false,
-      haveOfflinePayment: false,
+      // haveOnlinePayment: false,
+      // haveOfflinePayment: false,
 
-      onlinePaymentMethodInfor: {
-        cardNumber: null,
-        cardHolderName: null,
-        expiryDate: null,
-        CVC: null
-      }
+      // onlinePaymentMethodInfor: {
+      //   cardNumber: null,
+      //   cardHolderName: null,
+      //   expiryDate: null,
+      //   CVC: null
+      // }
     },
+    uploadImage: {
+      imagePreviews: [], // Array to store preview URLs
+      imageFiles: []
+    }
   },
-  mutations: {
-    
-  },
-  actions: {
-    
-  },
+  mutations: {},
+  actions: {},
   getters: {
     getJoinFormData(state) {
-      return state.joinFormData;
+      return state.joinFormData
     },
-  },
-};
-
+    getUploadImage(state) {
+      return state.uploadImage
+    }
+  }
+}

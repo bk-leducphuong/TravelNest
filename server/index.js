@@ -33,8 +33,8 @@ var corsOptions = {
 
 app.use(cors(corsOptions));
 
-app.use(bodyParser.json()); // create application/json parser
-app.use(bodyParser.urlencoded({ extended: false })); // create application/x-www-form-urlencoded parser
+app.use(bodyParser.json({limit: '50mb'})); // create application/json parser
+app.use(bodyParser.urlencoded({limit: '50mb', extended: false })); // create application/x-www-form-urlencoded parser
 
 // Configure Session
 app.use(session({

@@ -14,29 +14,14 @@ export default {
     return {
       isAddRoomOpened: false,
       isAddImageOpened: false,
-      isMainFormOpened: true,
-      isPaymentPopupOpened: false
+      isMainFormOpened: true
+      // isPaymentPopupOpened: false
     }
   },
   computed: {
-    ...mapGetters('join', ['getJoinFormData'])
+    ...mapGetters('join', ['getJoinFormData', 'getUploadImage'])
   },
   methods: {
-    handleFiles(event) {
-      const files = event.target.files
-      this.getJoinFormData.imageFiles = [...this.getJoinFormData.imageFiles, ...files]
-
-      // Iterate through each selected file
-      Array.from(files).forEach((file) => {
-        const reader = new FileReader()
-        // Load the file and push its data URL to the previews array
-        reader.onload = (e) => {
-          this.getJoinFormData.imagePreviews.push(e.target.result)
-        }
-        // Read file as Data URL
-        reader.readAsDataURL(file)
-      })
-    },
     // add image popup
     openAddImagePopup() {
       this.isMainFormOpened = false
@@ -65,22 +50,23 @@ export default {
       this.isPaymentPopupOpened = false
       this.isMainFormOpened = true
     },
-    chooseOnlinePayment() {
-      if (!this.getJoinFormData.haveOnlinePayment) {
-        this.getJoinFormData.haveOnlinePayment = true
-        this.getJoinFormData.haveOfflinePayment = false
-      } 
-    },
-    chooseOfflinePayment() {
-      if (!this.getJoinFormData.haveOfflinePayment) {
-        this.getJoinFormData.haveOnlinePayment = false
-        Object.keys(this.getJoinFormData.haveOnlinePayment).forEach(infor => {
-          infor = null
-        })
+    // payment method selection
+    // chooseOnlinePayment() {
+    //   if (!this.getJoinFormData.haveOnlinePayment) {
+    //     this.getJoinFormData.haveOnlinePayment = true
+    //     this.getJoinFormData.haveOfflinePayment = false
+    //   }
+    // },
+    // chooseOfflinePayment() {
+    //   if (!this.getJoinFormData.haveOfflinePayment) {
+    //     this.getJoinFormData.haveOnlinePayment = false
+    //     Object.keys(this.getJoinFormData.haveOnlinePayment).forEach(infor => {
+    //       infor = null
+    //     })
 
-        this.getJoinFormData.haveOfflinePayment = true
-      }
-    },
+    //     this.getJoinFormData.haveOfflinePayment = true
+    //   }
+    // },
     // method for increasing and decreasing button
     increment(index) {
       this.getJoinFormData.bedOptions.map((bed) => {
@@ -96,14 +82,29 @@ export default {
         }
       })
     },
+    handleFiles(event) {
+      const files = event.target.files
+      this.getUploadImage.imageFiles = [...this.getUploadImage.imageFiles, ...files]
+
+      // Iterate through each selected file
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader()
+        // Load the file and push its data URL to the previews array
+        reader.onload = (e) => {
+          this.getUploadImage.imagePreviews.push(e.target.result)
+        }
+        // Read file as Data URL
+        reader.readAsDataURL(file)
+      })
+    },
     // upload image
     async uploadImage() {
-      if (this.getJoinFormData.imageFiles.length < 5) {
+      if (this.getUploadImage.imageFiles.length < 5) {
         this.toast.error('Bạn chưa chọn đủ số lượng ảnh!')
       }
 
       const formData = new FormData()
-      this.getJoinFormData.imageFiles.forEach((imageFile) => {
+      this.getUploadImage.imageFiles.forEach((imageFile) => {
         formData.append('images', imageFile)
       })
 
@@ -122,6 +123,47 @@ export default {
         response.data.success ? console.log('Upload successfully!') : console.log('Upload failed!')
       } catch (error) {
         console.error('Error uploading image:', error)
+      }
+    },
+    isFormComplete() {
+      // Check if roomDetails are filled
+      const isRoomDetailsComplete = Object.values(this.getJoinFormData.roomDetails).every(
+        (value) => {
+          if (typeof value === 'number') {
+            return value > 0 // Check for positive numbers
+          }
+          return value !== null // Check for non-null values
+        }
+      )
+
+      // Check if all bed options have quantity greater than 0
+      const areBedOptionsComplete = this.getJoinFormData.bedOptions.some((bed) => bed.quantity > 0)
+
+      // Check if there are any image previews
+      const areImagesPresent = this.getUploadImage.imagePreviews.length >= 5
+
+      // Combine all checks
+      return isRoomDetailsComplete && areBedOptionsComplete && areImagesPresent
+    },
+
+    async finishJoinForm() {
+      if (!this.isFormComplete()) {
+        this.toast.error('Pls fill all the fields')
+      } else {
+        this.toast.success('Join form submitted successfully')
+        try {
+          const response = await axios.post(
+            'http://localhost:3000/api/join',
+            {
+              joinFormData: this.getJoinFormData,
+            },
+            {
+              withCredentials: true
+            }
+          )
+        } catch (error) {
+          console.log(error)
+        }
       }
     }
   }
@@ -179,7 +221,7 @@ export default {
           <button id="conkac" @click="openAddImagePopup()">Thêm ảnh</button>
         </div>
         <hr />
-        <div class="stepss step-4">
+        <!-- <div class="stepss step-4">
           <i class="fa-solid fa-clipboard-list"></i>
           <div>
             <span>Bước 4</span>
@@ -190,7 +232,7 @@ export default {
             <span>Nhập thông tin thanh toán và hóa đơn trước khi mở để nhận đặt phòng.</span>
           </div>
           <a @click="openPaymentPopup" style="font-weight: bold; color: #0056b3">Thêm</a>
-        </div>
+        </div> -->
         <br />
         <div class="form-button-container">
           <button type="button" class="previous" @click="$emit('previous')">Quay lại</button>
@@ -204,6 +246,7 @@ export default {
             "
             type="submit"
             class="next"
+            @click="finishJoinForm"
           >
             Lưu thông tin
           </button>
@@ -240,7 +283,7 @@ export default {
         <br />
         <div id="preview">
           <img
-            v-for="(preview, index) in getJoinFormData.imagePreviews"
+            v-for="(preview, index) in getUploadImage.imagePreviews"
             :key="index"
             :src="preview"
             alt="Image preview"
@@ -257,10 +300,10 @@ export default {
 
         <div class="section">
           <label>Đây là loại chỗ nghỉ gì?</label>
-          <select>
-            <option>Phòng giường đôi</option>
-            <option>Phòng giường đơn</option>
-            <option>Phòng gia đình</option>
+          <select v-model="getJoinFormData.roomDetails.roomType">
+            <option value="Phòng giường đôi">Phòng giường đôi</option>
+            <option value="Phòng giường đơn">Phòng giường đơn</option>
+            <option value="Phòng gia đình">Phòng gia đình</option>
             <!-- Thêm các tùy chọn khác nếu cần -->
           </select>
         </div>
@@ -373,13 +416,13 @@ export default {
       <!-- end add room popup -->
 
       <!-- establish payment method -->
-      <div class="container1" v-if="isPaymentPopupOpened">
+      <!-- <div class="container1" v-if="isPaymentPopupOpened">
         <div class="popup-header">
           <h2>Choose Payment Method</h2>
           <p>Select how you'd like to pay for your property listing</p>
         </div>
         <div class="payment-options">
-          <!-- Online Payment Option -->
+         
           <div class="payment-option" :class="{selected: getJoinFormData.haveOnlinePayment}">
             <div class="option-header">
               <input type="radio" name="payment-method" id="online" @click="chooseOnlinePayment"/>
@@ -415,7 +458,7 @@ export default {
             </div>
           </div>
 
-          <!-- Offline Payment Option -->
+          
           <div class="payment-option" :class="{selected: getJoinFormData.haveOfflinePayment}">
             <div class="option-header">
               <input type="radio" name="payment-method" id="offline" @click="chooseOfflinePayment"/>
@@ -431,7 +474,7 @@ export default {
             <button class="btn btn-confirm" @click="closePaymentPopup">Confirm Payment</button>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 
