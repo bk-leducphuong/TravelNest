@@ -98,7 +98,7 @@ export default {
       })
     },
     // upload image
-    async uploadImage() {
+    async uploadImage(hotel_id, room_id) {
       if (this.getUploadImage.imageFiles.length < 5) {
         this.toast.error('Bạn chưa chọn đủ số lượng ảnh!')
       }
@@ -107,6 +107,9 @@ export default {
       this.getUploadImage.imageFiles.forEach((imageFile) => {
         formData.append('images', imageFile)
       })
+
+      formData.append('hotel_id', hotel_id)
+      formData.append('room_id', room_id)
 
       try {
         const response = await axios.post(
@@ -150,7 +153,6 @@ export default {
       if (!this.isFormComplete()) {
         this.toast.error('Pls fill all the fields')
       } else {
-        this.toast.success('Join form submitted successfully')
         try {
           const response = await axios.post(
             'http://localhost:3000/api/join',
@@ -161,7 +163,12 @@ export default {
               withCredentials: true
             }
           )
+          if (response.data.success) {
+            this.toast.success('Join form submitted successfully')
+            await this.uploadImage(response.data.hotel_id, response.data.room_id)
+          }
         } catch (error) {
+          this.toast.error('Error submitting join form')
           console.log(error)
         }
       }

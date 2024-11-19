@@ -36,3 +36,6 @@ client/.vscode/*
 /scrape_data/data/*.json
 /scrape_data/data/hotels/Hà Nội
 
+server/public/uploads/hotels/*
+
+

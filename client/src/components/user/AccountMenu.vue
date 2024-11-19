@@ -4,7 +4,7 @@
     <button @click="this.showPopup = !this.showPopup" class="popup-button">
       <div style="border-radius: 5px; width: 170px; height: 35px; margin: 0 auto">
         <div class="avatar">
-          <img src="../assets/avatar/default_avatar.png" alt="" />
+          <img src="../../assets/avatar/default_avatar.png" alt="" />
         </div>
         <span>
           <div
