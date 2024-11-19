@@ -12,6 +12,8 @@ import stores from '@/stores'
 import Complete from '@/components/book/Complete.vue'
 import AdminLogin from '@/views/admin/AdminLogin.vue'
 import AdminHome from '@/views/admin/AdminHome.vue'
+import AccountSettings from '@/views/account-settings/AccountSettings.vue'
+import SettingDetails from '@/views/account-settings/SettingDetails.vue'
 
 const routes = [
   // route for customer
@@ -63,6 +65,16 @@ const routes = [
     path: '/book/complete',
     name: 'Complete',
     component: Complete
+  },
+  {
+    path: '/account-settings',
+    name: 'AccountSettings',
+    component: AccountSettings
+  },
+  {
+    path: '/account-settings/:details',
+    name: 'SettingDetails',
+    component: SettingDetails,
   },
   // route for partner/admin
   {

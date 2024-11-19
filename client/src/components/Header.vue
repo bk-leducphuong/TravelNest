@@ -13,7 +13,7 @@
             <li>
               <span><a href="/join">Đăng chỗ nghỉ của Quý vị</a></span>
             </li>
-            <li v-if="!this.isAuthenticated && this.getUserRole != 'customer'">
+            <li v-if="!this.isAuthenticated || this.getUserRole != 'customer'">
               <a href="/login" class="login" style="margin-right: 5px">Đăng ký</a>
               <a href="/login" class="login" style="margin-left: 5px">Đăng nhập</a>
             </li>
