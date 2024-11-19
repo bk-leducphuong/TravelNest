@@ -37,5 +37,5 @@ client/.vscode/*
 /scrape_data/data/hotels/Hà Nội
 
 server/public/uploads/hotels/*
-
+!server/public/uploads/hotels/.gitkeep
 
