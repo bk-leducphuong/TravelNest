@@ -126,8 +126,20 @@ export default {
     getEmail(state) {
       return state.email
     },
-    isAuthenticated(state) {
-      return state.isAuthenticated
+    isAdminAuthenticated(state) {
+      if (state.isAuthenticated && state.role == 'partner') {
+        return true
+      }else {
+        return false
+      }
+    },
+
+    isUserAuthenticated(state) {
+      if (state.isAuthenticated && state.role == 'customer') {
+        return true
+      }else {
+        return false
+      }
     },
 
     getUserRole(state) {

@@ -67,17 +67,20 @@ const routes = [
   {
     path: '/book/complete',
     name: 'Complete',
-    component: Complete
+    component: Complete,
+    meta: { requiresAuth: true }
   },
   {
     path: '/account-settings',
     name: 'AccountSettings',
-    component: AccountSettings
+    component: AccountSettings,
+    meta: { requiresAuth: true }
   },
   {
     path: '/account-settings/:details',
     name: 'SettingDetails',
-    component: SettingDetails
+    component: SettingDetails,
+    meta: { requiresAuth: true }
   },
   // route for partner/admin
   {
@@ -93,16 +96,17 @@ const routes = [
   {
     path: '/admin/payment',
     name: 'AdminPayment',
-    component: AdminPayment
+    component: AdminPayment,
+    meta: { requiresAuth: true }
   },
   {
     path: '/refresh/:connectedAccountId',
-    name: 'refresh',
+    name: 'Refresh',
     component: Refresh
   },
   {
     path: '/return/:connectedAccountId',
-    name: 'return',
+    name: 'Return',
     component: Return
   },
   // Catch-all route (for 404s)
@@ -121,10 +125,20 @@ const router = createRouter({
 // Navigation guard to check authentication before entering protected routes
 router.beforeEach((to, from, next) => {
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (!stores.getters['auth/isAuthenticated']) {
-      next({ name: 'Login', query: { redirect: to.fullPath } }) // Redirect to login if not authenticated
+    if (to.path.indexOf('admin') != -1) {
+      // if admin
+      if (!stores.getters['auth/isAdminAuthenticated']) {
+        next({ name: 'AdminLogin', query: { redirect: to.fullPath } }) // Redirect to login if not authenticated
+      }else {
+        next()
+      }
     } else {
-      next() // Proceed if authenticated
+      // if user
+      if (!stores.getters['auth/isUserAuthenticated']) {
+        next({ name: 'Login', query: { redirect: to.fullPath } }) // Redirect to login if not authenticated
+      }else {
+        next()
+      }
     }
   } else {
     next() // Always allow non-protected routes

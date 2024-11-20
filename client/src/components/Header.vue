@@ -13,11 +13,11 @@
             <li>
               <span><a href="/join">Đăng chỗ nghỉ của Quý vị</a></span>
             </li>
-            <li v-if="!this.isAuthenticated || this.getUserRole != 'customer'">
+            <li v-if="!this.isUserAuthenticated">
               <a href="/login" class="login" style="margin-right: 5px">Đăng ký</a>
               <a href="/login" class="login" style="margin-left: 5px">Đăng nhập</a>
             </li>
-            <li v-if="this.isAuthenticated && this.getUserRole === 'customer'">
+            <li v-if="this.isUserAuthenticated">
               <AccountMenu />
             </li>
           </ul>
@@ -158,7 +158,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('auth', ['isAuthenticated', 'getUserRole']),
+    ...mapGetters('auth', ['isUserAuthenticated', 'getUserRole']),
     ...mapGetters('search', ['getSearchData']),
     selectedLocation: {
       get() {

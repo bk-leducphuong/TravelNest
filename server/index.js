@@ -11,13 +11,13 @@ const bodyParser = require('body-parser');
 require('./config/passportConfig.js');
 const app = express();
 
-const {webhookController} = require('./controllers/paymentController')
+const {webhookController} = require('./controllers/webhookController.js')
 
 // Allow nginx proxy'
 app.set('trust proxy', 1);
 
 // webhook endpoint
-app.post('/api/payment/webhook',bodyParser.raw({type: 'application/json'}), webhookController)
+app.post('/stripe/webhook',bodyParser.raw({type: 'application/json'}), webhookController)
 
 /******************************************* Middleware **********************************************/
 // Serve static files from the 'public' directory
