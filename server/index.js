@@ -58,6 +58,7 @@ app.use(passport.session());
 
 /******************************************* Import Routes **********************************************/
 
+// User Routes
 const searchRoutes = require('./routes/searchRoutes')
 const hotelRoutes = require('./routes/hotelRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -66,8 +67,6 @@ const joinRoutes = require('./routes/joinRoutes');
 const paymentRoutes = require('./routes/paymentRoutes.js');
 const roomRoutes = require('./routes/roomRoutes.js');
 
-
-// Use Routes
 app.use('/api/search', searchRoutes);
 app.use('/api/home', homeRoutes);
 app.use('/api/hotels', hotelRoutes);
@@ -75,6 +74,11 @@ app.use('/api/auth', authRoutes); // Login route
 app.use('/api/join', joinRoutes); // Become a host route
 app.use('/api/payment', paymentRoutes);
 app.use('/api/room', roomRoutes);
+
+// Admin routes
+const adminPayoutRoutes = require('./routes/admin/payoutRoutes.js');
+
+app.use('/api/admin/payout', adminPayoutRoutes);
 
 // Default route
 app.get('/', (req, res) => {

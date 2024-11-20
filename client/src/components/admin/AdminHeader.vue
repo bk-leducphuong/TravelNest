@@ -1,51 +1,47 @@
 <template>
-  <nav class="navbar">
-    <div class="logo">Booking.com</div>
-  </nav>
-
-  <div class="menu-bar">
-    <a href="#" class="menu-item">🏠 Home</a>
-    <a href="#" class="menu-item">📅 Rates & Availability</a>
-    <a href="#" class="menu-item">📋 Reservations</a>
-    <a href="#" class="menu-item">🔑 Property</a>
-    <a href="#" class="menu-item">🚀 Opportunities</a>
-    <a href="#" class="menu-item">✉️ Inbox</a>
-    <a href="#" class="menu-item">⭐ Guest Reviews</a>
-    <a href="#" class="menu-item">💰 Finance</a>
-    <a href="#" class="menu-item">📊 Analytics</a>
-  </div>
+  <header class="top-header">
+    <div class="header-right">
+      <div class="user-profile">
+        <div class="avatar">T</div>
+        <span>Thanh</span>
+      </div>
+    </div>
+  </header>
 </template>
 <style scoped>
-.navbar {
-  background-color: #003580;
-  padding: 1rem;
-  color: white;
-}
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
-.menu-bar {
-  background-color: #003580;
-  padding: 0.5rem;
+.top-header {
+  height: 64px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
-  gap: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
 }
 
-.menu-item {
-  color: white;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
+.header-right {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 16px;
 }
 
-.menu-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  margin-right: 12px;
+  flex-shrink: 0;
+  background-color: gray;
 }
 </style>

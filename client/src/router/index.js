@@ -14,6 +14,9 @@ import AdminLogin from '@/views/admin/AdminLogin.vue'
 import AdminHome from '@/views/admin/AdminHome.vue'
 import AccountSettings from '@/views/account-settings/AccountSettings.vue'
 import SettingDetails from '@/views/account-settings/SettingDetails.vue'
+import AdminPayment from '@/views/admin/AdminPayment.vue'
+import Return from '@/views/admin/Return.vue'
+import Refresh from '@/views/admin/Refresh.vue'
 
 const routes = [
   // route for customer
@@ -74,7 +77,7 @@ const routes = [
   {
     path: '/account-settings/:details',
     name: 'SettingDetails',
-    component: SettingDetails,
+    component: SettingDetails
   },
   // route for partner/admin
   {
@@ -86,6 +89,21 @@ const routes = [
     path: '/admin/home',
     name: 'AdminHome',
     component: AdminHome
+  },
+  {
+    path: '/admin/payment',
+    name: 'AdminPayment',
+    component: AdminPayment
+  },
+  {
+    path: '/refresh/:connectedAccountId',
+    name: 'refresh',
+    component: Refresh
+  },
+  {
+    path: '/return/:connectedAccountId',
+    name: 'return',
+    component: Return
   },
   // Catch-all route (for 404s)
   {
