@@ -6,6 +6,7 @@ export default {
   namespaced: true,
   state: {
     email: '',
+    userId: null,
     role: '',
     isAuthenticated: false,
     otp: '',
@@ -14,6 +15,9 @@ export default {
   mutations: {
     setEmail(state, email) {
       state.email = email
+    },
+    setUserId(state, userId) {
+      state.userId = userId
     },
     setAuthentication(state, status) {
       state.isAuthenticated = status
@@ -34,6 +38,7 @@ export default {
       try {
         const response = await axios.post(apiUrl, payload, { withCredentials: true })
         if (response.data.success) {
+          commit('setUserId', response.data.userId)
           commit('setEmail', payload.email)
           commit('setAuthentication', true)
           commit('setUserRole', payload.userRole)
@@ -49,6 +54,7 @@ export default {
       try {
         const response = await axios.post(apiUrl, payload, { withCredentials: true })
         if (response.data.success) {
+          commit('setUserId', response.data.userId)
           commit('setEmail', payload.email)
           commit('setAuthentication', true)
           commit('setUserRole', payload.userRole)
@@ -82,7 +88,8 @@ export default {
         withCredentials: true
       })
       if (response.data.isAuthenticated) {
-        commit('setAuthentication', true) // Restore state from localStorage
+        commit('setAuthentication', true) 
+        commit('setUserId', response.data.userId)
         if (response.data.userRole === 'customer') {
           commit('setUserRole', response.data.userRole)
         } else if (response.data.userRole === 'partner') {
@@ -123,6 +130,9 @@ export default {
     }
   },
   getters: {
+    getUserId(state) {
+      return state.userId
+    },
     getEmail(state) {
       return state.email
     },

@@ -148,7 +148,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('auth', ['isAuthenticated', 'getOtp']),
+    ...mapGetters('auth', ['isUserAuthenticated', 'getOtp']),
     passwordMismatch() {
       return this.isNewUser && this.password !== this.confirmPassword
     }
@@ -192,7 +192,7 @@ export default {
     },
     async registerOrLogin() {
       // logout as a customer before starting with admin
-      if (this.isAuthenticated) {
+      if (this.isUserAuthenticated) {
         await this.logout({ haveRedirect: false })
       }
       const apiUrl = this.isNewUser

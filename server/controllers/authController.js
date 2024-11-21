@@ -18,9 +18,9 @@ const checkAuth = (req, res) => {
   try {
     if (req.session.user && req.session.user.user_id) {
       if (req.session.user.userRole === 'customer') {
-        return res.status(200).json({ isAuthenticated: true, userRole: req.session.user.userRole });
+        return res.status(200).json({ isAuthenticated: true, userId: req.session.user.user_id, userRole: req.session.user.userRole });
       } else if (req.session.user.userRole === 'partner') {
-        return res.status(200).json({ isAuthenticated: true, userRole: req.session.user.userRole });
+        return res.status(200).json({ isAuthenticated: true, userId: req.session.user.user_id, userRole: req.session.user.userRole });
       }
     } else {
       return res.status(200).json({ isAuthenticated: false });
@@ -130,7 +130,7 @@ const loginUser = async (req, res) => {
     };
 
     // Respond with success message
-    res.json({ success: true, message: "Logged in successfully" });
+    res.json({ success: true, userId: user.user_id, message: "Logged in successfully" });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
@@ -175,7 +175,7 @@ const registerUser = async (req, res) => {
     // Send success response
     res
       .status(201)
-      .json({ success: true, message: "User registered successfully" });
+      .json({ success: true, userId: result.insertId, message: "User registered successfully" });
   } catch (error) {
     console.error("Error during user registration:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
@@ -290,7 +290,7 @@ const loginAdmin = async (req, res) => {
     };
 
     // Respond with success message
-    res.json({ success: true, message: "Logged in successfully" });
+    res.json({ success: true, userId: user.user_id, message: "Logged in successfully" });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
@@ -337,7 +337,7 @@ const registerAdmin = async (req, res) => {
     // Send success response
     res
       .status(201)
-      .json({ success: true, message: "User registered successfully" });
+      .json({ success: true, userId: result.insertId, message: "User registered successfully" });
   } catch (error) {
     console.error("Error during user registration:", error);
     res.status(500).json({ success: false, message: "Internal server error" });

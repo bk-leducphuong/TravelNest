@@ -1,6 +1,6 @@
 <script>
 import { mapActions } from 'vuex';
-import CookieConsent from './components/CookieConsent.vue';
+import CookieConsent from './components/CookieConsent.vue'; 
 
 export default {
   name: 'App',

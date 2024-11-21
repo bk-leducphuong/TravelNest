@@ -9,14 +9,16 @@ const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const bodyParser = require('body-parser');
 require('./config/passportConfig.js');
-const app = express();
+const http = require('http')
 
 const {webhookController} = require('./controllers/webhookController.js')
+
+const app = express();
 
 // Allow nginx proxy'
 app.set('trust proxy', 1);
 
-// webhook endpoint
+// stripe webhook endpoint
 app.post('/stripe/webhook',bodyParser.raw({type: 'application/json'}), webhookController)
 
 /******************************************* Middleware **********************************************/
@@ -56,6 +58,13 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+/******************************************* SOCKET IO **********************************************/
+const {init, getIO} = require('./config/socket.js'); // Import socket config
+// Create HTTP server
+const server = http.createServer(app)
+// Initialize Socket.IO using the server
+init(server);
+
 /******************************************* Import Routes **********************************************/
 
 // User Routes
@@ -87,6 +96,6 @@ app.get('/', (req, res) => {
 
 // Start the server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

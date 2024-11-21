@@ -91,7 +91,8 @@ const routes = [
   {
     path: '/admin/home',
     name: 'AdminHome',
-    component: AdminHome
+    component: AdminHome,
+    meta: { requiresAuth: true }
   },
   {
     path: '/admin/payment',

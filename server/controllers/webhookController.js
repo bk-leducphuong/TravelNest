@@ -3,22 +3,34 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const connection = require("../config/db");
 const { promisify } = require("util");
 const transporter = require("../config/nodemailer");
+const { init, getIO } = require("../config/socket");
 
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
 
+async function getSellerId(paymentIntent) {
+  try {
+    const sellerQuery = "SELECT owner_id FROM hotels WHERE hotel_id = ?";
+    const hotelId = paymentIntent.metadata.hotel_id; // Lấy từ metadata của Payment Intent
+    const buyerId = paymentIntent.metadata.buyer_id;
+
+    const sellerResult = await queryAsync(sellerQuery, [hotelId]);
+    const sellerId = sellerResult[0]?.owner_id;
+    return sellerId;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 // Store payment event information into database
 const storePaymentEvent = async (event, paymentIntent) => {
   try {
-    const buyerQuery = "SELECT owner_id FROM hotels WHERE hotel_id = ?";
-    const hotelId = paymentIntent.metadata.hotel_id; // Lấy từ metadata của Payment Intent
-    const sellerId = paymentIntent.metadata.seller_id;
+    const buyerId = paymentIntent.metadata.buyer_id;
 
-    const buyerResult = await queryAsync(buyerQuery, [hotelId]);
+    const sellerId = await getSellerId(paymentIntent);
 
-    const buyerId = buyerResult[0]?.owner_id;
     const paymentMethod = paymentIntent.payment_method;
-    // console.log("method: ",paymentMethod);
+
     const amount = paymentIntent.amount / 100; // Stripe sử dụng cent
     const currency = paymentIntent.currency.toUpperCase();
 
@@ -63,7 +75,6 @@ const storePaymentEvent = async (event, paymentIntent) => {
         currency,
         new Date(),
       ]);
-      console.log(`Payment event stored successfully in database.`);
     } else {
       // Nếu đã tồn tại transaction, chỉ cập nhật trạng thái
       const transactionId = transactionExists[0].transaction_id;
@@ -83,7 +94,6 @@ const storePaymentEvent = async (event, paymentIntent) => {
         paymentMethod,
         transactionId,
       ]);
-      console.log(`Payment event updated successfully in database.`);
     }
   } catch (error) {
     console.error("Error storing payment event:", error);
@@ -123,22 +133,34 @@ const sendConfirmationEmail = async (paymentIntent) => {
       subject,
       html,
     });
-
-    console.log("Confirmation email sent successfully");
   } catch (error) {
     console.error("Error sending confirmation email:", error);
     throw error;
   }
 };
 
+// payment event handler for socket io
+async function sendPaymentNotification(paymentIntent) {
+  const io = getIO();
+
+  const notification = {
+    hotel_owner_id: await getSellerId(paymentIntent),
+    type: "payment",
+    message: "Bạn có một đơn đặt phòng mới.",
+  };
+
+  io.to(`owner_${notification.hotel_owner_id}`).emit("newNotification", {
+    type: notification.type,
+    message: notification.message,
+  });
+}
+
 // Recieve webhook events
 const webhookController = async (req, res) => {
   let event = req.body;
-  //console.log("body: ", req.body);
 
   if (process.env.STRIPE_WEBHOOK_SECRET) {
     const sig = req.headers["stripe-signature"];
-    //  console.log("sig :", sig);
     try {
       // Verify webhook signature
       event = stripe.webhooks.constructEvent(
@@ -177,18 +199,19 @@ const webhookController = async (req, res) => {
         } else {
           console.log("No payment method provided in this event.");
         }
+        // send notification to hotel owner
+        await sendPaymentNotification(paymentIntent);
 
         // Store payment event
         await storePaymentEvent(event, paymentIntent);
-        console.log("gmail: ", receiptEmail);
 
+        // Send confirmation email
         if (receiptEmail) {
           try {
             // Sử dụng email vừa lấy để gửi email xác nhận
             paymentIntent.receipt_email = receiptEmail;
-            console.log("email: ", paymentIntent.receipt_email);
+
             await sendConfirmationEmail(paymentIntent);
-            console.log("Confirmation email sent.");
           } catch (err) {
             console.error("Error sending confirmation email:", err.message);
           }
@@ -203,15 +226,12 @@ const webhookController = async (req, res) => {
         break;
 
       case "charge.refunded":
-        console.log("Charge refunded:", paymentIntent);
-
         // In case of refunds, payment_method might not exist
         if (paymentIntent.payment_method) {
           try {
             const paymentMethod = await stripe.paymentMethods.retrieve(
               paymentIntent.payment_method
             );
-            //console.log("Payment Method Retrieved:", paymentMethod);
           } catch (err) {
             console.error(
               "Error retrieving payment method for refund:",
@@ -225,7 +245,7 @@ const webhookController = async (req, res) => {
         await storePaymentEvent(event, paymentIntent);
         break;
 
-      // cases for payout 
+      // cases for payout
       case "payout.paid":
         const payout = event.data.object;
         //TODO: query db

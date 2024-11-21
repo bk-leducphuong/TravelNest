@@ -163,16 +163,6 @@ export default {
   flex-direction: column;
 }
 
-.top-header {
-  height: 64px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 24px;
-}
-
 .notification-banner {
   display: flex;
   align-items: center;
