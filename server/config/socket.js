@@ -16,7 +16,6 @@ module.exports = {
       socket.on("joinRoom", (ownerId) => {
         const roomName = `owner_${ownerId}`;
         socket.join(roomName);
-        console.log(`Socket joined room: ${roomName}`);
       });
 
       socket.on("disconnect", () => {

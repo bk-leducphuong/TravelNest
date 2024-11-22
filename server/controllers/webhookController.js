@@ -5,6 +5,7 @@ const { promisify } = require("util");
 const transporter = require("../config/nodemailer");
 const { init, getIO } = require("../config/socket");
 const { v4: uuidv4 } = require('uuid');
+const { send } = require("process");
 
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
@@ -222,20 +223,70 @@ const sendConfirmationEmail = async (paymentIntent) => {
 };
 
 /******************************************* Notification **********************************************/
-
+// store notification
+async function storeNotification(notification) {
+  const {senderId, recieverId, notificationType, message, isRead} = notification;
+  try {
+    const notificationQuery = `
+      INSERT INTO notifications (sender_id, reciever_id, notification_type, message, is_read)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    const { insertId: notificationId } = await queryAsync(notificationQuery, [
+      senderId,
+      recieverId,
+      notificationType,
+      message,
+      isRead,
+    ]);
+    return notificationId;
+  } catch (error) {
+    console.error("Error storing notification:", error);
+    throw error;
+  }
+}
 // payment event handler for socket io
 async function sendNewBookingNotification(paymentIntent) {
   const io = getIO();
 
+  const {
+    hotel_id: hotelId,
+    buyer_id: buyerId,
+    booked_rooms,
+    date_range: dateRange,
+    number_of_guests: numberOfGuests,
+  } = paymentIntent.metadata;
+
+  // get buyer name
+  const buyerQuery = `
+    SELECT username FROM users WHERE user_id = ?
+  `;
+  const buyer = await queryAsync(buyerQuery, [buyerId]);
+  // get booking date
+  const { startDate, endDate } = convertDateStringToDate(dateRange);
+  // get total number of rooms
+  const totalRooms = 0;
+  JSON.parse(booked_rooms).forEach((bookedRoom) => {
+    totalRooms += bookedRoom.roomQuantity;
+  })
+
+  // create notification
   const notification = {
-    hotel_owner_id: await getSellerId(paymentIntent),
-    type: "payment",
-    message: "Bạn có một đơn đặt phòng mới.",
+    senderId: buyerId,
+    recieverId: await getSellerId(paymentIntent), // hotel owner id
+    notificationType: "booking",
+    message: `New booking: ${buyer} booked ${totalRooms} rooms from ${startDate} to ${endDate} for ${numberOfGuests} guests.`,
+    isRead: false,
   };
 
-  io.to(`owner_${notification.hotel_owner_id}`).emit("newNotification", {
-    type: notification.type,
+  // store notification
+  const notificationId = await storeNotification(notification);
+
+  io.to(`owner_${notification.recieverId}`).emit("newNotification", {
+    notificationId: notificationId,
+    notificationType: notification.notificationType,
     message: notification.message,
+    isRead: notification.isRead,
+    senderId: notification.senderId,
   });
 }
 
