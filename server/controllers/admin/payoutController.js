@@ -15,7 +15,7 @@ const checkAccountExist = async (req, res) => {
     const user = await queryAsync(checkQuery, [userId, 'partner']);
 
     if (user.connect_account_id) {
-      return res.status(200).json({ exist: true });
+      return res.status(200).json({ exist: true});
     }else {
       return res.status(200).json({ exist: false });
     }

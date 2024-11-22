@@ -10,6 +10,7 @@ const queryAsync = promisify(connection.query).bind(connection);
 const handlePayment = async (req, res) => {
   try {
     const { paymentMethodId, amount, currency, bookingDetails } = req.body;
+    console.log(bookingDetails)
     const buyer_id = req.session.user.user_id;
 
     // Create a payment intent
@@ -22,11 +23,15 @@ const handlePayment = async (req, res) => {
       metadata: {
         hotel_id: bookingDetails.hotel_id, // Add hotel_id into metadata
         buyer_id: buyer_id, // Add seller_id into metadata
+        booked_rooms: JSON.stringify(bookingDetails.bookedRooms),
+        date_range: bookingDetails.dateRange,
+        number_of_guests: bookingDetails.numberOfGuests
       },
     });
 
     res.json({ clientSecret: paymentIntent.client_secret });
   } catch (err) {
+    console.log(err)
     res.status(400).json({ error: err.message });
   }
 };

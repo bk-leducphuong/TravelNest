@@ -14,7 +14,9 @@ import AdminLogin from '@/views/admin/AdminLogin.vue'
 import AdminHome from '@/views/admin/AdminHome.vue'
 import AccountSettings from '@/views/account-settings/AccountSettings.vue'
 import SettingDetails from '@/views/account-settings/SettingDetails.vue'
-import AdminPayment from '@/views/admin/AdminPayment.vue'
+// admin payment
+import AdminPayment from '@/views/admin/payment/AdminPayment.vue'
+import InvoiceList from '@/views/admin/payment/InvoiceList.vue'
 import Return from '@/views/admin/Return.vue'
 import Refresh from '@/views/admin/Refresh.vue'
 
@@ -98,6 +100,12 @@ const routes = [
     path: '/admin/payment',
     name: 'AdminPayment',
     component: AdminPayment,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/payment/invoices',
+    name: 'InvoiceList',
+    component: InvoiceList,
     meta: { requiresAuth: true }
   },
   {
