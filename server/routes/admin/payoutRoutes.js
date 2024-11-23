@@ -6,7 +6,7 @@ const router = express.Router();
 
 // root route: /api/admin/payout
 
-router.use(isAdminAuthenticated);
+//router.use(isAdminAuthenticated);
 //Route to check if user already has an account
 router.get('/check-account-exist', checkAccountExist);
 // Route to create connect account link
