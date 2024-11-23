@@ -75,6 +75,7 @@ const homeRoutes = require('./routes/homeRoutes');
 const joinRoutes = require('./routes/joinRoutes');
 const paymentRoutes = require('./routes/paymentRoutes.js');
 const roomRoutes = require('./routes/roomRoutes.js');
+const userRoutes = require('./routes/userRoutes.js');
 
 app.use('/api/search', searchRoutes);
 app.use('/api/home', homeRoutes);
@@ -83,6 +84,7 @@ app.use('/api/auth', authRoutes); // Login route
 app.use('/api/join', joinRoutes); // Become a host route
 app.use('/api/payment', paymentRoutes);
 app.use('/api/room', roomRoutes);
+app.use('/api/user', userRoutes);
 
 // Admin routes
 const adminPayoutRoutes = require('./routes/admin/payoutRoutes.js');

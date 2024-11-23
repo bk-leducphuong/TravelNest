@@ -158,12 +158,13 @@ const registerUser = async (req, res) => {
 
     // Insert new user into the database
     const insertQuery =
-      "INSERT INTO users (email, username, password_hash, user_role) VALUES (?, ?, ?, ?)";
+      "INSERT INTO users (email, username, password_hash, user_role, profile_picture_url) VALUES (?, ?, ?, ?, ?)";
     const result = await queryAsync(insertQuery, [
       email,
       email.split("@")[0],
       hashedPassword,
       userRole,
+      'http://localhost:3000/uploads/users/avatars/default_avatar.png' // default avatar
     ]);
 
     // Create session with user ID from the insert result
@@ -225,11 +226,12 @@ const googleCallback = async (req, res) => {
     } else {
       // Nếu người dùng chưa tồn tại, tạo người dùng mới
       const insertQuery =
-        "INSERT INTO users ( email,username, user_role) VALUES (?, ?, ?)";
+        "INSERT INTO users ( email,username, user_role, profile_picture_url) VALUES (?, ?, ?, ?)";
       const result = await queryAsync(insertQuery, [
         email,
         displayName,
         "customer",
+        'http://localhost:3000/uploads/users/avatars/default_avatar.png' // default avatar
       ]);
       userId = result.insertId;
     }
@@ -319,13 +321,14 @@ const registerAdmin = async (req, res) => {
     const username = lastName + " " + firstName;
     // Insert new user into the database
     const insertQuery =
-      "INSERT INTO users (email, username, password_hash, user_role, phone_number) VALUES (?, ? , ?, ?, ?)";
+      "INSERT INTO users (email, username, password_hash, user_role, phone_number, profile_picture_url) VALUES (?, ? , ?, ?, ?, ?)";
     const result = await queryAsync(insertQuery, [
       email,
       username,
       hashedPassword,
       userRole,
       phoneNumber,
+      'http://localhost:3000/uploads/users/avatars/default_avatar.png' // default avatar
     ]);
 
     // Create session with user ID from the insert result

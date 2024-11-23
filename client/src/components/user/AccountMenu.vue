@@ -1,10 +1,37 @@
+<script>
+import axios from 'axios';
+import { map } from 'leaflet';
+import { mapActions, mapGetters } from 'vuex';
+
+export default {
+  data() {
+    return {
+      showPopup: false
+    }
+  },
+  computed: {
+    ...mapGetters('user', ['getUserInformation']),
+  },
+  methods: {
+    ...mapActions('auth', ['logout']),
+    ...mapActions('user', ['retrieveUserInformation']),
+    hidePopup() {
+      this.showPopup = false
+    },
+  },
+  async mounted() { 
+    await this.retrieveUserInformation()
+  }
+}
+</script>
 <template>
   <div class="popup-container" v-click-outside="hidePopup">
     <!-- Main Button -->
     <button @click="this.showPopup = !this.showPopup" class="popup-button">
       <div style="border-radius: 5px; width: 170px; height: 35px; margin: 0 auto">
         <div class="avatar">
-          <img src="../../assets/avatar/default_avatar.png" alt="" />
+          <img v-if="getUserInformation" :src="getUserInformation.profile_picture_url" alt="" />
+          <img v-else src="../../assets/avatar/default_avatar.png" alt="" />
         </div>
         <span>
           <div
@@ -16,7 +43,8 @@
               float: left;
             "
           >
-            User Name
+            <span v-if="getUserInformation">{{ getUserInformation.username }}</span>
+            <span v-else>User Name</span>
           </div>
           <div
             style="
@@ -146,26 +174,6 @@
     </transition>
   </div>
 </template>
-
-<script>
-import axios from 'axios';
-import { mapActions } from 'vuex';
-
-export default {
-  data() {
-    return {
-      showPopup: false
-    }
-  },
-  methods: {
-    ...mapActions('auth', ['logout']),
-    hidePopup() {
-      this.showPopup = false
-    },
-  }
-}
-</script>
-
 <style scoped>
 .avatar {
   width: 35px;
