@@ -19,6 +19,7 @@ import AdminPayment from '@/views/admin/payment/AdminPayment.vue'
 import InvoiceList from '@/views/admin/payment/InvoiceList.vue'
 import Return from '@/views/admin/Return.vue'
 import Refresh from '@/views/admin/Refresh.vue'
+import book from '@/stores/book'
 
 const routes = [
   // route for customer
@@ -70,6 +71,9 @@ const routes = [
     path: '/book/complete',
     name: 'Complete',
     component: Complete,
+    props: (route) => ({
+      bookingCode: route.query.bookingCode
+    }),
     meta: { requiresAuth: true }
   },
   {

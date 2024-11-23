@@ -6,6 +6,8 @@ const transporter = require("../config/nodemailer");
 const { init, getIO } = require("../config/socket");
 const { v4: uuidv4 } = require('uuid');
 const { send } = require("process");
+const path = require('path');
+const fs = require('fs');
 
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
@@ -71,6 +73,8 @@ const storeBooking = async (paymentIntent) => {
       bookingCode
     ]);
   });
+
+  return bookingCode
 };
 
 /******************************************* Storing Payment and Transaction events **********************************************/
@@ -149,14 +153,6 @@ const storePaymentEvent = async (event, paymentIntent) => {
     const amount = paymentIntent.amount / 100;
     const currency = paymentIntent.currency.toUpperCase();
 
-    if (!buyerId || !sellerId || !paymentMethod || !currency) {
-      console.log(buyerId)
-      console.log(sellerId)
-      console.log(paymentMethod) 
-      console.log(currency)
-      throw new Error("Missing essential payment information");
-    }
-
     const checkTransactionQuery = `
       SELECT transaction_id FROM Transactions WHERE payment_intent_id = ?
     `;
@@ -185,42 +181,49 @@ const storePaymentEvent = async (event, paymentIntent) => {
 
 /******************************************* Sending Emails **********************************************/
 // Email template function
-const createOrderConfirmationEmail = (paymentIntent) => {
-  const amount = (paymentIntent.amount / 100).toFixed(2);
-  return {
-    subject: "Order Confirmation - Thank You for Your Purchase!",
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>Thank you for your order!</h2>
-        <p>Your payment of ${paymentIntent.currency.toUpperCase()} ${amount} has been processed successfully.</p>
-        <p>Order Details:</p>
-        <ul>
-          <li>Order ID: ${paymentIntent.id}</li>
-          <li>Amount: ${paymentIntent.currency.toUpperCase()} ${amount}</li>
-          <li>Date: ${new Date().toLocaleDateString()}</li>
-        </ul>
-        <p>If you have any questions, please don't hesitate to contact us.</p>
-      </div>
-    `,
-  };
-};
+const sendConfirmationEmail = async (paymentIntent, bookingCode) => {
+   try {
+    // Load the email template
+    const templatePath = './email-templates/bookingConfirmation.html';
+    let emailTemplate = fs.readFileSync(templatePath, 'utf8');
 
-// Utility function to send confirmation emails
-const sendConfirmationEmail = async (paymentIntent) => {
-  try {
-    const { subject, html } = createOrderConfirmationEmail(paymentIntent);
+    // Replace placeholders with actual booking details
+    emailTemplate = emailTemplate
+      .replace('{{bookingCode}}', bookingCode)
 
-    await transporter.sendMail({
+    // Email options
+    const mailOptions = {
       from: process.env.NODEMAILER_EMAIL,
-      to: paymentIntent.receipt_email,
-      subject,
-      html,
-    });
+      to: paymentIntent.receipt_email, // Recipient's email address
+      subject: 'Booking Confirmation',
+      html: emailTemplate, // HTML content
+    };
+
+    // Send email
+    const info = await transporter.sendMail(mailOptions);
+
+    console.log('Email sent: %s', info.messageId);
   } catch (error) {
-    console.error("Error sending confirmation email:", error);
-    throw error;
+    console.error('Error sending email:', error);
   }
 };
+
+// // Utility function to send confirmation emails
+// const sendConfirmationEmail = async (paymentIntent) => {
+//   try {
+//     const { subject, html } = createOrderConfirmationEmail(paymentIntent);
+
+//     await transporter.sendMail({
+//       from: process.env.NODEMAILER_EMAIL,
+//       to: paymentIntent.receipt_email,
+//       subject,
+//       html,
+//     });
+//   } catch (error) {
+//     console.error("Error sending confirmation email:", error);
+//     throw error;
+//   }
+// };
 
 /******************************************* Notification **********************************************/
 // store notification
@@ -264,7 +267,7 @@ async function sendNewBookingNotification(paymentIntent) {
   // get booking date
   const { startDate, endDate } = convertDateStringToDate(dateRange);
   // get total number of rooms
-  const totalRooms = 0;
+  let totalRooms = 0;
   JSON.parse(booked_rooms).forEach((bookedRoom) => {
     totalRooms += bookedRoom.roomQuantity;
   })
@@ -356,6 +359,7 @@ const webhookController = async (req, res) => {
       case "payment_intent.succeeded":
         const paymentMethodId = paymentIntent.payment_method;
         let receiptEmail = null; // Biến để lưu email người nhận
+       
         if (paymentMethodId) {
           try {
             const paymentMethod = await stripe.paymentMethods.retrieve(
@@ -372,7 +376,7 @@ const webhookController = async (req, res) => {
         await sendNewBookingNotification(paymentIntent);
 
         // store booking in database
-        await storeBooking(paymentIntent);
+        let bookingCode = await storeBooking(paymentIntent);
 
         // Store payment event
         await storePaymentEvent(event, paymentIntent);
@@ -383,7 +387,7 @@ const webhookController = async (req, res) => {
             // Sử dụng email vừa lấy để gửi email xác nhận
             paymentIntent.receipt_email = receiptEmail;
 
-            await sendConfirmationEmail(paymentIntent);
+            await sendConfirmationEmail(paymentIntent, bookingCode);
           } catch (err) {
             console.error("Error sending confirmation email:", err.message);
           }

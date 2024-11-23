@@ -2,7 +2,6 @@ require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const connection = require("../config/db");
 const { promisify } = require("util");
-const transporter = require("../config/nodemailer");
 
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
@@ -10,7 +9,6 @@ const queryAsync = promisify(connection.query).bind(connection);
 const handlePayment = async (req, res) => {
   try {
     const { paymentMethodId, amount, currency, bookingDetails } = req.body;
-    console.log(bookingDetails)
     const buyer_id = req.session.user.user_id;
 
     // Create a payment intent
