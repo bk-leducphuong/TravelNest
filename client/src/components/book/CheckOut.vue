@@ -18,7 +18,8 @@
 
 <script>
 import { loadStripe } from '@stripe/stripe-js'
-import axios from 'axios';
+import axios from 'axios'
+import { v4 as uuidv4 } from 'uuid'
 
 export default {
   props: {
@@ -28,7 +29,7 @@ export default {
     },
     searchData: {
       type: Object,
-      required: true,
+      required: true
     },
     userInfor: {
       type: Object,
@@ -83,14 +84,17 @@ export default {
           throw new Error(error.message)
         }
 
+        const bookingCode = uuidv4() // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
+
         // Send payment method ID and email to server
         const response = await axios.post(
           'http://localhost:3000/api/payment',
           {
             paymentMethodId: paymentMethod.id,
             amount: this.bookingInfor.totalPrice, // Amount in cents
-            currency: 'vnd', // default 
+            currency: 'vnd', // default
             bookingDetails: {
+              bookingCode: bookingCode,
               hotel_id: this.bookingInfor.hotel.hotel_id,
               dateRange: this.searchData.dateRange, // checkin date and checkout date
               bookedRooms: this.bookingInfor.selectedRooms,
@@ -120,6 +124,10 @@ export default {
             type: 'success',
             message: 'Payment successful! Check your email for confirmation.'
           }
+
+          setTimeout(() => {
+            this.$router.replace({ path: '/book/complete', query: {bookingCode: bookingCode}})
+          }, 1000)
 
           // Reset form
           this.email = ''

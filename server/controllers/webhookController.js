@@ -46,12 +46,10 @@ const storeBooking = async (paymentIntent) => {
     booked_rooms,
     date_range: dateRange,
     number_of_guests: numberOfGuests,
+    booking_code: bookingCode,
   } = paymentIntent.metadata;
 
   const { startDate, endDate } = convertDateStringToDate(dateRange);
-
-  const bookingCode = uuidv4(); 
-
   const bookedRooms = JSON.parse(booked_rooms)
   bookedRooms.forEach(async (bookedRoom) => {
     // Insert a new booking with status "pending"
@@ -73,8 +71,6 @@ const storeBooking = async (paymentIntent) => {
       bookingCode
     ]);
   });
-
-  return bookingCode
 };
 
 /******************************************* Storing Payment and Transaction events **********************************************/
@@ -181,15 +177,16 @@ const storePaymentEvent = async (event, paymentIntent) => {
 
 /******************************************* Sending Emails **********************************************/
 // Email template function
-const sendConfirmationEmail = async (paymentIntent, bookingCode) => {
+const sendConfirmationEmail = async (paymentIntent) => {
    try {
     // Load the email template
-    const templatePath = './email-templates/bookingConfirmation.html';
+    const templatePath = './email-templates/thankyou.html';
     let emailTemplate = fs.readFileSync(templatePath, 'utf8');
 
-    // Replace placeholders with actual booking details
-    emailTemplate = emailTemplate
-      .replace('{{bookingCode}}', bookingCode)
+    // TODO: Pass booking information to email template
+    // // Replace placeholders with actual booking details
+    // emailTemplate = emailTemplate
+    //   .replace('{{bookingCode}}', bookingCode)
 
     // Email options
     const mailOptions = {
@@ -207,23 +204,6 @@ const sendConfirmationEmail = async (paymentIntent, bookingCode) => {
     console.error('Error sending email:', error);
   }
 };
-
-// // Utility function to send confirmation emails
-// const sendConfirmationEmail = async (paymentIntent) => {
-//   try {
-//     const { subject, html } = createOrderConfirmationEmail(paymentIntent);
-
-//     await transporter.sendMail({
-//       from: process.env.NODEMAILER_EMAIL,
-//       to: paymentIntent.receipt_email,
-//       subject,
-//       html,
-//     });
-//   } catch (error) {
-//     console.error("Error sending confirmation email:", error);
-//     throw error;
-//   }
-// };
 
 /******************************************* Notification **********************************************/
 // store notification
@@ -293,6 +273,7 @@ async function sendNewBookingNotification(paymentIntent) {
   });
 }
 
+/******************************************* Payout Event **********************************************/
 const handlePayoutEvent = async (payout, status) => {
   try {
     const payoutId = payout.id;
@@ -376,7 +357,7 @@ const webhookController = async (req, res) => {
         await sendNewBookingNotification(paymentIntent);
 
         // store booking in database
-        let bookingCode = await storeBooking(paymentIntent);
+        await storeBooking(paymentIntent);
 
         // Store payment event
         await storePaymentEvent(event, paymentIntent);
@@ -387,7 +368,7 @@ const webhookController = async (req, res) => {
             // Sử dụng email vừa lấy để gửi email xác nhận
             paymentIntent.receipt_email = receiptEmail;
 
-            await sendConfirmationEmail(paymentIntent, bookingCode);
+            await sendConfirmationEmail(paymentIntent);
           } catch (err) {
             console.error("Error sending confirmation email:", err.message);
           }

@@ -9,7 +9,7 @@ import SearchResults from '@/views/SearchResults.vue'
 import Book from '@/views/Book.vue'
 
 import stores from '@/stores/index.js'
-import Complete from '@/components/book/Complete.vue'
+import BookingConfirmation from '@/views/BookingConfirmation.vue'
 import AdminLogin from '@/views/admin/AdminLogin.vue'
 import AdminHome from '@/views/admin/AdminHome.vue'
 import AccountSettings from '@/views/account-settings/AccountSettings.vue'
@@ -69,8 +69,8 @@ const routes = [
   },
   {
     path: '/book/complete',
-    name: 'Complete',
-    component: Complete,
+    name: 'BookingConfirmation',
+    component: BookingConfirmation,
     props: (route) => ({
       bookingCode: route.query.bookingCode
     }),

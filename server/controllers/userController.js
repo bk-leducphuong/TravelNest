@@ -15,6 +15,17 @@ const getUserInformation = async (req, res) => {
     }
 }
 
+const getBookingInformation = async (req, res) => {
+    try {
+        const {bookingCode} = req.body;
+        const bookingInformation = await queryAsync('SELECT * FROM bookings WHERE booking_code = ?', [bookingCode]);
+        res.status(200).json({ success: true, bookingInformation: bookingInformation[0] });
+    } catch (error) {
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+}
+
 module.exports = {
-    getUserInformation
+    getUserInformation,
+    getBookingInformation
 }

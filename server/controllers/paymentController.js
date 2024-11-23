@@ -19,6 +19,7 @@ const handlePayment = async (req, res) => {
       confirm: true,
       return_url: "http://localhost:5173/book/complete",
       metadata: {
+        booking_code: bookingDetails.bookingCode,
         hotel_id: bookingDetails.hotel_id, // Add hotel_id into metadata
         buyer_id: buyer_id, // Add seller_id into metadata
         booked_rooms: JSON.stringify(bookingDetails.bookedRooms),
@@ -33,7 +34,5 @@ const handlePayment = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
-
-
 
 module.exports = { handlePayment };
