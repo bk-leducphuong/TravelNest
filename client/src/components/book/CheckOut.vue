@@ -93,7 +93,8 @@ export default {
             bookingDetails: {
               hotel_id: this.bookingInfor.hotel.hotel_id,
               dateRange: this.searchData.dateRange, // checkin date and checkout date
-              bookedRooms: this.bookingInfor.selectedRooms
+              bookedRooms: this.bookingInfor.selectedRooms,
+              numberOfGuests: this.bookingInfor.numberOfGuests
             }
           },
           { withCredentials: true }

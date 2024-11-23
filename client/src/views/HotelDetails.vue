@@ -213,7 +213,8 @@ export default {
           },
           totalPrice: this.totalPriceSelectedRooms,
           totalRooms: this.totalSelectedRooms,
-          selectedRooms: this.selectedRooms
+          selectedRooms: this.selectedRooms,
+          numberOfGuests: this.adults
         }
         this.booking(bookingInfor)
         this.$router.push('/book')

@@ -4,16 +4,17 @@ const connection = require("../config/db");
 const { promisify } = require("util");
 const transporter = require("../config/nodemailer");
 const { init, getIO } = require("../config/socket");
+const { v4: uuidv4 } = require('uuid');
+const { send } = require("process");
 
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
 
+/******************************************* Utility Functions **********************************************/
 async function getSellerId(paymentIntent) {
   try {
     const sellerQuery = "SELECT owner_id FROM hotels WHERE hotel_id = ?";
     const hotelId = paymentIntent.metadata.hotel_id; // Lấy từ metadata của Payment Intent
-    const buyerId = paymentIntent.metadata.buyer_id;
-
     const sellerResult = await queryAsync(sellerQuery, [hotelId]);
     const sellerId = sellerResult[0]?.owner_id;
     return sellerId;
@@ -22,85 +23,167 @@ async function getSellerId(paymentIntent) {
   }
 }
 
-// Store payment event information into database
+function convertDateStringToDate(dateString) {
+  const dateParts = dateString.match(/(\d{2}\/\d{2}\/\d{4})/g);
+  if (dateParts && dateParts.length === 2) {
+    const [startDateStr, endDateStr] = dateParts;
+
+    // Chuyển đổi chuỗi sang đối tượng Date
+    const startDate = new Date(startDateStr.split("/").reverse().join("-")); // YYYY-MM-DD
+    const endDate = new Date(endDateStr.split("/").reverse().join("-"));
+
+    return { startDate, endDate };
+  }
+}
+
+/******************************************* Storing Bookings **********************************************/
+const storeBooking = async (paymentIntent) => {
+  const {
+    hotel_id: hotelId,
+    buyer_id: buyerId,
+    booked_rooms,
+    date_range: dateRange,
+    number_of_guests: numberOfGuests,
+  } = paymentIntent.metadata;
+
+  const { startDate, endDate } = convertDateStringToDate(dateRange);
+
+  const bookingCode = uuidv4(); 
+
+  const bookedRooms = JSON.parse(booked_rooms)
+  bookedRooms.forEach(async (bookedRoom) => {
+    // Insert a new booking with status "pending"
+    const bookingQuery = `
+    INSERT INTO bookings (buyer_id, check_in_date, check_out_date, total_price, status, number_of_guests, quantity, hotel_id, room_id, booking_code)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+    const { insertId: bookingId } = await queryAsync(bookingQuery, [
+      buyerId,
+      startDate,
+      endDate,
+      paymentIntent.amount, // price for all booked rooms
+      "confirmed",
+      numberOfGuests,
+      bookedRoom.roomQuantity,
+      hotelId,
+      bookedRoom.room_id,
+      bookingCode
+    ]);
+  });
+};
+
+/******************************************* Storing Payment and Transaction events **********************************************/
+
+const handleNewTransaction = async (
+  paymentIntent,
+  buyerId,
+  sellerId,
+  amount,
+  currency,
+  paymentMethod
+) => {
+  try {
+    const transactionQuery = `
+      INSERT INTO Transactions (buyer_id, seller_id, amount, currency, status, transaction_type, payment_intent_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    const { insertId: transactionId } = await queryAsync(transactionQuery, [
+      buyerId,
+      sellerId,
+      amount,
+      currency,
+      "pending",
+      "booking_payment", // Transaction type
+      paymentIntent.id,
+    ]);
+
+    const paymentQuery = `
+      INSERT INTO Payments (transaction_id, payment_method, payment_status, amount, currency, paid_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    await queryAsync(paymentQuery, [
+      transactionId,
+      paymentMethod,
+      "pending",
+      amount,
+      currency,
+      new Date(),
+    ]);
+  } catch (error) {
+    console.error("Error handling new transaction:", error);
+    throw error; // Re-throw to propagate errors up
+  }
+};
+
+const updateExistingTransaction = async (transactionId, paymentMethod) => {
+  try {
+    const updateTransactionQuery = `
+      UPDATE transactions SET status = ? WHERE transaction_id = ? -- Ensure correct column name
+    `;
+    await queryAsync(updateTransactionQuery, ["completed", transactionId]);
+
+    const updatePaymentQuery = `
+      UPDATE payments SET payment_status = ?, payment_method = ? WHERE transaction_id = ?
+    `;
+    await queryAsync(updatePaymentQuery, [
+      "success",
+      paymentMethod,
+      transactionId,
+    ]);
+  } catch (error) {
+    console.error("Error updating transaction:", error);
+    throw error; // Re-throw to propagate errors up
+  }
+};
+
 const storePaymentEvent = async (event, paymentIntent) => {
   try {
-    const buyerId = paymentIntent.metadata.buyer_id;
+    if (!paymentIntent || !paymentIntent.metadata) {
+      throw new Error("Invalid paymentIntent or missing metadata");
+    }
 
+    const { buyer_id: buyerId } = paymentIntent.metadata;
     const sellerId = await getSellerId(paymentIntent);
-
     const paymentMethod = paymentIntent.payment_method;
-
-    const amount = paymentIntent.amount / 100; // Stripe sử dụng cent
+    const amount = paymentIntent.amount / 100;
     const currency = paymentIntent.currency.toUpperCase();
 
-    const transactionType = "booking_payment"; // Loại giao dịch
+    if (!buyerId || !sellerId || !paymentMethod || !currency) {
+      console.log(buyerId)
+      console.log(sellerId)
+      console.log(paymentMethod) 
+      console.log(currency)
+      throw new Error("Missing essential payment information");
+    }
 
-    // Kiểm tra xem đã tồn tại transaction nào với payment_intent_id này chưa
     const checkTransactionQuery = `
-        SELECT transaction_id FROM Transactions WHERE payment_intent_id = ?
+      SELECT transaction_id FROM Transactions WHERE payment_intent_id = ?
     `;
     const transactionExists = await queryAsync(checkTransactionQuery, [
       paymentIntent.id,
     ]);
 
     if (transactionExists.length === 0) {
-      // Nếu chưa có, chèn một giao dịch mới với trạng thái "pending"
-      const transactionQuery = `
-            INSERT INTO Transactions (buyer_id, seller_id, amount, currency, status, transaction_type, payment_intent_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `;
-      const transactionResult = await queryAsync(transactionQuery, [
+      await handleNewTransaction(
+        paymentIntent,
         buyerId,
         sellerId,
         amount,
         currency,
-        "pending",
-        transactionType,
-        paymentIntent.id,
-      ]);
-
-      const transactionId = transactionResult.insertId;
-
-      // Lưu thông tin thanh toán vào bảng Payments với trạng thái "pending"
-      const paymentQuery = `
-            INSERT INTO Payments (transaction_id, payment_method, payment_status, amount, currency, paid_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `;
-      await queryAsync(paymentQuery, [
-        transactionId,
-        "pending",
-        "pending",
-        amount,
-        currency,
-        new Date(),
-      ]);
+        paymentMethod
+      );
     } else {
-      // Nếu đã tồn tại transaction, chỉ cập nhật trạng thái
-      const transactionId = transactionExists[0].transaction_id;
-
-      // Cập nhật trạng thái transaction thành "success"
-      const updateTransactionQuery = `
-            UPDATE Transactions SET status = ? WHERE transaction_id = ?
-        `;
-      await queryAsync(updateTransactionQuery, ["completed", transactionId]);
-
-      // Cập nhật trạng thái payment thành "success"
-      const updatePaymentQuery = `
-            UPDATE Payments SET payment_status = ?, payment_method=? WHERE transaction_id = ?
-        `;
-      await queryAsync(updatePaymentQuery, [
-        "success",
-        paymentMethod,
-        transactionId,
-      ]);
+      const transactionId = transactionExists[0].id; // Use correct column name
+      await updateExistingTransaction(transactionId, paymentMethod);
     }
   } catch (error) {
     console.error("Error storing payment event:", error);
   }
 };
 
-// Utility function to store payment event in database
+
+/******************************************* Sending Emails **********************************************/
 // Email template function
 const createOrderConfirmationEmail = (paymentIntent) => {
   const amount = (paymentIntent.amount / 100).toFixed(2);
@@ -139,19 +222,71 @@ const sendConfirmationEmail = async (paymentIntent) => {
   }
 };
 
+/******************************************* Notification **********************************************/
+// store notification
+async function storeNotification(notification) {
+  const {senderId, recieverId, notificationType, message, isRead} = notification;
+  try {
+    const notificationQuery = `
+      INSERT INTO notifications (sender_id, reciever_id, notification_type, message, is_read)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    const { insertId: notificationId } = await queryAsync(notificationQuery, [
+      senderId,
+      recieverId,
+      notificationType,
+      message,
+      isRead,
+    ]);
+    return notificationId;
+  } catch (error) {
+    console.error("Error storing notification:", error);
+    throw error;
+  }
+}
 // payment event handler for socket io
-async function sendPaymentNotification(paymentIntent) {
+async function sendNewBookingNotification(paymentIntent) {
   const io = getIO();
 
+  const {
+    hotel_id: hotelId,
+    buyer_id: buyerId,
+    booked_rooms,
+    date_range: dateRange,
+    number_of_guests: numberOfGuests,
+  } = paymentIntent.metadata;
+
+  // get buyer name
+  const buyerQuery = `
+    SELECT username FROM users WHERE user_id = ?
+  `;
+  const buyer = await queryAsync(buyerQuery, [buyerId]);
+  // get booking date
+  const { startDate, endDate } = convertDateStringToDate(dateRange);
+  // get total number of rooms
+  const totalRooms = 0;
+  JSON.parse(booked_rooms).forEach((bookedRoom) => {
+    totalRooms += bookedRoom.roomQuantity;
+  })
+
+  // create notification
   const notification = {
-    hotel_owner_id: await getSellerId(paymentIntent),
-    type: "payment",
-    message: "Bạn có một đơn đặt phòng mới.",
+    senderId: buyerId,
+    recieverId: await getSellerId(paymentIntent), // hotel owner id
+    notificationType: "booking",
+    message: `New booking: ${buyer} booked ${totalRooms} rooms from ${startDate} to ${endDate} for ${numberOfGuests} guests.`,
+    isRead: false,
   };
 
-  io.to(`owner_${notification.hotel_owner_id}`).emit("newNotification", {
-    type: notification.type,
+  // store notification
+  const notificationId = await storeNotification(notification);
+
+  io.to(`owner_${notification.recieverId}`).emit("newNotification", {
+    notificationId: notificationId,
+    notificationType: notification.notificationType,
     message: notification.message,
+    isRead: notification.isRead,
+    senderId: notification.senderId,
   });
 }
 
@@ -234,7 +369,10 @@ const webhookController = async (req, res) => {
           console.log("No payment method provided in this event.");
         }
         // send notification to hotel owner
-        await sendPaymentNotification(paymentIntent);
+        await sendNewBookingNotification(paymentIntent);
+
+        // store booking in database
+        await storeBooking(paymentIntent);
 
         // Store payment event
         await storePaymentEvent(event, paymentIntent);

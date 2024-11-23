@@ -15,21 +15,86 @@ export default {
         <div class="divider"></div>
 
         <ul class="nav-menu">
-            <li class="nav-item active" @click="this.$router.push('/admin/home')">Dashboard</li>
-            <li class="nav-item">Bookings</li>
-            <li class="nav-item">Room</li>
-            <li class="nav-item">Reports</li>
-            <li class="nav-item">Customers</li>
-            <li class="nav-item" @click="this.$router.push('/admin/payment')">Payment</li>
-            <li class="nav-item">Support</li>
-            <li class="nav-item">Settings</li>
+          <div class="nav-item-container">
+            <div class="title-nav-item active">
+              <li class="nav-item" @click="this.$router.push('/admin/home')"><i class="fa fa-home" aria-hidden="true"></i>Home</li>
+              <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;"></i>
+            </div>
+            <div class="child-item-container">
+              <li class="child-item"></li>
+            </div>
+          </div>
+          <div class="nav-item-container">
+            <div class="title-nav-item active">
+              <li class="nav-item" @click="this.$router.push('/admin/home')"><i class="fa fa-calendar" aria-hidden="true"></i>Availability</li>
+              <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;"></i>
+            </div>
+            <div class="child-item-container">
+              <li class="child-item"></li>
+            </div>
+          </div>
+          <div class="nav-item-container">
+            <div class="title-nav-item active">
+              <li class="nav-item" @click="this.$router.push('/admin/home')"><i class="fa fa-list" aria-hidden="true"></i>Reservation</li>
+              <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;"></i>
+            </div>
+            <div class="child-item-container">
+              <li class="child-item"></li>
+            </div>
+          </div>
+          <div class="nav-item-container">
+            <div class="title-nav-item active">
+              <li class="nav-item" @click="this.$router.push('/admin/home')"><i class="fa fa-pencil" aria-hidden="true"></i>Property</li>
+              <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;"></i>
+            </div>
+            <div class="child-item-container">
+              <li class="child-item"></li>
+            </div>
+          </div>
+          <div class="nav-item-container">
+            <div class="title-nav-item active">
+              <li class="nav-item" ><i class="fa fa-credit-card-alt" aria-hidden="true"></i>Payment</li>
+              <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;"></i>
+            </div>
+            <div class="child-item-container">
+              <li class="child-item" @click="this.$router.push('/admin/payment')">Payment methods</li>
+              <li class="child-item" @click="this.$router.push('/admin/payment/invoices')">Invoices</li>
+            </div>
+          </div>
+          <div class="nav-item-container">
+            <div class="title-nav-item active">
+              <li class="nav-item" @click="this.$router.push('/admin/home')"><i class="fa fa-comments" aria-hidden="true"></i>Guest reviews</li>
+              <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;"></i>
+            </div>
+            <div class="child-item-container">
+              <li class="child-item"></li>
+            </div>
+          </div>
+          <div class="nav-item-container">
+            <div class="title-nav-item active">
+              <li class="nav-item" @click="this.$router.push('/admin/home')"><i class="fa fa-bar-chart" aria-hidden="true"></i>Analytics</li>
+              <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;"></i>
+            </div>
+            <div class="child-item-container">
+              <li class="child-item"></li>
+            </div>
+          </div>
+          <div class="nav-item-container">
+            <div class="title-nav-item active">
+              <li class="nav-item" @click="this.$router.push('/admin/home')"><i class="fa fa-phone" aria-hidden="true"></i>Support</li>
+              <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;"></i>
+            </div>
+            <div class="child-item-container">
+              <li class="child-item"></li>
+            </div>
+          </div>
         </ul>
     </nav>
 </template>
 <style scoped>  
 /* Dashboard Sidebar Styles */
 .dashboard {
-  width: 260px;
+  width: 220px;
   background-color: #1a1f2c;
   color: #ffffff;
   padding: 20px;
@@ -45,6 +110,11 @@ export default {
 
 .nav-menu {
   list-style: none;
+  padding: 0px;
+}
+
+.nav-item-container {
+  margin-top: 7px;
 }
 
 .nav-item {
@@ -58,7 +128,7 @@ export default {
   color: #94a3b8;
 }
 
-.nav-item:hover {
+.title-nav-item:hover {
   background-color: rgba(255, 255, 255, 0.1);
   color: #ffffff;
 }
@@ -66,6 +136,34 @@ export default {
 .nav-item.active {
   background-color: rgba(255, 255, 255, 0.1);
   color: #ffffff;
+}
+
+.title-nav-item {
+  display: flex;
+  justify-content: space-between;
+  text-align: center;
+  align-items: center;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.child-item-container {
+  margin-left: 41px;
+  display: flex;
+  justify-content: space-between;
+  /* align-items: center; */
+  flex-direction: column;
+  gap: 10px;
+}
+
+.child-item {
+  cursor: pointer;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.child-item:hover {
+  color: #496392;
 }
 
 .divider {

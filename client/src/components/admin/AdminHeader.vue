@@ -4,7 +4,9 @@ import { mapGetters } from 'vuex'
 export default {
   data() {
     return {
-      haveNewNotification: false
+      haveNewNotification: false,
+      openNotificationPopup: false,
+      notifications: []
     }
   },
   methods: {
@@ -19,7 +21,11 @@ export default {
       socket.emit('joinRoom', this.getUserId)
       // Nhận thông báo mới
       socket.on('newNotification', (data) => {
-        // console.log('New notification received:', data)
+        // get current time
+        const currentTime = new Date().toLocaleTimeString()
+        // add notification to notifications array
+        data.time = currentTime
+        this.notifications.push(data)
         // {type: 'payment', message: 'Bạn có một đơn đặt phòng mới.'}
         // Cập nhật giao diện hiển thị thông báo
         this.haveNewNotification = true
@@ -42,7 +48,7 @@ export default {
       </div>
       <!-- notification popup -->
       <div class="notification-container">
-        <div class="notification-icon">
+        <div class="notification-icon" @click="openNotificationPopup = !openNotificationPopup">
           <i class="fa fa-bell" aria-hidden="true"></i>
           <i
             v-if="haveNewNotification"
@@ -51,7 +57,7 @@ export default {
             style="color: red; font-size: 10px; float: right"
           ></i>
         </div>
-        <div class="notification-popup">
+        <div class="notification-popup" v-if="openNotificationPopup">
           <div class="notification-header">
             <div class="notification-title">
               <span>Notifications</span>
@@ -61,30 +67,21 @@ export default {
             </div>
           </div>
           <div class="notification-content">
-            <div class="notification-item">
+            <div class="notification-item" v-if="notifications.length == 0" style="justify-content: space-around;">
+              <div class="notification-text">
+                <h4>You have no notifications</h4>
+              </div>
+            </div>
+            <div
+              class="notification-item"
+              v-for="notification in notifications"
+              :key="notification.notificationId"
+            >
               <div class="notification-icon">
                 <i class="fas fa-arrow-up"></i>
               </div>
               <div class="notification-text">
-                <h4>You have requested to Withdraw</h4>
-                <p>2 hrs ago</p>
-              </div>
-            </div>
-            <div class="notification-item">
-              <div class="notification-icon">
-                <i class="fas fa-arrow-down"></i>
-              </div>
-              <div class="notification-text">
-                <h4>Your Deposit Order is placed</h4>
-                <p>2 hrs ago</p>
-              </div>
-            </div>
-            <div class="notification-item">
-              <div class="notification-icon">
-                <i class="fas fa-arrow-up"></i>
-              </div>
-              <div class="notification-text">
-                <h4>You have requested to Withdraw</h4>
+                <h4>{{ notification.message }}</h4>
                 <p>2 hrs ago</p>
               </div>
             </div>
