@@ -1,7 +1,7 @@
 <!-- src/views/Login.vue -->
 <template>
   <header class="header">
-    <div class="logo"><a href="/">Booking.com</a></div>
+    <div class="logo"><a @click="this.$router.push('/')">Booking.com</a></div>
     <div class="header-right">
       <div class="flag"></div>
       <span>?</span>
@@ -83,8 +83,8 @@
   <div class="footer">
     <p>
       Qua việc đăng nhập hoặc tạo tài khoản, bạn đồng ý với các
-      <a href="#">Điều khoản và Điều kiện</a> cũng như
-      <a href="#">Chính sách An toàn và Bảo mật</a> của chúng tôi
+      <a  >Điều khoản và Điều kiện</a> cũng như
+      <a  >Chính sách An toàn và Bảo mật</a> của chúng tôi
     </p>
     <p>Bảo lưu mọi quyền.<br />Bản quyền (2006 - 2024) - Booking.com™</p>
   </div>

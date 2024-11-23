@@ -3,7 +3,7 @@
     <div class="container">
       <div class="inner-wrap">
         <div class="inner-logo">
-          <a href="/"><strong>Booking.com</strong></a>
+          <a @click="this.$router.push('/')"><strong>Booking.com</strong></a>
         </div>
         <div class="inner-login">
           <ul>
@@ -11,11 +11,11 @@
             <li><img src="../assets/header/Vn@3x.png" alt="Vietnam" /></li>
             <li><i class="fa-regular fa-circle-question"></i></li>
             <li>
-              <span><a href="/join">Đăng chỗ nghỉ của Quý vị</a></span>
+              <span><a @click="this.$router.push('/join')">Đăng chỗ nghỉ của Quý vị</a></span>
             </li>
             <li v-if="!this.isUserAuthenticated">
-              <a href="/login" class="login" style="margin-right: 5px">Đăng ký</a>
-              <a href="/login" class="login" style="margin-left: 5px">Đăng nhập</a>
+              <a @click="this.$router.push('/login')" class="login" style="margin-right: 5px">Đăng ký</a>
+              <a @click="this.$router.push('/login')" class="login" style="margin-left: 5px">Đăng nhập</a>
             </li>
             <li v-if="this.isUserAuthenticated">
               <AccountMenu />

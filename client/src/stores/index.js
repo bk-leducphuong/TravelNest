@@ -11,16 +11,13 @@ import join from './join';
 const vuexSession = new VuexPersistence({
   storage: window.sessionStorage,
   reducer: (state) => ({
-    auth: {
-      email: state.auth.email,
-    },
     // Persist the entire `search` and `book` modules
     search: state.search,
     book: state.book,
   }),
 });
 
-export default createStore({
+const stores = createStore({
   modules: {
     auth,
     user,
@@ -30,3 +27,6 @@ export default createStore({
   },
   plugins: [vuexSession.plugin],
 });
+
+export default stores
+  

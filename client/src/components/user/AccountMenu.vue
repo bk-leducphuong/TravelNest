@@ -39,7 +39,7 @@
         <div class="popup-arrow"></div>
 
         <nav class="nav-menu">
-          <a href="/account-settings" class="nav-item">
+          <a @click="this.$router.push('/account-settings')" class="nav-item">
             <svg
               class="nav-icon"
               viewBox="0 0 24 24"

@@ -4,7 +4,7 @@
     <div class="">
       <div class="inner-wrap">
         <div class="inner-logo">
-          <a href="/"><strong>Booking.com</strong></a>
+          <a @click="this.$router.push('/')"><strong>Booking.com</strong></a>
         </div>
         <div class="inner-login">
           <ul>

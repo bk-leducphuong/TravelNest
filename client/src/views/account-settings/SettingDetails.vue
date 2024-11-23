@@ -61,31 +61,31 @@ export default {
       <div class="section">
         <div class="icon-container"><i class="fas fa-user"></i></div>
         <div class="content">
-          <a href="#" class="manage-link">Personal details</a>
+          <a class="manage-link">Personal details</a>
         </div>
       </div>
       <div class="section">
         <div class="icon-container"><i class="fas fa-lock"></i></div>
         <div class="content">
-          <a href="#" class="manage-link">Customisation preferences</a>
+          <a class="manage-link">Customisation preferences</a>
         </div>
       </div>
       <div class="section">
         <div class="icon-container"><i class="fas fa-user-shield"></i></div>
         <div class="content">
-          <a href="#" class="manage-link">Security settings</a>
+          <a class="manage-link">Security settings</a>
         </div>
       </div>
       <div class="section">
         <div class="icon-container"><i class="fas fa-user-friends"></i></div>
         <div class="content">
-          <a href="#" class="manage-link">Payment menthods</a>
+          <a class="manage-link">Payment menthods</a>
         </div>
       </div>
       <div class="section" style="border: none">
         <div class="icon-container"><i class="fas fa-user-friends"></i></div>
         <div class="content">
-          <a href="#" class="manage-link">Email references</a>
+          <a class="manage-link">Email references</a>
         </div>
       </div>
     </div>

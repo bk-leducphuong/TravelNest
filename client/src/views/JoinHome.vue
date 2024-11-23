@@ -6,7 +6,7 @@
       <div class="container">
         <div class="inner-wrap">
           <div class="inner-logo">
-            <strong><a href="/">Booking.com</a></strong>
+            <strong><a @click="this.$router.push('/')">Booking.com</a></strong>
           </div>
           <div class="inner-login">
             <ul>
@@ -46,7 +46,7 @@
         <div class="login-text">
           Bạn đã bắt đầu quá trình đăng ký?
           <div>
-            <a href="#" class="login-link">Tiếp tục các bước đăng ký</a>
+            <a class="login-link">Tiếp tục các bước đăng ký</a>
           </div>
         </div>
       </div>
@@ -89,7 +89,6 @@
   align-items: center;
   font-size: 14px;
 }
-
 
 .header .inner-login ul li img {
   border-radius: 50%;

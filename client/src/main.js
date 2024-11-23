@@ -4,7 +4,7 @@ import { createApp } from 'vue'
 
 import App from './App.vue'
 import router from './router'
-import store from './stores'; // Import your store
+import stores from './stores/index.js'  // import store
 
 import { clickOutside } from '../directives/clickOutsite'; // import custom directives
 
@@ -37,7 +37,7 @@ app.directive('click-outside', clickOutside);
 
 // Add i18n to the app instance
 app.use(i18n);
-app.use(store);
+app.use(stores);
 app.use(router);
 
 // toast notification

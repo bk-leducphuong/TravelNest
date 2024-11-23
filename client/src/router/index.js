@@ -8,7 +8,7 @@ import JoinForm from '@/views/JoinForms.vue'
 import SearchResults from '@/views/SearchResults.vue'
 import Book from '@/views/Book.vue'
 
-import stores from '@/stores'
+import stores from '@/stores/index.js'
 import Complete from '@/components/book/Complete.vue'
 import AdminLogin from '@/views/admin/AdminLogin.vue'
 import AdminHome from '@/views/admin/AdminHome.vue'
@@ -138,14 +138,14 @@ router.beforeEach((to, from, next) => {
       // if admin
       if (!stores.getters['auth/isAdminAuthenticated']) {
         next({ name: 'AdminLogin', query: { redirect: to.fullPath } }) // Redirect to login if not authenticated
-      }else {
+      } else {
         next()
       }
     } else {
       // if user
       if (!stores.getters['auth/isUserAuthenticated']) {
         next({ name: 'Login', query: { redirect: to.fullPath } }) // Redirect to login if not authenticated
-      }else {
+      } else {
         next()
       }
     }
