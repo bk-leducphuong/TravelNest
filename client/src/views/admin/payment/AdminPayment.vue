@@ -32,7 +32,7 @@ export default {
         )
 
         if (response.data.exist) {
-          this.connectedAccountId = response.data.connect_account_id
+          this.connectedAccountId = response.data.connectedAccountId
           return true
         } else {
           this.connectedAccountId = null

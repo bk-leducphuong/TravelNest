@@ -290,7 +290,39 @@ async function sendNewBookingNotification(paymentIntent) {
   });
 }
 
-/******************************************* Webhook Endpoint **********************************************/
+const handlePayoutEvent = async (payout, status) => {
+  try {
+    const payoutId = payout.id;
+
+    // Update the cashout status based on the event
+    const updateCashoutQuery = `
+      UPDATE cashouts
+      SET status = ?, processed_at = NOW()
+      WHERE payout_id = ? AND status = 'pending'
+    `;
+    await queryAsync(updateCashoutQuery, [status, payoutId]);
+    console.log(`Cashout status updated to ${status}, payoutId:`, payoutId);
+
+    // Update the transaction status (if relevant)
+    const transactionStatus = status === 'completed' ? 'completed' : 'failed';
+    const updateTransactionQuery = `
+      UPDATE transactions
+      SET status = ?
+      WHERE payment_intent_id = ?
+    `;
+    await queryAsync(updateTransactionQuery, [transactionStatus, payoutId]);
+    console.log(`Transaction status updated to ${transactionStatus}, payoutId:`, payoutId);
+
+    if (status === 'failed') {
+      console.error(`Payout failed for payoutId: ${payoutId}`);
+      // Optional: Add any retry logic or notifications for failure
+    }
+
+  } catch (error) {
+    console.error(`Error handling payout event (${status}):`, error);
+    throw new Error(`Failed to update database for payout (${status})`);
+  }
+};
 
 // Recieve webhook events
 const webhookController = async (req, res) => {
@@ -387,21 +419,13 @@ const webhookController = async (req, res) => {
 
       // cases for payout
       case "payout.paid":
-        const payout = event.data.object;
-        //TODO: query db
-        // await Payout.findOneAndUpdate(
-        //   { stripePayoutId: payout.id },
-        //   { status: "paid" }
-        // );
+        const payoutPaid = event.data.object;
+        await handlePayoutEvent(payoutPaid, "completed");
         break;
 
       case "payout.failed":
         const failedPayout = event.data.object;
-        //TODO: query db
-        // await Payout.findOneAndUpdate(
-        //   { stripePayoutId: failedPayout.id },
-        //   { status: "failed" }
-        // );
+        await handlePayoutEvent(failedPayout, "failed");
         break;
 
       // Add more event types as needed
@@ -414,6 +438,5 @@ const webhookController = async (req, res) => {
     console.error("Error processing webhook:", error);
     res.status(500).json({ error: "Failed to process webhook" });
   }
-};
-
+}
 module.exports = { webhookController };
