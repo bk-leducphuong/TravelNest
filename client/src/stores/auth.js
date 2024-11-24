@@ -6,11 +6,12 @@ export default {
   namespaced: true,
   state: {
     email: '',
-    userId: null,
-    role: '',
+    userId: null, // customer id or partner id
+    role: '', // customer, partner 
+    managingHotelId: null, // for partner
     isAuthenticated: false,
-    otp: '',
-    otpVerified: false
+    otp: '', // for OTP verification when registering
+    otpVerified: false // for OTP verification when registering
   },
   mutations: {
     setEmail(state, email) {
@@ -24,6 +25,9 @@ export default {
     },
     setUserRole(state, role) {
       state.role = role
+    },
+    setManagingHotelId(state, managingHotelId) {
+      state.managingHotelId = managingHotelId
     },
     setOtp(state, otp) {
       state.otp = otp
@@ -60,7 +64,7 @@ export default {
           commit('setUserRole', payload.userRole)
 
           // Check for redirect query and navigate accordingly
-          router.push('/admin/home')
+          router.replace('/admin/hotels-management')
         }
       } catch (error) {
         console.log('Login or register failed! Pls try again!', error.response.data.message)

@@ -7,18 +7,23 @@ import Join from '@/views/JoinHome.vue'
 import JoinForm from '@/views/JoinForms.vue'
 import SearchResults from '@/views/SearchResults.vue'
 import Book from '@/views/Book.vue'
-
-import stores from '@/stores/index.js'
-import BookingConfirmation from '@/views/BookingConfirmation.vue'
-import AdminLogin from '@/views/admin/AdminLogin.vue'
-import AdminHome from '@/views/admin/AdminHome.vue'
 import AccountSettings from '@/views/account-settings/AccountSettings.vue'
 import SettingDetails from '@/views/account-settings/SettingDetails.vue'
+import BookingConfirmation from '@/views/BookingConfirmation.vue'
+
+import stores from '@/stores/index.js'
+
+// admin
+import AdminLogin from '@/views/admin/AdminLogin.vue'
+import HotelsManagement from '@/views/admin/HotelsManagement.vue'
+import AdminHome from '@/views/admin/AdminHome.vue'
 // admin payment
 import AdminPayment from '@/views/admin/payment/AdminPayment.vue'
 import InvoiceList from '@/views/admin/payment/InvoiceList.vue'
 import Return from '@/views/admin/Return.vue'
 import Refresh from '@/views/admin/Refresh.vue'
+// admin bookings
+import AllBookings from '@/views/admin/bookings/AllBookings.vue'
 import book from '@/stores/book'
 
 const routes = [
@@ -95,26 +100,32 @@ const routes = [
     component: AdminLogin
   },
   {
-    path: '/admin/home',
+    path: '/admin/hotels-management',
+    name: 'HotelsManagement',
+    component: HotelsManagement,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/:hotelId/home',
     name: 'AdminHome',
     component: AdminHome,
     meta: { requiresAuth: true }
   },
   {
-    path: '/admin/payment',
+    path: '/admin/:hotelId/payment',
     name: 'AdminPayment',
     component: AdminPayment,
     meta: { requiresAuth: true }
   },
   {
-    path: '/admin/payment/invoices',
+    path: '/admin/:hotelId/payment/invoices',
     name: 'InvoiceList',
     component: InvoiceList,
     meta: { requiresAuth: true }
   },
   // admin bookings
   {
-    path: '/admin/bookings/all',
+    path: '/admin/:hotelId/bookings/all',
     name: 'AllBookings',
     component: AllBookings,
     meta: { requiresAuth: true }

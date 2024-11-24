@@ -88,8 +88,12 @@ app.use('/api/user', userRoutes);
 
 // Admin routes
 const adminPayoutRoutes = require('./routes/admin/payoutRoutes.js');
+const bookingsRoutes = require('./routes/admin/bookingsRoutes.js');
+const hotelsManagementRoutes = require('./routes/admin/hotelsManagementRoutes.js');
 
+app.use('/api/admin/hotels-management', hotelsManagementRoutes);
 app.use('/api/admin/payout', adminPayoutRoutes);
+app.use('/api/admin/bookings', bookingsRoutes);
 
 // Default route
 app.get('/', (req, res) => {

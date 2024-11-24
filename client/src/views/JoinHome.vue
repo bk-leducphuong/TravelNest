@@ -40,7 +40,7 @@
           <li>Chọn một trong hai cách nhận đơn đặt: xác nhận tức thì và xem trước để duyệt</li>
           <li>Chúng tôi xử lý thanh toán thay bạn</li>
         </ul>
-        <button class="get-started-button" @click="this.$router.push('/join/become-a-host')">
+        <button class="get-started-button" @click="this.$router.push('/admin/login')">
           Bắt đầu ngay
         </button>
         <div class="login-text">
