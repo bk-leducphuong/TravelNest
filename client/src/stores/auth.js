@@ -73,9 +73,6 @@ export default {
         await axios.post('http://localhost:3000/api/auth/logout', {}, { withCredentials: true })
         // After successful logout, reset authentication state
         commit('setAuthentication', false)
-        // Clear localStorage
-        localStorage.removeItem('isAuthenticated')
-
         if (haveRedirect) {
           router.push('/')
         }

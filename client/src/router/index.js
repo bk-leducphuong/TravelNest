@@ -112,6 +112,13 @@ const routes = [
     component: InvoiceList,
     meta: { requiresAuth: true }
   },
+  // admin bookings
+  {
+    path: '/admin/bookings/all',
+    name: 'AllBookings',
+    component: AllBookings,
+    meta: { requiresAuth: true }
+  },
   {
     path: '/refresh/:connectedAccountId',
     name: 'Refresh',

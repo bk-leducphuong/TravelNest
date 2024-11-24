@@ -1,11 +1,15 @@
 <script>
 import DashboardMenu from '@/components/admin/DashboardMenu.vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
+import RoomBookingChart from '@/components/admin/chart/RoomBookingChart.vue'
+import SalesRevenue from '@/components/admin/chart/SalesRevenue.vue'
 
 export default {
   components: {
     DashboardMenu,
-    AdminHeader
+    AdminHeader,
+    RoomBookingChart,
+    SalesRevenue
   }
 }
 </script>
@@ -50,6 +54,17 @@ export default {
             </div>
           </div>
         </div>
+
+        <!-- Charts -->
+        <div class="chart">
+          <RoomBookingChart />
+        </div>
+        <div class="chart">
+          <SalesRevenue />
+        </div>
+        
+
+        <!-- End Charts -->
 
         <div class="grid">
           <div class="card">
@@ -386,5 +401,9 @@ select {
 
 .card-content {
   margin-top: 16px;
+}
+
+.chart {
+  margin: 20px 0px;
 }
 </style>

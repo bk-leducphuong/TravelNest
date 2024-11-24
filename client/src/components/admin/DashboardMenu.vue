@@ -1,10 +1,15 @@
 <script>
+import { mapActions } from 'vuex';
+
 export default {
     name: "DashboardMenu",
     data() {
         return {
-
+          
         }
+    },
+    methods: {
+      ...mapActions ('auth', ['logout'])
     }
 }
 </script>
@@ -35,11 +40,12 @@ export default {
           </div>
           <div class="nav-item-container">
             <div class="title-nav-item active">
-              <li class="nav-item" @click="this.$router.push('/admin/home')"><i class="fa fa-list" aria-hidden="true"></i>Reservation</li>
+              <li class="nav-item"><i class="fa fa-list" aria-hidden="true"></i>Bookings</li>
               <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;"></i>
             </div>
             <div class="child-item-container">
-              <li class="child-item"></li>
+              <li class="child-item" @click="this.$router.push('/admin/bookings/all')">All bookings</li>
+              <!-- <li class="child-item" @click="this.$router.push('/admin/payment/invoices')">Invoices</li> -->
             </div>
           </div>
           <div class="nav-item-container">
@@ -86,6 +92,11 @@ export default {
             </div>
             <div class="child-item-container">
               <li class="child-item"></li>
+            </div>
+          </div>
+          <div class="nav-item-container">
+            <div class="title-nav-item active">
+              <li class="nav-item" @click="logout({haveRedirect: true})"><i class="fa fa-sign-out-alt" aria-hidden="true"></i>Logout</li>
             </div>
           </div>
         </ul>
