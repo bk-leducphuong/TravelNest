@@ -20,6 +20,9 @@ export default {
     setUserId(state, userId) {
       state.userId = userId
     },
+    setManagingHotelId(state, hotelIdList) {
+      state.hotelId = hotelIdList
+    },
     setAuthentication(state, status) {
       state.isAuthenticated = status
     },
@@ -99,6 +102,15 @@ export default {
       } else {
         commit('setAuthentication', false) // Reset state if not authenticated
       }
+    },
+    async getManagingHotels({commit}) {
+      const response = await axios.get('http://localhost:3000/api/auth/get-managing-hotels', {
+        withCredentials: true
+      })
+      commit('setManagingHotelId', response.data.hotelIdList)
+    },
+    async checkManagingHotel() {
+
     },
     async sendOtp({ commit }, { phoneNumber }) {
       try {

@@ -33,6 +33,15 @@ const checkAuth = (req, res) => {
   }
 };
 
+const getManagingHotels = (req, res) => {
+  try {
+    const userId = req.session.user.user_id
+
+  }catch(error) {
+
+  }
+}
+
 // Check email
 const checkEmail = async (req, res) => {
   try {

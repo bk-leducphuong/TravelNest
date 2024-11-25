@@ -65,7 +65,10 @@ export default {
     }
   },
   mounted() {
+    // check user authentication
     this.checkAuth()
+    // check hotels which is managed by user
+    
 
     this.updateLanguage()
 
@@ -78,9 +81,6 @@ export default {
         console.error('Failed to get user location:', error)
         // You can handle the error here, e.g., show a default location
       })
-  },
-  async created() {
-    await this.checkAuth()
   }
 }
 </script>

@@ -6,6 +6,7 @@ const { promisify } = require("util");
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
 
+/************************************************* Create connect account *************************************************/
 const checkAccountExist = async (req, res) => {
   try {
     const userId = req.session.user.user_id;
@@ -33,8 +34,6 @@ const checkAccountExist = async (req, res) => {
 const createAccountLink = async (req, res) => {
   try {
     const { connectedAccountId } = req.body;
-    //console.log("connectedAccountId2:", connectedAccountId);
-    //const connectedAccountId = "acct_1QNm10BUqmWWAR32";
 
     if (!connectedAccountId) {
       return res.status(400).json({ error: "Missing connectedAccountId in the request body." });
@@ -87,6 +86,34 @@ const createAccount = async (req, res) => {
   } catch (error) {
     console.error(
       "An error occurred when calling the Stripe API to create an account",
+      error
+    );
+    res.status(500);
+    res.send({ error: error.message });
+  }
+};
+
+/************************************************* payout *************************************************/
+const getInvoices = async (req, res) => {
+  try {
+    const userId = req.session.user.user_id;
+
+    // get user
+    const userQuery = `SELECT * FROM users WHERE user_id = ?`;
+    const user = await queryAsync(userQuery, [userId]);
+
+    if (!user[0]?.connect_account_id) {
+      return res.status(400).json({ error: "No Stripe account linked." });
+    }
+
+    const invoices = await stripe.invoices.list({
+      customer: user[0].connect_account_id,
+    });
+
+    res.json(invoices.data);
+  } catch (error) {
+    console.error(
+      "An error occurred when calling the Stripe API to get invoices",
       error
     );
     res.status(500);
@@ -150,5 +177,6 @@ module.exports = {
   createAccount,
   createPayout,
   createAccountLink,
-  checkAccountExist
+  checkAccountExist,
+  getInvoices
 };
