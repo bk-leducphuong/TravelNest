@@ -155,25 +155,28 @@ const router = createRouter({
 
 // Navigation guard to check authentication before entering protected routes
 router.beforeEach((to, from, next) => {
-  if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (to.path.indexOf('admin') != -1) {
-      // if admin
-      if (!stores.getters['auth/isAdminAuthenticated']) {
-        next({ name: 'AdminLogin', query: { redirect: to.fullPath } }) // Redirect to login if not authenticated
+  // check user authentication
+  stores.dispatch('auth/checkAuth').then(() => {
+    if (to.matched.some((record) => record.meta.requiresAuth)) {
+      if (to.path.indexOf('/admin/') == 0) {
+        // if admin
+        if (!stores.getters['auth/isAdminAuthenticated']) {
+          next({ name: 'AdminLogin', query: { redirect: to.fullPath } }) // Redirect to login if not authenticated
+        } else {
+          next()
+        }
       } else {
-        next()
+        // if user
+        if (!stores.getters['auth/isUserAuthenticated']) {
+          next({ name: 'Login', query: { redirect: to.fullPath } }) // Redirect to login if not authenticated
+        } else {
+          next()
+        }
       }
     } else {
-      // if user
-      if (!stores.getters['auth/isUserAuthenticated']) {
-        next({ name: 'Login', query: { redirect: to.fullPath } }) // Redirect to login if not authenticated
-      } else {
-        next()
-      }
+      next() // Always allow non-protected routes
     }
-  } else {
-    next() // Always allow non-protected routes
-  }
+  })
 })
 
 export default router

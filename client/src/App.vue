@@ -65,11 +65,6 @@ export default {
     }
   },
   mounted() {
-    // check user authentication
-    this.checkAuth()
-    // check hotels which is managed by user
-    
-
     this.updateLanguage()
 
     // Fetch user location and update Vuex store

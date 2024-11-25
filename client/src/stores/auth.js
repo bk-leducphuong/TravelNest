@@ -8,20 +8,17 @@ export default {
     email: '',
     userId: null, // customer id or partner id
     role: '', // customer, partner 
-    managingHotelId: null, // for partner
     isAuthenticated: false,
     otp: '', // for OTP verification when registering
     otpVerified: false // for OTP verification when registering
   },
   mutations: {
+    // common (regular user and admin)
     setEmail(state, email) {
       state.email = email
     },
     setUserId(state, userId) {
       state.userId = userId
-    },
-    setManagingHotelId(state, hotelIdList) {
-      state.hotelId = hotelIdList
     },
     setAuthentication(state, status) {
       state.isAuthenticated = status
@@ -29,18 +26,16 @@ export default {
     setUserRole(state, role) {
       state.role = role
     },
-    setManagingHotelId(state, managingHotelId) {
-      state.managingHotelId = managingHotelId
-    },
+    // for admin
     setOtp(state, otp) {
       state.otp = otp
     },
     setOtpVerified(state, status) {
-      // for OTP verification
       state.otpVerified = status
     }
   },
   actions: {
+    // login for regular user
     async login({ commit }, { apiUrl, payload, redirectRoute }) {
       try {
         const response = await axios.post(apiUrl, payload, { withCredentials: true })
@@ -57,23 +52,7 @@ export default {
         router.push('/login')
       }
     },
-    async loginAdmin({ commit }, { apiUrl, payload }) {
-      try {
-        const response = await axios.post(apiUrl, payload, { withCredentials: true })
-        if (response.data.success) {
-          commit('setUserId', response.data.userId)
-          commit('setEmail', payload.email)
-          commit('setAuthentication', true)
-          commit('setUserRole', payload.userRole)
-
-          // Check for redirect query and navigate accordingly
-          router.replace('/admin/hotels-management')
-        }
-      } catch (error) {
-        console.log('Login or register failed! Pls try again!', error.response.data.message)
-        this.toast.error('Login or register failed! Pls try again!')
-      }
-    },
+    // common
     async logout({ commit }, { haveRedirect }) {
       // Perform logout logic (e.g., API call)
       try {
@@ -103,14 +82,23 @@ export default {
         commit('setAuthentication', false) // Reset state if not authenticated
       }
     },
-    async getManagingHotels({commit}) {
-      const response = await axios.get('http://localhost:3000/api/auth/get-managing-hotels', {
-        withCredentials: true
-      })
-      commit('setManagingHotelId', response.data.hotelIdList)
-    },
-    async checkManagingHotel() {
+    // for admin
+    async loginAdmin({ commit }, { apiUrl, payload }) {
+      try {
+        const response = await axios.post(apiUrl, payload, { withCredentials: true })
+        if (response.data.success) {
+          commit('setUserId', response.data.userId)
+          commit('setEmail', payload.email)
+          commit('setAuthentication', true)
+          commit('setUserRole', payload.userRole)
 
+          // Check for redirect query and navigate accordingly
+          router.replace('/admin/hotels-management')
+        }
+      } catch (error) {
+        console.log('Login or register failed! Pls try again!', error.response.data.message)
+        this.toast.error('Login or register failed! Pls try again!')
+      }
     },
     async sendOtp({ commit }, { phoneNumber }) {
       try {
