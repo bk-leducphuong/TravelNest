@@ -2,7 +2,7 @@
 import TheHeader from '../components/Header.vue'
 import TheFooter from '../components/Footer.vue'
 import axios from 'axios'
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState, mapGetters } from 'vuex'
 
 export default {
   components: {
@@ -29,8 +29,8 @@ export default {
     }
   },
   computed: {
-    ...mapState('user', ['userLocation']), // Map userLocation from the user module,
-    ...mapState('auth', ['isAuthenticated']),
+    ...mapGetters('user', ['getUserLocation']), // Map userLocation from the user module,
+    ...mapGetters('auth', ['isUserAuthenticated']),
     // Check if left scroll should be disabled
     disableScrollLeft() {
       return (sliderRef) => this.sliderPosition.get(sliderRef) === 0
@@ -85,7 +85,7 @@ export default {
       // Save updated array to localStorage
       localStorage.setItem('viewedHotels', JSON.stringify(viewedHotels))
 
-      if (this.isAuthenticated) {
+      if (this.isUserAuthenticated) {
         await axios.post(
           'http://localhost:3000/api/home/recent-viewed-hotels',
           {
@@ -99,14 +99,9 @@ export default {
     },
     // load hotels which close to user
     async loadNearbyHotels() {
-      if (!this.userLocation) {
-        console.log('User location is not available yet')
-        return // Exit the function if userLocation is not set
-      }
-
       try {
         const response = await axios.post('http://localhost:3000/api/home/nearby-hotels', {
-          location: this.userLocation
+          location: this.getUserLocation
         })
         this.nearbyHotels = response.data.hotels
         this.noNearbyHotelsFound = this.nearbyHotels.length === 0 ? true : false
@@ -118,12 +113,10 @@ export default {
     async loadRecentSearches() {
       const searches = JSON.parse(localStorage.getItem('recentSearches')) || []
 
-      if (this.isAuthenticated) {
+      if (this.isUserAuthenticated) {
         const response = await axios.get('http://localhost:3000/api/home/recent-searchs', {
           withCredentials: true
         })
-
-        // searches = repsonse.data
       }
 
       searches.reverse()
@@ -135,7 +128,7 @@ export default {
     // Load data from localStorage for viewed hotels
     async loadViewedHotels() {
       let hotels = JSON.parse(localStorage.getItem('viewedHotels')) || []
-      if (this.isAuthenticated) {
+      if (this.isUserAuthenticated) {
         const response = await axios.get('http://localhost:3000/api/home/recent-viewed-hotels', {
           withCredentials: true
         })
@@ -196,7 +189,7 @@ export default {
     }
   },
   watch: {
-    userLocation: {
+    getUserLocation: {
       handler(newLocation) {
         if (newLocation) {
           this.loadNearbyHotels() // Call loadNearbyHotels when userLocation is updated

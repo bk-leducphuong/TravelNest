@@ -64,7 +64,7 @@ export default {
       localStorage.setItem('language', this.$i18n.locale) // Save language to localStorage
     }
   },
-  mounted() {
+  created() {
     this.updateLanguage()
 
     // Fetch user location and update Vuex store

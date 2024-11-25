@@ -200,7 +200,7 @@ const getNearByHotels = async (req, res) => {
   const { latitude, longitude } = location;
 
   // Define the search radius (in kilometers)
-  const searchRadius = 5; // Example: find hotels within 10 kilometers
+  const searchRadius = 6; // Example: find hotels within 10 kilometers
 
   // MySQL query to find hotels within the radius using the Haversine formula
   const query = `

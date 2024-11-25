@@ -25,7 +25,6 @@ export default {
         },
         validateHotel({ commit, state }, {hotelId}) {
             for (const hotel of state.managingHotels) {
-                console.log(hotel.hotel_id)
                 if (hotel.hotel_id == hotelId) {
                     commit('setCurrentManagingHotelId', hotelId)
                     return true
@@ -37,6 +36,9 @@ export default {
     getters: {
         getManagingHotels(state) {
             return state.managingHotels
+        },
+        getCurrentManagingHotelId(state) {
+            return state.currentManagingHotelId
         }
     }
 }
