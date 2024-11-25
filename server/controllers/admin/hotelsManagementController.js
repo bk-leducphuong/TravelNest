@@ -15,5 +15,5 @@ const getAllManagingHotels = async (req, res) => {
 }
 
 module.exports = {
-    getAllManagingHotels
+    getAllManagingHotels,
 }

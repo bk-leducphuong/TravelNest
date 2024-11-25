@@ -156,14 +156,28 @@ const router = createRouter({
 // Navigation guard to check authentication before entering protected routes
 router.beforeEach((to, from, next) => {
   // check user authentication
-  stores.dispatch('auth/checkAuth').then(() => {
+  stores.dispatch('auth/checkAuth').then(async () => {
     if (to.matched.some((record) => record.meta.requiresAuth)) {
-      if (to.path.indexOf('/admin/') == 0) {
+      if (to.path.startsWith('/admin/')) {
         // if admin
         if (!stores.getters['auth/isAdminAuthenticated']) {
           next({ name: 'AdminLogin', query: { redirect: to.fullPath } }) // Redirect to login if not authenticated
         } else {
-          next()
+          // get all managing hotels 
+          if (stores.getters['manageHotels/getManagingHotels'].length == 0 ) {
+            await stores.dispatch('manageHotels/getAllManagingHotels')
+          }
+          if (to.params.hotelId) {
+            // validate hotel
+            const isValidHotelId = await stores.dispatch('manageHotels/validateHotel', {hotelId: to.params.hotelId})
+            if (!isValidHotelId) {
+              next({ name: 'HotelsManagement'}) // Redirect to hotel management dashboard if hotel id is invalid
+            }else {
+              next()
+            }
+          }else {
+            next()
+          }
         }
       } else {
         // if user

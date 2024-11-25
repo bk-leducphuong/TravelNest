@@ -23,6 +23,16 @@ export default {
         async selectHotelToManage({ commit }, hotelId) {
             commit('setCurrentManagingHotelId', hotelId)        
         },
+        validateHotel({ commit, state }, {hotelId}) {
+            for (const hotel of state.managingHotels) {
+                console.log(hotel.hotel_id)
+                if (hotel.hotel_id == hotelId) {
+                    commit('setCurrentManagingHotelId', hotelId)
+                    return true
+                }
+            }
+            return false
+        }
     },
     getters: {
         getManagingHotels(state) {
