@@ -4,10 +4,10 @@ const connection = require("../config/db");
 const { promisify } = require("util");
 const transporter = require("../config/nodemailer");
 const { init, getIO } = require("../config/socket");
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
 const { send } = require("process");
-const path = require('path');
-const fs = require('fs');
+const path = require("path");
+const fs = require("fs");
 
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
@@ -26,8 +26,9 @@ async function getSellerId(paymentIntent) {
 }
 
 async function getTransactionId(paymentIntentId) {
- // console.log('paymentIntentId: ', paymentIntentId);
-  const query = "SELECT transaction_id FROM transactions WHERE payment_intent_id = ?";
+  // console.log('paymentIntentId: ', paymentIntentId);
+  const query =
+    "SELECT transaction_id FROM transactions WHERE payment_intent_id = ?";
   const result = await queryAsync(query, [paymentIntentId]);
   return result[0]?.transaction_id || null;
 }
@@ -59,7 +60,7 @@ const storeBooking = async (paymentIntent) => {
   const amount = paymentIntent.amount / 100;
 
   const { startDate, endDate } = convertDateStringToDate(dateRange);
-  const bookedRooms = JSON.parse(booked_rooms)
+  const bookedRooms = JSON.parse(booked_rooms);
   bookedRooms.forEach(async (bookedRoom) => {
     // Insert a new booking with status "pending"
     const bookingQuery = `
@@ -77,41 +78,36 @@ const storeBooking = async (paymentIntent) => {
       bookedRoom.roomQuantity,
       hotelId,
       bookedRoom.room_id,
-      bookingCode
+      bookingCode,
     ]);
 
-    console.log('bôking succeess');
-
-    
+    console.log("bôking succeess");
   });
 };
 
-const storeInvoice = async (paymentIntent) =>{
-  const {
-    booking_code: bookingCode,
-  } = paymentIntent.metadata;
+const storeInvoice = async (paymentIntent) => {
+  const { booking_code: bookingCode } = paymentIntent.metadata;
   const amount = paymentIntent.amount / 100;
 
   const transactionId = await getTransactionId(paymentIntent.id);
-    //console.log('transactionId: ', transactionId);
-    const userID = await getSellerId(paymentIntent); // lay chu khach san
-    //console.log('userID :', userID);
+  //console.log('transactionId: ', transactionId);
+  const userID = await getSellerId(paymentIntent); // lay chu khach san
+  //console.log('userID :', userID);
 
-    const invoiceQuery = `
+  const invoiceQuery = `
       INSERT INTO invoices (transaction_id,user_id ,status, amount, transaction_type, created_at, booking_code)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
-    await queryAsync(invoiceQuery, [
-      transactionId,
-      userID, 
-      "unavailable",
-      amount,
-      'booking_payment',
-      new Date(),
-      bookingCode,  
-    ]);
-    console.log('invoice succeess');
-
+  await queryAsync(invoiceQuery, [
+    transactionId,
+    userID,
+    "unavailable",
+    amount,
+    "booking_payment",
+    new Date(),
+    bookingCode,
+  ]);
+  console.log("invoice succeess");
 };
 
 /******************************************* Storing Payment and Transaction events **********************************************/
@@ -190,7 +186,10 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
         transactionId,
       ]);
     } else {
-      console.error("Transaction not found for payment intent:", paymentIntent.id);
+      console.error(
+        "Transaction not found for payment intent:",
+        paymentIntent.id
+      );
     }
   } catch (error) {
     console.error("Error handling payment intent succeeded:", error);
@@ -241,15 +240,13 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
   }
 };
 
-
-
 /******************************************* Sending Emails **********************************************/
 // Email template function
 const sendConfirmationEmail = async (paymentIntent) => {
-   try {
+  try {
     // Load the email template
-    const templatePath = './email-templates/thankyou.html';
-    let emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    const templatePath = "./email-templates/thankyou.html";
+    let emailTemplate = fs.readFileSync(templatePath, "utf8");
 
     // TODO: Pass booking information to email template
     // // Replace placeholders with actual booking details
@@ -260,23 +257,24 @@ const sendConfirmationEmail = async (paymentIntent) => {
     const mailOptions = {
       from: process.env.NODEMAILER_EMAIL,
       to: paymentIntent.receipt_email, // Recipient's email address
-      subject: 'Booking Confirmation',
+      subject: "Booking Confirmation",
       html: emailTemplate, // HTML content
     };
 
     // Send email
     const info = await transporter.sendMail(mailOptions);
 
-    console.log('Email sent: %s', info.messageId);
+    console.log("Email sent: %s", info.messageId);
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error("Error sending email:", error);
   }
 };
 
 /******************************************* Notification **********************************************/
 // store notification
 async function storeNotification(notification) {
-  const {senderId, recieverId, notificationType, message, isRead} = notification;
+  const { senderId, recieverId, notificationType, message, isRead } =
+    notification;
   try {
     const notificationQuery = `
       INSERT INTO notifications (sender_id, reciever_id, notification_type, message, is_read)
@@ -318,7 +316,7 @@ async function sendNewBookingNotification(paymentIntent) {
   let totalRooms = 0;
   JSON.parse(booked_rooms).forEach((bookedRoom) => {
     totalRooms += bookedRoom.roomQuantity;
-  })
+  });
 
   // create notification
   const notification = {
@@ -347,23 +345,22 @@ const handlePayoutEvent = async (payout, status) => {
     const payoutId = payout.id;
 
     // Update the cashout status based on the event
-   
-    const transactionID= payout.metadata.transaction_id;
-   // console.log('transactionID: ', transactionID);
-    
+
+    const transactionID = payout.metadata.transaction_id;
+    // console.log('transactionID: ', transactionID);
+
     // update status of invoice
     const updateInvoiceQuery = `
       UPDATE invoices
       SET status = ?, updated_at = NOW()
       WHERE transaction_id = ?
     `;
-    await queryAsync(updateInvoiceQuery, ['done', transactionID]);
+    await queryAsync(updateInvoiceQuery, ["done", transactionID]);
     // await queryAsync(updateInvoiceQuery, ['done', transactionId]);
-    if (status === 'failed') {
+    if (status === "failed") {
       console.error(`Payout failed for payoutId: ${payoutId}`);
       // Optional: Add any retry logic or notifications for failure
     }
-
   } catch (error) {
     console.error(`Error handling payout event (${status}):`, error);
     throw new Error(`Failed to update database for payout (${status})`);
@@ -403,9 +400,9 @@ const webhookController = async (req, res) => {
         const paymentMethod = paymentMethodId
           ? await stripe.paymentMethods.retrieve(paymentMethodId)
           : null;
-        
+
         let receiptEmail = null; // Biến để lưu email người nhận
-       
+
         if (paymentMethodId) {
           try {
             const paymentMethod = await stripe.paymentMethods.retrieve(
@@ -419,14 +416,12 @@ const webhookController = async (req, res) => {
           console.log("No payment method provided in this event.");
         }
         // send notification to hotel owner
-       // await sendNewBookingNotification(paymentIntent);
+        await sendNewBookingNotification(paymentIntent);
 
-      await handlePaymentIntentSucceeded(paymentIntent);
-      
-      await storeBooking(paymentIntent);
-      await storeInvoice(paymentIntent);
+        await handlePaymentIntentSucceeded(paymentIntent);
 
-        
+        await storeBooking(paymentIntent);
+        await storeInvoice(paymentIntent);
 
         // Send confirmation email
         if (receiptEmail) {
@@ -448,11 +443,10 @@ const webhookController = async (req, res) => {
         // You could add failed payment notification logic here
         break;
 
-
       // cases for payout
       case "payout.paid":
         const payoutPaid = event.data.object;
-       // console.log('payoutPaid: ', payoutPaid);
+        // console.log('payoutPaid: ', payoutPaid);
         await handlePayoutEvent(payoutPaid, "completed");
         break;
 
@@ -471,5 +465,5 @@ const webhookController = async (req, res) => {
     console.error("Error processing webhook:", error);
     res.status(500).json({ error: "Failed to process webhook" });
   }
-}
+};
 module.exports = { webhookController };

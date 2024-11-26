@@ -144,14 +144,12 @@ const getInvoices = async (req, res) => {
 };
 const createPayout = async (req, res) => {
   try {
-    const { amount} = req.body;
-   // const userId = req.session.user.user_id;
-    const userId = 25;
+    const { amount, bookingCode } = req.body;
+    const userId = req.session.user.user_id;
 
     // get user
     const userQuery = `SELECT * FROM users WHERE user_id = ?`;
     const user = await queryAsync(userQuery, [userId]);
-    //console.log("user_connet: ",user[0]?.connect_account_id);
 
     if (!user[0]?.connect_account_id) {
       return res.status(400).json({ error: "No Stripe account linked." });
@@ -162,7 +160,7 @@ const createPayout = async (req, res) => {
       currency: "SGD", // TODO: change to user currency
       destination: user.connect_account_id,
     });
-    res.json({ success: true, message: 'Payout created successfully' });
+    res.json({ success: true, message: "Payout created successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

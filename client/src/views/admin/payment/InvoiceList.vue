@@ -19,8 +19,12 @@ export default {
       })
       this.invoices = response.data
     },
-    async withdrawMoney() {
-      //TODO: query  server
+    async withdrawMoney(amount) {
+      const response = await axios.post('http://localhost:8080/api/admin/payout/create-payout', {
+        amount: amount,
+      }, {
+        withCredentials: true
+      })
     }
   },
   async mounted() {
@@ -86,7 +90,7 @@ export default {
                       <button class="view">View</button>
                     </td>
                     <td class="icon">
-                      <button class="view" :disabled="invoice.status == 'unavailable'">Withdraw</button>
+                      <button class="view" :disabled="invoice.status == 'unavailable'" @click="withdrawMoney(invoice.amount)">Withdraw</button>
                     </td>
                   </tr>
                 </tbody>
