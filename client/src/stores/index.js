@@ -7,6 +7,8 @@ import user from './user';
 import search from './search';
 import book from './book';
 import join from './join';
+// admin
+import manageHotels from './manageHotels';
 
 const vuexSession = new VuexPersistence({
   storage: window.sessionStorage,
@@ -23,7 +25,8 @@ const stores = createStore({
     user,
     search,
     book,
-    join
+    join,
+    manageHotels,
   },
   plugins: [vuexSession.plugin],
 });

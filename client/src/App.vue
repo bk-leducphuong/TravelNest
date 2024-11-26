@@ -64,12 +64,7 @@ export default {
       localStorage.setItem('language', this.$i18n.locale) // Save language to localStorage
     }
   },
-  mounted() {
-    // check user authentication
-    this.checkAuth()
-    // check hotels which is managed by user
-    
-
+  created() {
     this.updateLanguage()
 
     // Fetch user location and update Vuex store

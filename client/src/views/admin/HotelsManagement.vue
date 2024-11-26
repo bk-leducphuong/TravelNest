@@ -1,25 +1,22 @@
 <script>
 import axios from 'axios'
-import { mapMutations } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 export default {
   data() {
     return {
-      hotels: []
+      
     }
   },
+  computed: {
+    ...mapGetters('manageHotels', ['getManagingHotels'])
+  },
   methods: {
-    ...mapMutations('auth', ['setManagingHotelId']),
+    ...mapActions('manageHotels', ['getAllManagingHotels', 'selectHotelToManage']),
     selectHotel(hotelId) {
-      this.setManagingHotelId(hotelId)
+      this.selectHotelToManage(hotelId)
       this.$router.push(`/admin/${hotelId}/home`)
     },
-    async getAllManagingHotels() {
-      const response = await axios.get('http://localhost:3000/api/admin/hotels-management', {
-        withCredentials: true
-      })
-      this.hotels = response.data.hotels
-    }
   },
   async mounted() {
     await this.getAllManagingHotels()
@@ -77,17 +74,20 @@ export default {
       </button>
     </div>
 
-    <div
+    <div v-if="getManagingHotels == []">
+      <div
       class="not-found-hotels"
       style="margin-top: 80px; text-align: center; font-size: 30px; font-weight: 700"
-      v-if="hotels.length == 0"
+      v-if="getManagingHotels.length == 0"
     >
       <span>Bạn chưa đăng khách sạn nào</span>
     </div>
+    </div>
+    
     <div class="hotel-grid">
       <!-- Hotel Card 1 -->
 
-      <div class="hotel-card" v-for="hotel in hotels" :key="hotel.hotel_id">
+      <div class="hotel-card" v-for="hotel in getManagingHotels" :key="hotel.hotel_id">
         <img src="" alt="Luxury Hotel" class="hotel-image" />
         <div class="hotel-info">
           <h2 class="hotel-name">{{ hotel.name }}</h2>

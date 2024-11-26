@@ -1,5 +1,5 @@
 <script>
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 
 export default {
     name: "DashboardMenu",
@@ -10,6 +10,12 @@ export default {
           isBookingsSelected: false,
           selected: false
         }
+    },
+    computed: {
+      ...mapGetters('manageHotels', ['getCurrentManagingHotelId']),
+      hotelId() {
+        return this.getCurrentManagingHotelId
+      }
     },
     methods: {
       ...mapActions ('auth', ['logout']),
@@ -29,7 +35,7 @@ export default {
           <!-- Home -->
           <div class="nav-item-container">
             <div class="title-nav-item" >
-              <li class="nav-item" @click="this.$router.push('/admin/home')"><i class="fa fa-home" aria-hidden="true"></i>Home</li> 
+              <li class="nav-item" @click="this.$router.push(`/admin/${hotelId}/home`)"><i class="fa fa-home" aria-hidden="true"></i>Home</li> 
             </div>
           </div>
           <!-- Availability -->
@@ -51,7 +57,7 @@ export default {
               <i class="fa fa-angle-down" aria-hidden="true" style="margin-right: 10px;" v-if="this.isBookingsSelected"></i>
             </div>
             <div class="child-item-container" v-if="this.isBookingsSelected">
-              <li class="child-item" @click="this.$router.push('/admin/bookings/all')">All bookings</li>
+              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/bookings/all`)">All bookings</li>
               <!-- <li class="child-item" @click="this.$router.push('/admin/payment/invoices')">Invoices</li> -->
             </div>
           </div>
@@ -74,8 +80,8 @@ export default {
               <i class="fa fa-angle-down" aria-hidden="true" style="margin-right: 10px;" v-if="this.isPaymentSelected"></i>
             </div>
             <div class="child-item-container" v-if="this.isPaymentSelected">
-              <li class="child-item" @click="this.$router.push('/admin/payment')">Payment methods</li>
-              <li class="child-item" @click="this.$router.push('/admin/payment/invoices')">Invoices</li>
+              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/payment`)">Payment methods</li>
+              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/payment/invoices`)">Invoices</li>
             </div>
           </div>
           <!-- Guest reviews -->

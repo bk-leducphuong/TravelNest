@@ -2,6 +2,7 @@
 import axios from 'axios'
 import DashboardMenu from '@/components/admin/DashboardMenu.vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
+import { mapGetters } from 'vuex';
 
 export default {
   data() {
@@ -9,14 +10,18 @@ export default {
       bookings: []
     }
   },
+  computed: {
+    ...mapGetters('manageHotels', ['getCurrentManagingHotelId'])
+  },
   methods: {
     async getAllBookings() {
-      const response = await axios.get('http://localhost:3000/api/admin/bookings/all', {
-        hotel
+      const response = await axios.post('http://localhost:3000/api/admin/bookings/all', {
+        hotelId: this.getCurrentManagingHotelId
       }, {
         withCredentials: true
       })
       this.bookings = response.data.bookings
+      console.log(this.bookings)
     }
   },
   async mounted() {

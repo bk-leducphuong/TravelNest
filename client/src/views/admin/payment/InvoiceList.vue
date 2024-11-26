@@ -1,10 +1,34 @@
 <script>
 import AdminHeader from '@/components/admin/AdminHeader.vue'
 import DashboardMenu from '@/components/admin/DashboardMenu.vue'
+import axios from 'axios'
 export default {
   components: {
     AdminHeader,
     DashboardMenu
+  },
+  data() {
+    return {
+      invoices: []
+    }
+  },
+  methods: {
+    async getInvoices() {
+      const response = await axios.get('http://localhost:8080/api/admin/payout/get-invoices', {
+        withCredentials: true,
+      })
+      this.invoices = response.data
+    },
+    async withdrawMoney(amount) {
+      const response = await axios.post('http://localhost:8080/api/admin/payout/create-payout', {
+        amount: amount,
+      }, {
+        withCredentials: true
+      })
+    }
+  },
+  async mounted() {
+    await this.getInvoices()
   }
 }
 </script>
@@ -20,14 +44,7 @@ export default {
           <div class="title-total">
             <div class="title-method">
               <h2>Invoices</h2>
-              <p>You have total 937 invoices.</p>
-            </div>
-            <div class="title-add">
-              <button><i class="fa-solid fa-plus"></i></button>
-              <div class="title-add-method">
-                <p class="cmd-add">Add new</p>
-                <p>Import</p>
-              </div>
+              <p>You have total {{ invoices.length }} invoices.</p>
             </div>
           </div>
         </div>
@@ -58,84 +75,22 @@ export default {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td class="payment-id">#746F5K2</td>
+                  <tr v-for="invoice in invoices" :key="invoice.invoice_id">
+                    <td class="payment-id">#{{ invoice.invoice_id }}</td>
                     <td class="time">
-                      <p>23 Jan 2019, 10:45pm</p>
+                      <p>{{ invoice.create_at }}</p>
                     </td>
-                    <td class="usd">$120.00</td>
+                    <td class="usd">${{ invoice.amount }}</td>
                     <td class="status">
                       <ul>
-                        <li>Pending</li>
+                        <li>{{ invoice.status }}</li>
                       </ul>
                     </td>
                     <td class="icon">
-                      <i class="fa-solid fa-print"></i>
                       <button class="view">View</button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="payment-id">#746F5K2</td>
-                    <td class="time">
-                      <p>23 Jan 2019, 10:45pm</p>
-                    </td>
-                    <td class="usd">$120.00</td>
-                    <td class="status">
-                      <ul>
-                        <li>Complete</li>
-                      </ul>
                     </td>
                     <td class="icon">
-                      <i class="fa-solid fa-print"></i>
-                      <button class="view">View</button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="payment-id">#746F5K2</td>
-                    <td class="time">
-                      <p>23 Jan 2019, 10:45pm</p>
-                    </td>
-                    <td class="usd">$120.00</td>
-                    <td class="status">
-                      <ul>
-                        <li>Pending</li>
-                      </ul>
-                    </td>
-                    <td class="icon">
-                      <i class="fa-solid fa-print"></i>
-                      <button class="view">View</button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="payment-id">#746F5K2</td>
-                    <td class="time">
-                      <p>23 Jan 2019, 10:45pm</p>
-                    </td>
-                    <td class="usd">$120.00</td>
-                    <td class="status">
-                      <ul>
-                        <li>Complete</li>
-                      </ul>
-                    </td>
-                    <td class="icon">
-                      <i class="fa-solid fa-print"></i>
-                      <button class="view">View</button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="payment-id">#746F5K2</td>
-                    <td class="time">
-                      <p>23 Jan 2019, 10:45pm</p>
-                    </td>
-                    <td class="usd">$120.00</td>
-                    <td class="status">
-                      <ul>
-                        <li>Complete</li>
-                      </ul>
-                    </td>
-                    <td class="icon">
-                      <i class="fa-solid fa-print"></i>
-                      <button class="view">View</button>
+                      <button class="view" :disabled="invoice.status == 'unavailable'" @click="withdrawMoney(invoice.amount)">Withdraw</button>
                     </td>
                   </tr>
                 </tbody>
