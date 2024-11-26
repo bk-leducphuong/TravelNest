@@ -150,7 +150,7 @@ const getInvoices = async (req, res) => {
 };
 const createPayout = async (req, res) => {
   try {
-    const { amount} = req.body;
+    const { amount,transactionId} = req.body;
    // const userId = req.session.user.user_id;
     const userId = 25;
 
@@ -167,6 +167,7 @@ const createPayout = async (req, res) => {
       amount: amount * 100, // Convert to cents
       currency: "SGD", // TODO: change to user currency
       destination: user.connect_account_id,
+      metadata: { transaction_id: transactionId },
     });
     res.json({ success: true, message: 'Payout created successfully' });
   } catch (error) {
