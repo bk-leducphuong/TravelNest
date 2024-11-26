@@ -96,7 +96,7 @@ const createAccount = async (req, res) => {
 /************************************************* payout *************************************************/
 const getInvoices = async (req, res) => {
   try {
-    const { hotelID } = req.body;
+    const { hotelId } = req.body;
 
     // Cập nhật trạng thái hóa đơn
     try {
@@ -112,7 +112,7 @@ const getInvoices = async (req, res) => {
     WHERE 
   i.hotel_id = ?;`;
 
-      await queryAsync(updateQuery, [hotelID]);
+      await queryAsync(updateQuery, [hotelId]);
     } catch (error) {
       console.error("Error updating invoices:", error);
       res.status(500).send({ error: "Failed to update invoices." });

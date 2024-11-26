@@ -16,8 +16,8 @@ router.post('/create-account-link', createAccountLink)
 // Route to create connect account for owner
 router.post('/create-connect-account', createAccount );
 
-// Get all invoices
-router.get('/', getInvoices);
+// Get all invoicesS
+router.post('/', getInvoices);
 // Route to create payout
 router.post('/create-payout', createPayout);
 
