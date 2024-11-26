@@ -96,34 +96,61 @@ const createAccount = async (req, res) => {
 /************************************************* payout *************************************************/
 const getInvoices = async (req, res) => {
   try {
-    const userId = req.session.user.user_id;
+    //const userId = req.session.user.user_id;
+    const userId = 10;
 
-    // get user
-    const userQuery = `SELECT * FROM users WHERE user_id = ?`;
-    const user = await queryAsync(userQuery, [userId]);
+    // Cập nhật trạng thái hóa đơn
+    try {
+      const updateQuery = `
+        UPDATE invoices i
+  JOIN bookings b ON i.booking_id = b.booking_id
+    SET 
+   i.status = CASE
+    WHEN b.check_out_date <= CURDATE() AND i.status != 'available' THEN 'available'
+    ELSE i.status
+    END,
+  i.updated_at = NOW()
+    WHERE 
+  i.user_id = ?;`
 
-    if (!user[0]?.connect_account_id) {
-      return res.status(400).json({ error: "No Stripe account linked." });
+       await queryAsync(updateQuery, [userId]);
+    } catch (error) {
+      console.error('Error updating invoices:', error);
+      res.status(500).send({ error: 'Failed to update invoices.' });
+      return;
     }
 
-    const invoices = await stripe.invoices.list({
-      customer: user[0].connect_account_id,
-    });
+    // Truy vấn danh sách hóa đơn
+    try {
+      const selectQuery = `
+        SELECT *
+        FROM invoices i
+        WHERE i.user_id = ?;
+      `;
+       // Bỏ destructuring, sử dụng trực tiếp kết quả
+  const invoices = await queryAsync(selectQuery, [userId]);
+  console.log('Invoices retrieved:', invoices);
+     
 
-    res.json(invoices.data);
+      res.status(200).send({
+        message: 'Invoices retrieved successfully.',
+        invoices,
+      });
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      res.status(500).send({ error: 'Failed to fetch invoices.' });
+    }
   } catch (error) {
     console.error(
-      "An error occurred when calling the Stripe API to get invoices",
+      'An error occurred when processing the request:',
       error
     );
-    res.status(500);
-    res.send({ error: error.message });
+    res.status(500).send({ error: error.message });
   }
 };
-
 const createPayout = async (req, res) => {
   try {
-    const { amount } = req.body;
+    const { amount, transactionId} = req.body;
    // const userId = req.session.user.user_id;
     const userId = 25;
 
@@ -140,7 +167,9 @@ const createPayout = async (req, res) => {
       amount: amount * 100, // Convert to cents
       currency: "SGD", // TODO: change to user currency
       destination: user.connect_account_id,
+      metadata: { transaction_id: transactionId },
     });
+    console.log('transactionID0:  ', payout.metadata.transaction_id);
 
     const cashoutQuery = `
       INSERT INTO cashouts (user_id, amount, currency, status, requested_at, payout_id)
@@ -153,19 +182,8 @@ const createPayout = async (req, res) => {
       'pending', // Initial status is 'pending'
       payout.id,
     ]);
-    const transactionQuery = `
-    INSERT INTO transactions ( seller_id, amount, currency, status, transaction_type, payment_intent_id, created_at)
-    VALUES ( ?, ?, ?, ?, ?, ?, NOW())
-  `;
-  await queryAsync(transactionQuery, [
-   // Assuming the payout is made to the user, so they are both buyer and seller
-   userId, // người bán là người rút tiền của hệ thống
-    payout.amount / 100, // Convert back to original amount
-    payout.currency.toUpperCase(),
-    'pending', // Set the status of the transaction
-    'payout', // If it's a payout refund, for example
-    payout.id, // Use the payout balance transaction ID
-  ]);
+
+
 
     res.json({ success: true, message: 'Payout created successfully' });
   } catch (error) {
