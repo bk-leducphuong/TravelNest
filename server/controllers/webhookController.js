@@ -26,7 +26,6 @@ async function getSellerId(paymentIntent) {
 }
 
 async function getTransactionId(paymentIntentId) {
-  // console.log('paymentIntentId: ', paymentIntentId);
   const query =
     "SELECT transaction_id FROM transactions WHERE payment_intent_id = ?";
   const result = await queryAsync(query, [paymentIntentId]);
@@ -57,7 +56,6 @@ const storeBooking = async (paymentIntent) => {
     number_of_guests: numberOfGuests,
     booking_code: bookingCode,
   } = paymentIntent.metadata;
-  const amount = paymentIntent.amount / 100;
 
   const { startDate, endDate } = convertDateStringToDate(dateRange);
   const bookedRooms = JSON.parse(booked_rooms);
@@ -80,8 +78,6 @@ const storeBooking = async (paymentIntent) => {
       bookedRoom.room_id,
       bookingCode,
     ]);
-
-    console.log("bôking succeess");
   });
 };
 
@@ -89,20 +85,17 @@ const storeInvoice = async (paymentIntent) => {
   const { hotel_id: hotelId, booking_code: bookingCode } =
     paymentIntent.metadata;
 
-  const amount = paymentIntent.amount / 100;
-
   const transactionId = await getTransactionId(paymentIntent.id);
 
   const invoiceQuery = `
-      INSERT INTO invoices (transaction_id, hotel_id ,status, amount, transaction_type, created_at, booking_code)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO invoices (transaction_id, hotel_id ,status, amount, created_at, booking_code)
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
   await queryAsync(invoiceQuery, [
     transactionId,
     hotelId,
     "unavailable",
-    amount,
-    "booking_payment",
+    paymentIntent.amount,
     new Date(),
     bookingCode,
   ]);
@@ -119,7 +112,6 @@ const handlePaymentIntentCreated = async (paymentIntent) => {
       ? await stripe.paymentMethods.retrieve(paymentMethodId)
       : null;
 
-    const amount = paymentIntent.amount / 100;
     const currency = paymentIntent.currency.toUpperCase();
 
     const transactionQuery = `
@@ -129,7 +121,7 @@ const handlePaymentIntentCreated = async (paymentIntent) => {
     const { insertId: transactionId } = await queryAsync(transactionQuery, [
       buyerId,
       sellerId,
-      amount,
+      paymentIntent.amount,
       currency,
       "pending",
       "booking_payment",
@@ -144,7 +136,7 @@ const handlePaymentIntentCreated = async (paymentIntent) => {
       transactionId,
       paymentMethod ? paymentMethod.type : "unknown",
       "pending",
-      amount,
+      paymentIntent.amount,
       currency,
       new Date(),
     ]);
@@ -203,7 +195,6 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
       ? await stripe.paymentMethods.retrieve(paymentMethodId)
       : null;
 
-    const amount = paymentIntent.amount / 100;
     const currency = paymentIntent.currency.toUpperCase();
 
     const transactionQuery = `
@@ -213,7 +204,7 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
     const { insertId: transactionId } = await queryAsync(transactionQuery, [
       buyerId,
       sellerId,
-      amount,
+      paymentIntent.amount,
       currency,
       "failed",
       "booking_payment",
@@ -228,7 +219,7 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
       transactionId,
       paymentMethod ? paymentMethod.type : "unknown",
       "failed",
-      amount,
+      paymentIntent.amount,
       currency,
       new Date(),
     ]);
@@ -261,8 +252,6 @@ const sendConfirmationEmail = async (paymentIntent) => {
 
     // Send email
     const info = await transporter.sendMail(mailOptions);
-
-    console.log("Email sent: %s", info.messageId);
   } catch (error) {
     console.error("Error sending email:", error);
   }
@@ -345,7 +334,6 @@ const handlePayoutEvent = async (payout, status) => {
     // Update the cashout status based on the event
 
     const transactionID = payout.metadata.transaction_id;
-    // console.log('transactionID: ', transactionID);
 
     // update status of invoice
     const updateInvoiceQuery = `
@@ -364,6 +352,8 @@ const handlePayoutEvent = async (payout, status) => {
     throw new Error(`Failed to update database for payout (${status})`);
   }
 };
+
+/******************************************* Webhook **********************************************/
 
 // Recieve webhook events
 const webhookController = async (req, res) => {
@@ -414,7 +404,7 @@ const webhookController = async (req, res) => {
           console.log("No payment method provided in this event.");
         }
         // send notification to hotel owner
-       // await sendNewBookingNotification(paymentIntent);
+        await sendNewBookingNotification(paymentIntent);
 
         await handlePaymentIntentSucceeded(paymentIntent);
 
@@ -427,7 +417,7 @@ const webhookController = async (req, res) => {
             // Sử dụng email vừa lấy để gửi email xác nhận
             paymentIntent.receipt_email = receiptEmail;
 
-            //await sendConfirmationEmail(paymentIntent);
+            await sendConfirmationEmail(paymentIntent);
           } catch (err) {
             console.error("Error sending confirmation email:", err.message);
           }
@@ -444,13 +434,14 @@ const webhookController = async (req, res) => {
       // cases for payout
       case "payout.paid":
         const payoutPaid = event.data.object;
-        // console.log('payoutPaid: ', payoutPaid);
         await handlePayoutEvent(payoutPaid, "completed");
+        //TODO: send notification to hotel owner
         break;
 
       case "payout.failed":
         const failedPayout = event.data.object;
         await handlePayoutEvent(failedPayout, "failed");
+        //TODO: send notification to hotel owner
         break;
 
       // Add more event types as needed

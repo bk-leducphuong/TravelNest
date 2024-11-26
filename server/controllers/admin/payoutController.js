@@ -14,7 +14,6 @@ const checkAccountExist = async (req, res) => {
     // check if user already has an account
     const checkQuery = `SELECT * FROM users WHERE user_id = ? AND user_role = ?`;
     const user = await queryAsync(checkQuery, [userId, "partner"]);
-    console.log("connect_account_id1:", user[0].connect_account_id);
 
     if (user.length > 0 && user[0].connect_account_id) {
       return res.status(200).json({
@@ -80,7 +79,6 @@ const createAccount = async (req, res) => {
     // store account id into database
     const query = `UPDATE users SET connect_account_id = ? WHERE user_id = ? AND user_role = ?`;
     await queryAsync(query, [account.id, userId, "partner"]);
-    console.log("account.id:", account.id);
 
     res.json({ connectedAccountId: account.id });
   } catch (error) {
@@ -97,10 +95,6 @@ const createAccount = async (req, res) => {
 const getInvoices = async (req, res) => {
   try {
     const { hotelId } = req.body;
-<<<<<<< HEAD
-=======
-
->>>>>>> a7f734b10c153bc23c7f591ef43f9872eaaf9032
     // Cập nhật trạng thái hóa đơn
     try {
       const updateQuery = `
@@ -148,8 +142,7 @@ const getInvoices = async (req, res) => {
 const createPayout = async (req, res) => {
   try {
     const { amount, transaction_id } = req.body;
-   const userId = req.session.user.user_id;
-    //const userId = 25;
+    const userId = req.session.user.user_id;
 
     // get user
     const userQuery = `SELECT * FROM users WHERE user_id = ?`;
@@ -165,7 +158,7 @@ const createPayout = async (req, res) => {
       destination: user.connect_account_id,
       metadata: { transaction_id: transaction_id },
     });
-    res.json({ success: true, message: "Payout created successfully" });
+    res.json({ success: true, message: "Withdraw money successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -20,6 +20,7 @@ import AdminHome from '@/views/admin/AdminHome.vue'
 // admin payment
 import AdminPayment from '@/views/admin/payment/AdminPayment.vue'
 import InvoiceList from '@/views/admin/payment/InvoiceList.vue'
+import InvoiceDetails from '@/views/admin/payment/InvoiceDetails.vue'
 import Return from '@/views/admin/Return.vue'
 import Refresh from '@/views/admin/Refresh.vue'
 // admin bookings
@@ -121,6 +122,16 @@ const routes = [
     path: '/admin/:hotelId/payment/invoices',
     name: 'InvoiceList',
     component: InvoiceList,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/:hotelId/payment/invoice-details',
+    name: 'InvoiceDetails',
+    component: InvoiceDetails,
+    props: (route) => ({
+      invoiceId: route.query.invoiceId
+    }),
+
     meta: { requiresAuth: true }
   },
   // admin bookings

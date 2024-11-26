@@ -1,16 +1,28 @@
 <script>
 import AdminHeader from '@/components/admin/AdminHeader.vue'
 import DashboardMenu from '@/components/admin/DashboardMenu.vue'
+import WithdrawConfirmation from '@/components/admin/payment/withdrawConfirmation.vue'
 import axios from 'axios'
 import { mapGetters } from 'vuex'
+import { useToast } from 'vue-toastification'
+
 export default {
+ 
   components: {
     AdminHeader,
-    DashboardMenu
+    DashboardMenu,
+    WithdrawConfirmation
+  },
+   setup() {
+    const toast = useToast()
+    return { toast }
   },
   data() {
     return {
-      invoices: []
+      invoices: [],
+      isWithdrawConfirmationPopupOpen: false,
+      withdrawAmount: 0,
+      withdrawTransactionId: 0
     }
   },
   computed: {
@@ -18,20 +30,32 @@ export default {
   },
   methods: {
     async getInvoices() {
-      const response = await axios.post('http://localhost:3000/api/admin/payout',{
-        hotelId: this.getCurrentManagingHotelId
-      }, {
-        withCredentials: true,
-      })
-      this.invoices = response.data
+      try {
+        const response = await axios.post(
+          'http://localhost:3000/api/admin/payout',
+          {
+            hotelId: this.getCurrentManagingHotelId
+          },
+          {
+            withCredentials: true
+          }
+        )
+        this.invoices = response.data.invoices
+      } catch (error) {
+        this.toast.error(error.message)
+        console.log(error)
+      }
     },
-    async withdrawMoney(amount, transaction_id) {
-      const response = await axios.post('http://localhost:3000/api/admin/payout/create-payout', {
-        amount: amount,
-        transaction_id: transaction_id
-      }, {
-        withCredentials: true
-      })
+    seeInvoiceDetails(invoiceId) {
+      this.$router.push({ path: `/admin/${this.getCurrentManagingHotelId}/payment/invoice-details`, query: { invoiceId: invoiceId } })
+    },
+    openWithdrawConfirmationPopup(amount, transaction_id) {
+      this.withdrawAmount = amount
+      this.withdrawTransactionId = transaction_id
+      this.isWithdrawConfirmationPopupOpen = true
+    },
+    closeWithdrawConfirmationPopup() {
+      this.isWithdrawConfirmationPopupOpen = false
     }
   },
   async mounted() {
@@ -40,6 +64,7 @@ export default {
 }
 </script>
 <template>
+  <WithdrawConfirmation :withdrawAmount="withdrawAmount" :withdrawTransactionId="withdrawTransactionId" v-if="isWithdrawConfirmationPopupOpen" @close="closeWithdrawConfirmationPopup" />
   <div class="invoice-list-container">
     <DashboardMenu />
     <div class="main-wrapper">
@@ -85,19 +110,34 @@ export default {
                   <tr v-for="invoice in invoices" :key="invoice.invoice_id">
                     <td class="payment-id">#{{ invoice.invoice_id }}</td>
                     <td class="time">
-                      <p>{{ invoice.create_at }}</p>
+                      <p>{{ invoice.updated_at }}</p>
                     </td>
-                    <td class="usd">${{ invoice.amount }}</td>
+                    <td class="usd">{{ invoice.amount }} VND</td>
                     <td class="status">
                       <ul>
-                        <li>{{ invoice.status }}</li>
+                        <li
+                          :style="{
+                            color:
+                              invoice.status == 'available' || invoice.status == 'done'
+                                ? 'green'
+                                : 'red'
+                          }"
+                        >
+                          {{ invoice.status }}
+                        </li>
                       </ul>
                     </td>
                     <td class="icon">
-                      <button class="view">View</button>
+                      <button class="view" @click="seeInvoiceDetails(invoice.invoice_id)">View</button>
                     </td>
                     <td class="icon">
-                      <button class="view" :disabled="invoice.status == 'unavailable'|| invoice.status == 'done'" @click="withdrawMoney(invoice.amount, invoice.transaction_id)">Withdraw</button>
+                      <button
+                        class="withdraw-btn"
+                        :disabled="invoice.status == 'unavailable' || invoice.status == 'done'"
+                        @click="openWithdrawConfirmationPopup(invoice.amount, invoice.transaction_id)"
+                      >
+                        Withdraw
+                      </button>
                     </td>
                   </tr>
                 </tbody>
@@ -223,6 +263,9 @@ export default {
 /* end Title*/
 
 /*Table*/
+tbody tr td {
+  text-align: center;
+}
 .table-content {
   width: 100%;
 }
@@ -292,6 +335,7 @@ i {
 }
 
 table thead td {
+  text-align: center;
   font-weight: 600;
   color: #777;
 }
@@ -319,6 +363,18 @@ table thead td {
 .icon .view:hover {
   background-color: #1d5fc2;
   color: white;
+}
+
+.withdraw-btn {
+  padding: 5px 8px;
+  border: none;
+  border-radius: 4px;
+  background-color: #1d5fc2;
+  color: white;
+}
+
+.withdraw-btn:hover {
+  background-color: #003b95;
 }
 
 /*end Table*/
