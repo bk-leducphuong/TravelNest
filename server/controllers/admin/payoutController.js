@@ -102,10 +102,10 @@ const getInvoices = async (req, res) => {
     try {
       const updateQuery = `
         UPDATE invoices i
-  JOIN bookings b ON i.booking_id = b.booking_id
+  JOIN bookings b ON i.booking_code = b.booking_code
     SET 
    i.status = CASE
-    WHEN b.check_out_date <= CURDATE() AND i.status != 'available' THEN 'available'
+    WHEN b.check_in_date <= CURDATE() AND i.status != 'available' THEN 'available'
     ELSE i.status
     END,
   i.updated_at = NOW()
@@ -144,8 +144,8 @@ const getInvoices = async (req, res) => {
 };
 const createPayout = async (req, res) => {
   try {
-    const { amount, transactionId } = req.body;
-    // const userId = req.session.user.user_id;
+    const { amount} = req.body;
+   // const userId = req.session.user.user_id;
     const userId = 25;
 
     // get user
@@ -161,23 +161,8 @@ const createPayout = async (req, res) => {
       amount: amount * 100, // Convert to cents
       currency: "SGD", // TODO: change to user currency
       destination: user.connect_account_id,
-      metadata: { transaction_id: transactionId },
     });
-    console.log("transactionID0:  ", payout.metadata.transaction_id);
-
-    const cashoutQuery = `
-      INSERT INTO cashouts (user_id, amount, currency, status, requested_at, payout_id)
-      VALUES (?, ?, ?, ?, NOW(), ?)
-    `;
-    await queryAsync(cashoutQuery, [
-      userId,
-      payout.amount / 100, // Convert back to original amount
-      payout.currency.toUpperCase(),
-      "pending", // Initial status is 'pending'
-      payout.id,
-    ]);
-
-    res.json({ success: true, message: "Payout created successfully" });
+    res.json({ success: true, message: 'Payout created successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

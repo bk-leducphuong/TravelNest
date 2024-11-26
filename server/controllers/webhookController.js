@@ -80,13 +80,25 @@ const storeBooking = async (paymentIntent) => {
       bookingCode
     ]);
 
-    const transactionId = await getTransactionId(paymentIntent.id);
+    console.log('bôking succeess');
+
+    
+  });
+};
+
+const storeInvoice = async (paymentIntent) =>{
+  const {
+    booking_code: bookingCode,
+  } = paymentIntent.metadata;
+  const amount = paymentIntent.amount / 100;
+
+  const transactionId = await getTransactionId(paymentIntent.id);
     //console.log('transactionId: ', transactionId);
     const userID = await getSellerId(paymentIntent); // lay chu khach san
     //console.log('userID :', userID);
 
     const invoiceQuery = `
-      INSERT INTO invoices (transaction_id,user_id ,status, amount, transaction_type, created_at, booking_id)
+      INSERT INTO invoices (transaction_id,user_id ,status, amount, transaction_type, created_at, booking_code)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
     await queryAsync(invoiceQuery, [
@@ -96,9 +108,10 @@ const storeBooking = async (paymentIntent) => {
       amount,
       'booking_payment',
       new Date(),
-      bookingId, // chua lay duoc 
+      bookingCode,  
     ]);
-  });
+    console.log('invoice succeess');
+
 };
 
 /******************************************* Storing Payment and Transaction events **********************************************/
@@ -181,6 +194,49 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
     }
   } catch (error) {
     console.error("Error handling payment intent succeeded:", error);
+    throw error;
+  }
+};
+const handlePaymentIntentFailed = async (paymentIntent) => {
+  try {
+    const { buyer_id: buyerId } = paymentIntent.metadata;
+    const sellerId = await getSellerId(paymentIntent);
+    const paymentMethodId = paymentIntent.payment_method;
+    const paymentMethod = paymentMethodId
+      ? await stripe.paymentMethods.retrieve(paymentMethodId)
+      : null;
+
+    const amount = paymentIntent.amount / 100;
+    const currency = paymentIntent.currency.toUpperCase();
+
+    const transactionQuery = `
+      INSERT INTO Transactions (buyer_id, seller_id, amount, currency, status, transaction_type, payment_intent_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    const { insertId: transactionId } = await queryAsync(transactionQuery, [
+      buyerId,
+      sellerId,
+      amount,
+      currency,
+      "failed",
+      "booking_payment",
+      paymentIntent.id,
+    ]);
+
+    const paymentQuery = `
+      INSERT INTO Payments (transaction_id, payment_method, payment_status, amount, currency, paid_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    await queryAsync(paymentQuery, [
+      transactionId,
+      paymentMethod ? paymentMethod.type : "unknown",
+      "failed",
+      amount,
+      currency,
+      new Date(),
+    ]);
+  } catch (error) {
+    console.error("Error handling payment intent created:", error);
     throw error;
   }
 };
@@ -291,18 +347,9 @@ const handlePayoutEvent = async (payout, status) => {
     const payoutId = payout.id;
 
     // Update the cashout status based on the event
-    const updateCashoutQuery = `
-      UPDATE cashouts
-      SET status = ?, processed_at = NOW()
-      WHERE payout_id = ? AND status = 'pending'
-    `;
-    await queryAsync(updateCashoutQuery, [status, payoutId]);
-    console.log(`Cashout status updated to ${status}, payoutId:`, payoutId);
-
-
    
     const transactionID= payout.metadata.transaction_id;
-    console.log('transactionID: ', transactionID);
+   // console.log('transactionID: ', transactionID);
     
     // update status of invoice
     const updateInvoiceQuery = `
@@ -372,11 +419,12 @@ const webhookController = async (req, res) => {
           console.log("No payment method provided in this event.");
         }
         // send notification to hotel owner
-      //  await sendNewBookingNotification(paymentIntent);
+       // await sendNewBookingNotification(paymentIntent);
 
       await handlePaymentIntentSucceeded(paymentIntent);
       
       await storeBooking(paymentIntent);
+      await storeInvoice(paymentIntent);
 
         
 
@@ -396,29 +444,10 @@ const webhookController = async (req, res) => {
         break;
 
       case "payment_intent.payment_failed":
-        await storePaymentEvent(event, paymentIntent);
+        await handlePaymentIntentFailed(event, paymentIntent);
         // You could add failed payment notification logic here
         break;
 
-      case "charge.refunded":
-        // In case of refunds, payment_method might not exist
-        if (paymentIntent.payment_method) {
-          try {
-            const paymentMethod = await stripe.paymentMethods.retrieve(
-              paymentIntent.payment_method
-            );
-          } catch (err) {
-            console.error(
-              "Error retrieving payment method for refund:",
-              err.message
-            );
-          }
-        } else {
-          console.log("No payment method available for refund.");
-        }
-
-        await storePaymentEvent(event, paymentIntent);
-        break;
 
       // cases for payout
       case "payout.paid":
