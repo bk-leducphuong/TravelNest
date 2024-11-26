@@ -96,7 +96,7 @@ const createAccount = async (req, res) => {
 /************************************************* payout *************************************************/
 const getInvoices = async (req, res) => {
   try {
-    const userId = req.session.user.user_id;
+    const { hotelID } = req.body;
 
     // Cập nhật trạng thái hóa đơn
     try {
@@ -110,9 +110,9 @@ const getInvoices = async (req, res) => {
     END,
   i.updated_at = NOW()
     WHERE 
-  i.user_id = ?;`;
+  i.hotel_id = ?;`;
 
-      await queryAsync(updateQuery, [userId]);
+      await queryAsync(updateQuery, [hotelID]);
     } catch (error) {
       console.error("Error updating invoices:", error);
       res.status(500).send({ error: "Failed to update invoices." });
@@ -124,10 +124,10 @@ const getInvoices = async (req, res) => {
       const selectQuery = `
         SELECT *
         FROM invoices i
-        WHERE i.user_id = ?;
+        WHERE i.hotel_id = ?;
       `;
       // Bỏ destructuring, sử dụng trực tiếp kết quả
-      const invoices = await queryAsync(selectQuery, [userId]);
+      const invoices = await queryAsync(selectQuery, [hotelId]);
 
       res.status(200).send({
         message: "Invoices retrieved successfully.",
@@ -144,7 +144,7 @@ const getInvoices = async (req, res) => {
 };
 const createPayout = async (req, res) => {
   try {
-    const { amount, transactionId } = req.body;
+    const { amount, transaction_id } = req.body;
    const userId = req.session.user.user_id;
     //const userId = 25;
 
@@ -160,7 +160,7 @@ const createPayout = async (req, res) => {
       amount: amount * 100, // Convert to cents
       currency: "SGD", // TODO: change to user currency
       destination: user.connect_account_id,
-      metadata: { transaction_id: transactionId },
+      metadata: { transaction_id: transaction_id },
     });
     res.json({ success: true, message: "Payout created successfully" });
   } catch (error) {

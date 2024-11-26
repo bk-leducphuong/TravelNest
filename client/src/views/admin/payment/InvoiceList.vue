@@ -2,6 +2,7 @@
 import AdminHeader from '@/components/admin/AdminHeader.vue'
 import DashboardMenu from '@/components/admin/DashboardMenu.vue'
 import axios from 'axios'
+import { mapGetters } from 'vuex'
 export default {
   components: {
     AdminHeader,
@@ -12,16 +13,22 @@ export default {
       invoices: []
     }
   },
+  computed: {
+    ...mapGetters('manageHotels', ['getCurrentManagingHotelId'])
+  },
   methods: {
     async getInvoices() {
-      const response = await axios.get('http://localhost:8080/api/admin/payout/get-invoices', {
+      const response = await axios.post('http://localhost:8080/api/admin/payout/get-invoices',{
+        hotelID: this.getCurrentManagingHotelId
+      }, {
         withCredentials: true,
       })
       this.invoices = response.data
     },
-    async withdrawMoney(amount) {
+    async withdrawMoney(amount, transaction_id) {
       const response = await axios.post('http://localhost:8080/api/admin/payout/create-payout', {
         amount: amount,
+        transaction_id: transaction_id
       }, {
         withCredentials: true
       })
@@ -90,7 +97,7 @@ export default {
                       <button class="view">View</button>
                     </td>
                     <td class="icon">
-                      <button class="view" :disabled="invoice.status == 'unavailable'" @click="withdrawMoney(invoice.amount)">Withdraw</button>
+                      <button class="view" :disabled="invoice.status == 'unavailable'" @click="withdrawMoney(invoice.amount, invoice.transaction_id)">Withdraw</button>
                     </td>
                   </tr>
                 </tbody>

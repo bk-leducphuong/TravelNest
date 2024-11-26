@@ -86,28 +86,26 @@ const storeBooking = async (paymentIntent) => {
 };
 
 const storeInvoice = async (paymentIntent) => {
-  const { booking_code: bookingCode } = paymentIntent.metadata;
+  const { hotel_id: hotelId, booking_code: bookingCode } =
+    paymentIntent.metadata;
+
   const amount = paymentIntent.amount / 100;
 
   const transactionId = await getTransactionId(paymentIntent.id);
-  //console.log('transactionId: ', transactionId);
-  const userID = await getSellerId(paymentIntent); // lay chu khach san
-  //console.log('userID :', userID);
 
   const invoiceQuery = `
-      INSERT INTO invoices (transaction_id,user_id ,status, amount, transaction_type, created_at, booking_code)
+      INSERT INTO invoices (transaction_id, hotel_id ,status, amount, transaction_type, created_at, booking_code)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
   await queryAsync(invoiceQuery, [
     transactionId,
-    userID,
+    hotelId,
     "unavailable",
     amount,
     "booking_payment",
     new Date(),
     bookingCode,
   ]);
-  console.log("invoice succeess");
 };
 
 /******************************************* Storing Payment and Transaction events **********************************************/
