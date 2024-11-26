@@ -18,15 +18,15 @@ export default {
   },
   methods: {
     async getInvoices() {
-      const response = await axios.post('http://localhost:8080/api/admin/payout/get-invoices',{
-        hotelID: this.getCurrentManagingHotelId
+      const response = await axios.post('http://localhost:3000/api/admin/payout',{
+        hotelId: this.getCurrentManagingHotelId
       }, {
         withCredentials: true,
       })
       this.invoices = response.data
     },
     async withdrawMoney(amount, transaction_id) {
-      const response = await axios.post('http://localhost:8080/api/admin/payout/create-payout', {
+      const response = await axios.post('http://localhost:3000/api/admin/payout/create-payout', {
         amount: amount,
         transaction_id: transaction_id
       }, {
