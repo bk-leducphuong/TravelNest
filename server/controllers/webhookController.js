@@ -414,7 +414,7 @@ const webhookController = async (req, res) => {
           console.log("No payment method provided in this event.");
         }
         // send notification to hotel owner
-        await sendNewBookingNotification(paymentIntent);
+       // await sendNewBookingNotification(paymentIntent);
 
         await handlePaymentIntentSucceeded(paymentIntent);
 

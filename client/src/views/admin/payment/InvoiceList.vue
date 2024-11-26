@@ -97,7 +97,7 @@ export default {
                       <button class="view">View</button>
                     </td>
                     <td class="icon">
-                      <button class="view" :disabled="invoice.status == 'unavailable'" @click="withdrawMoney(invoice.amount, invoice.transaction_id)">Withdraw</button>
+                      <button class="view" :disabled="invoice.status == 'unavailable'|| invoice.status == 'done'" @click="withdrawMoney(invoice.amount, invoice.transaction_id)">Withdraw</button>
                     </td>
                   </tr>
                 </tbody>

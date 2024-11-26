@@ -97,6 +97,10 @@ const createAccount = async (req, res) => {
 const getInvoices = async (req, res) => {
   try {
     const { hotelId } = req.body;
+<<<<<<< HEAD
+=======
+
+>>>>>>> a7f734b10c153bc23c7f591ef43f9872eaaf9032
     // Cập nhật trạng thái hóa đơn
     try {
       const updateQuery = `
