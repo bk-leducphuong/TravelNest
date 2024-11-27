@@ -27,9 +27,7 @@ export default {
 </script>
 <template>
      <nav class="dashboard">
-        <div class="logo">BookingVN</div>
-        
-        <div class="divider"></div>
+        <div class="logo" @click="this.$router.push('/admin/hotels-management')">Booking.com</div>
 
         <ul class="nav-menu">
           <!-- Home -->
@@ -126,17 +124,19 @@ export default {
 /* Dashboard Sidebar Styles */
 .dashboard {
   width: 220px;
-  background-color: #1a1f2c;
+  background-color: #003b95;
   color: #ffffff;
   padding: 20px;
   flex-shrink: 0;
 }
 
 .logo {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 25px;
+  font-weight: 700;
   padding: 12px 0;
   margin-bottom: 24px;
+  text-align: center;
+  cursor: pointer;
 }
 
 .nav-menu {
@@ -156,7 +156,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #94a3b8;
+  color: white;
 }
 
 .title-nav-item:hover {
@@ -190,7 +190,7 @@ export default {
 .child-item {
   cursor: pointer;
   font-size: 14px;
-  color: #94a3b8;
+  color: white;
 }
 
 .child-item:hover {

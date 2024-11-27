@@ -46,7 +46,7 @@ export default {
   <div class="container">
     <div class="header">
       <h1>Hotel Management</h1>
-      <button class="add-hotel-btn" @click="this.$router.push('/join/become-a-host')">
+      <button class="add-hotel-btn" @calick="this.$router.push('/join/become-a-host')">
         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
@@ -261,7 +261,7 @@ export default {
 
 .add-hotel-btn {
   padding: 10px 20px;
-  background: #6366f1;
+  background: #1d5fc2;
   border: none;
   border-radius: 8px;
   color: white;
@@ -360,7 +360,7 @@ export default {
 }
 
 .manage-btn {
-  background: #6366f1;
+  background: #1d5fc2;
   color: white;
 }
 

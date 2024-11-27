@@ -58,6 +58,7 @@ const storeBooking = async (paymentIntent) => {
   } = paymentIntent.metadata;
 
   const { startDate, endDate } = convertDateStringToDate(dateRange);
+
   const bookedRooms = JSON.parse(booked_rooms);
   bookedRooms.forEach(async (bookedRoom) => {
     // Insert a new booking with status "pending"
@@ -297,8 +298,11 @@ async function sendNewBookingNotification(paymentIntent) {
     SELECT username FROM users WHERE user_id = ?
   `;
   const buyer = await queryAsync(buyerQuery, [buyerId]);
+  const buyerName = buyer[0].username;
   // get booking date
   const { startDate, endDate } = convertDateStringToDate(dateRange);
+  const  startDateString = startDate.split(" ").slice(0, 4).join(" ");
+  const endDateString = endDate.split(" ").slice(0, 4).join(" ");
   // get total number of rooms
   let totalRooms = 0;
   JSON.parse(booked_rooms).forEach((bookedRoom) => {
@@ -308,9 +312,9 @@ async function sendNewBookingNotification(paymentIntent) {
   // create notification
   const notification = {
     senderId: buyerId,
-    recieverId: await getSellerId(paymentIntent), // hotel owner id
+    recieverId: hotelId, // hotel  id
     notificationType: "booking",
-    message: `New booking: ${buyer} booked ${totalRooms} rooms from ${startDate} to ${endDate} for ${numberOfGuests} guests.`,
+    message: `New booking: ${buyerName} booked ${totalRooms} rooms from ${startDateString} to ${endDateString} for ${numberOfGuests} guests.`,
     isRead: false,
   };
 

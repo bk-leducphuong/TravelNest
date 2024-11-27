@@ -1,5 +1,7 @@
 <script>
 import socket from '@/services/socket'
+import axios from 'axios'
+import join from '@/stores/join'
 import { mapGetters } from 'vuex'
 export default {
   data() {
@@ -9,30 +11,43 @@ export default {
       notifications: []
     }
   },
-  methods: {
-    showNotificationIcon() {}
-  },
   computed: {
-    ...mapGetters('auth', ['getUserId'])
+    ...mapGetters('manageHotels', [
+      'getCurrentManagingHotelInformation',
+      'getCurrentManagingHotelId'
+    ])
+  },
+  methods: {
+    showNotificationIcon() {},
+    joinRoom() {
+      if (this.getCurrentManagingHotelId) {
+        // Tham gia vào room của admin
+        socket.emit('joinRoom', this.getCurrentManagingHotelId)
+        // Nhận thông báo mới
+        socket.on('newNotification', (data) => {
+          this.notifications.unshift(data)
+          this.haveNewNotification = true
+        })
+      } else {
+        console.log('User not logged in')
+      }
+    },
+    async getNotifiactions() {
+      const response = await axios.post(
+        'http://localhost:3000/api/notifications',
+        {
+          hotelId: this.getCurrentManagingHotelId
+        },
+        {
+          withCredentials: true
+        }
+      )
+      this.notifications = response.data.notifications
+    }
   },
   mounted() {
-    if (this.getUserId) {
-      // Tham gia vào room của admin
-      socket.emit('joinRoom', this.getUserId)
-      // Nhận thông báo mới
-      socket.on('newNotification', (data) => {
-        // get current time
-        const currentTime = new Date().toLocaleTimeString()
-        // add notification to notifications array
-        data.time = currentTime
-        this.notifications.push(data)
-        // {type: 'payment', message: 'Bạn có một đơn đặt phòng mới.'}
-        // Cập nhật giao diện hiển thị thông báo
-        this.haveNewNotification = true
-      })
-    } else {
-      console.log('User not logged in')
-    }
+    this.getNotifiactions()
+    this.joinRoom()
   }
 }
 </script>
@@ -43,7 +58,14 @@ export default {
       <div class="header-right">
         <div class="user-profile">
           <div class="avatar">T</div>
-          <span>Thanh</span>
+          <div class="hotel-infor">
+            <span v-if="getCurrentManagingHotelInformation" style="font-weight: 600">{{
+              getCurrentManagingHotelInformation.name
+            }}</span>
+            <span><i class="fa fa-map-marker" aria-hidden="true"></i>{{ getCurrentManagingHotelInformation.address.slice(0, 35) }}</span>
+          </div>
+
+          <!-- <span v-else>Hotel</span> -->
         </div>
       </div>
       <!-- notification popup -->
@@ -67,7 +89,11 @@ export default {
             </div>
           </div>
           <div class="notification-content">
-            <div class="notification-item" v-if="notifications.length == 0" style="justify-content: space-around;">
+            <div
+              class="notification-item"
+              v-if="notifications.length == 0"
+              style="justify-content: space-around"
+            >
               <div class="notification-text">
                 <h4>You have no notifications</h4>
               </div>
@@ -76,12 +102,21 @@ export default {
               class="notification-item"
               v-for="notification in notifications"
               :key="notification.notificationId"
+              @click="readNotification(notification.notificationId)"
             >
               <div class="notification-icon">
                 <i class="fas fa-arrow-up"></i>
               </div>
               <div class="notification-text">
-                <h4>{{ notification.message }}</h4>
+                <h4>
+                  <i
+                    class="fa fa-circle"
+                    aria-hidden="true"
+                    style="color: red; font-size: 10px"
+                    v-if="notification.is_read == 0"
+                  ></i>
+                  {{ notification.message }}
+                </h4>
                 <p>2 hrs ago</p>
               </div>
             </div>
@@ -139,6 +174,12 @@ export default {
   background-color: gray;
 }
 
+.hotel-infor {
+  display: flex;
+  flex-direction: column;
+  /* align-items: center; */
+  gap: 5px;
+}
 /* notification */
 .notification-icon {
   cursor: pointer;
@@ -178,10 +219,15 @@ export default {
 }
 
 .notification-item {
+  cursor: pointer;
   display: flex;
   align-items: center;
   padding: 12px;
   border-bottom: 1px solid #f2f2f2;
+}
+
+.notification-item:hover {
+  background-color: #f2f2f2;
 }
 
 .notification-icon {

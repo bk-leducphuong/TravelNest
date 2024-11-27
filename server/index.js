@@ -95,6 +95,10 @@ app.use('/api/admin/hotels-management', hotelsManagementRoutes);
 app.use('/api/admin/payout', adminPayoutRoutes);
 app.use('/api/admin/bookings', bookingsRoutes);
 
+// Common routes
+const notificationRoutes = require('./routes/notificationRoutes');
+app.use('/api/notifications', notificationRoutes);
+
 // Default route
 app.get('/', (req, res) => {
   res.send('Welcome to the Hotel Booking API');

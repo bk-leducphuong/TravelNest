@@ -271,6 +271,7 @@ tbody tr td {
 }
 
 .table-total {
+  background-color: white;
   padding: 20px 20px;
   border: 1px solid #ddd;
   border-radius: 8px;

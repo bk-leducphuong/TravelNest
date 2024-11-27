@@ -3,6 +3,7 @@ export default {
     namespaced: true,
     state: {
         currentManagingHotelId: null,
+        currentManagingHotelInformation: null,
         managingHotels: []
     },
     mutations: {
@@ -11,7 +12,15 @@ export default {
         },
         setCurrentManagingHotelId(state, currentManagingHotelId) {
             state.currentManagingHotelId = currentManagingHotelId   
-        }
+        },
+        setCurrentManagingHotelInformation(state, currentManagingHotelId) {
+            for (const hotel of state.managingHotels) {
+                if (hotel.hotel_id == currentManagingHotelId) {
+                    state.currentManagingHotelInformation = hotel
+                    return
+                }
+            }
+        },
     },
     actions: {
         async getAllManagingHotels({ commit }) {
@@ -21,7 +30,8 @@ export default {
             commit('setManagingHotels', response.data.managingHotels)
         },
         async selectHotelToManage({ commit }, hotelId) {
-            commit('setCurrentManagingHotelId', hotelId)        
+            commit('setCurrentManagingHotelId', hotelId)    
+            commit('setCurrentManagingHotelInformation', hotelId)
         },
         validateHotel({ commit, state }, {hotelId}) {
             for (const hotel of state.managingHotels) {
@@ -39,6 +49,9 @@ export default {
         },
         getCurrentManagingHotelId(state) {
             return state.currentManagingHotelId
+        },
+        getCurrentManagingHotelInformation(state) {
+            return state.currentManagingHotelInformation
         }
     }
 }

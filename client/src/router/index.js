@@ -184,6 +184,7 @@ router.beforeEach((to, from, next) => {
             if (!isValidHotelId) {
               next({ name: 'HotelsManagement'}) // Redirect to hotel management dashboard if hotel id is invalid
             }else {
+              stores.commit('manageHotels/setCurrentManagingHotelInformation', to.params.hotelId)
               next()
             }
           }else {
