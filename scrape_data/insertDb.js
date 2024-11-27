@@ -145,7 +145,7 @@ const insertRoomAvailability = async () => {
       const d = new Date();
       d.setDate(d.getDate() + i);
 
-      const query = `INSERT INTO room_availability (room_id, date, total_inventory, total_reserved) VALUES (?, ?, ?, ?)`;
+      const query = `INSERT INTO room_inventory (room_id, date, total_inventory, total_reserved) VALUES (?, ?, ?, ?)`;
       await queryPromise(query, [room.room_id, d, 10, 0]);
       ``;
     }

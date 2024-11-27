@@ -40,16 +40,16 @@ const getSearchResults = async (req, res) => {
         ); // YYYY, MM, DD
         // Truy vấn tìm khách sạn và phòng trống dựa trên khoảng thời gian
         const query = `
-            SELECT DISTINCT h.hotel_id, h.name, h.address, h.city, h.overall_rating, h.hotel_class, h.image_urls, h.latitude, h.longitude,
-                   r.room_id, r.price_per_night, r.max_guests, r.total_rooms, r.booked_rooms, r.room_name
+            SELECT h.hotel_id, h.name, h.address, h.city, h.overall_rating, h.hotel_class, h.image_urls, h.latitude, h.longitude,
+                   r.room_id, r.price_per_night, r.max_guests, r.room_name, SUM(ri.total_inventory) as total_inventory, SUM(ri.total_reserved) as total_reserved
             FROM hotels h
             JOIN rooms r ON h.hotel_id = r.hotel_id
-            JOIN room_availability ra ON r.room_id = ra.room_id
+            JOIN room_inventory ri ON r.room_id = ri.room_id
             WHERE h.city = ?
             AND r.max_guests >= ?
-            AND (r.total_rooms - r.booked_rooms) >= ?
-            AND ra.available_from <= ?
-            AND ra.available_to >= ?;
+            AND (total_inventory - total_reserved) >= ?
+            AND ri.date BETWEEN ? AND ?
+            GROUP BY room_id;
         `;
 
         // Thực hiện truy vấn
