@@ -5,6 +5,7 @@ import WithdrawConfirmation from '@/components/admin/payment/withdrawConfirmatio
 import axios from 'axios'
 import { mapGetters } from 'vuex'
 import { useToast } from 'vue-toastification'
+import socket from '@/services/socket'
 
 export default {
  
@@ -59,6 +60,15 @@ export default {
     }
   },
   async mounted() {
+    socket.on('payout-completed', (data) => {
+      this.toast.success('Payout successful!')
+      this.getInvoices()
+    })
+    socket.on('payout-failed', (data) => {
+      this.toast.error('Payout failed!')
+      this.getInvoices()
+    })
+
     await this.getInvoices()
   }
 }

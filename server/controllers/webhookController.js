@@ -389,6 +389,7 @@ const webhookController = async (req, res) => {
 
   // Handle specific event types
   try {
+    const io = getIO();
     const paymentIntent = event.data.object;
 
     switch (event.type) {
@@ -452,12 +453,18 @@ const webhookController = async (req, res) => {
         const payoutPaid = event.data.object;
         await handlePayoutEvent(payoutPaid, "completed");
         //TODO: send notification to hotel owner
+        io.to(`owner_${paymentIntent.metadata.hotel_id}`).emit("payout-completed", {
+          transactionId: paymentIntent.metadata.transaction_id
+        });
         break;
 
       case "payout.failed":
         const failedPayout = event.data.object;
         await handlePayoutEvent(failedPayout, "failed");
         //TODO: send notification to hotel owner
+        io.to(`owner_${paymentIntent.metadata.hotel_id}`).emit("payout-failed", {
+          transactionId: paymentIntent.metadata.transaction_id
+        });
         break;
 
       // Add more event types as needed
