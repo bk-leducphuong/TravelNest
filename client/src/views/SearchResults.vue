@@ -4,12 +4,19 @@ import TheHeader from '@/components/Header.vue'
 import MapComponent from '@/components/map/MapComponent.vue'
 import TheFooter from '@/components/Footer.vue'
 import { mapActions, mapGetters } from 'vuex';
+import { useToast } from 'vue-toastification'
 
 export default {
   components: {
     TheHeader,
     MapComponent,
     TheFooter
+  },
+  setup() {
+    // Get toast interface
+    const toast = useToast()
+    // Make it available inside methods
+    return { toast }
   },
   data() {
     return {
@@ -25,9 +32,9 @@ export default {
       // Sort hotels based on the selected criteria
       return [...this.hotels].sort((a, b) => {
         if (this.sortCriteria === 'priceLowToHigh') {
-          return parseFloat(a.price_per_night) - parseFloat(b.price_per_night)
+          return parseFloat(a.lowestPrice) - parseFloat(b.lowestPrice)
         } else if (this.sortCriteria === 'priceHighToLow') {
-          return parseFloat(b.price_per_night) - parseFloat(a.price_per_night)
+          return parseFloat(b.lowestPrice) - parseFloat(a.lowestPrice)
         } else if (this.sortCriteria === 'ratingHighToLow') {
           return parseFloat(b.overall_rating) - parseFloat(a.overall_rating)
         }
@@ -38,15 +45,23 @@ export default {
   watch: {
     '$route.query': {
       handler() {
-        // update search data in store if user changes the search url directly
-        this.updateSearchDataInStore()
-        this.searchHotels()
+        if (this.isSearchUrlValid()) {
+          // update search data in store if user changes the search url directly
+          this.updateSearchDataInStore()
+          this.saveSearchInformation()
+          this.searchHotels()
+        }else {
+          this.toast.error('Vui lòng nhập đầy đủ thông tin tìm kiếm!!')
+        }
       },
       immediate: true
     }
   },
   methods: {
-    ...mapActions('search', ['updateLocation', 'updateCheckInDate', 'updateCheckOutDate', 'updateNumberOfDays', 'updateAdults', 'updateRooms', 'updateChildren']),
+    ...mapActions('search', ['updateLocation', 'updateCheckInDate', 'updateCheckOutDate', 'updateNumberOfDays', 'updateAdults', 'updateRooms', 'updateChildren', 'saveSearchInformation']),
+    isSearchUrlValid() {
+      return this.$route.query.location && this.$route.query.checkInDate && this.$route.query.checkOutDate && this.$route.query.adults && this.$route.query.children && this.$route.query.rooms && this.$route.query.numberOfDays ? true : false
+    },
     updateSearchDataInStore() {
       this.updateLocation(this.$route.query.location)
       this.updateCheckInDate(this.$route.query.checkInDate)
@@ -84,7 +99,11 @@ export default {
     handleSort() {
       // Trigger reactivity by updating the computed property
       // Sorting is handled automatically in the computed property `sortedHotels`
-    }
+    },
+    calculateHotelPrice(hotelLowestPrice) {
+      const totalPrice = parseInt(this.$route.query.numberOfDays) * Number(hotelLowestPrice)
+      return totalPrice
+    },
   }
 }
 </script>
@@ -333,7 +352,7 @@ export default {
                       <span class="newPrice"
                         >VND
                         {{
-                          (Number(hotel.price_per_night) * parseInt(this.$route.query.numberOfDays)).toLocaleString(
+                          (calculateHotelPrice(hotel.lowestPrice)).toLocaleString(
                             'vi-VN'
                           )
                         }}</span

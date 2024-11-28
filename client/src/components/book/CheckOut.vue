@@ -20,7 +20,7 @@
 import { loadStripe } from '@stripe/stripe-js'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
-import { mapGetters } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 export default {
   props: {
@@ -68,6 +68,7 @@ export default {
     })
   },
   methods: {
+    ...mapActions('book', ['checkRoomAvailability']),
     async handleSubmit() {
       try {
         // check whether this room is available or not
@@ -109,7 +110,8 @@ export default {
               bookingDetails: {
                 bookingCode: bookingCode,
                 hotel_id: this.bookingInfor.hotel.hotel_id,
-                dateRange: this.searchData.dateRange, // checkin date and checkout date
+                checkInDate: this.bookingInfor.checkInDate, 
+                checkOutDate: this.bookingInfor.checkOutDate,
                 bookedRooms: this.bookingInfor.selectedRooms,
                 numberOfGuests: this.bookingInfor.numberOfGuests
               }

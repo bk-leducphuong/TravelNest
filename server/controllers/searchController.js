@@ -51,6 +51,18 @@ const getSearchResults = async (req, res) => {
             numberOfDays
         ]);
 
+        // get lowest price for each hotel
+        const lowestPriceQuery = `
+            SELECT hotel_id, MIN(price_per_night) AS lowest_price
+            FROM rooms
+            WHERE hotel_id = ?
+            GROUP BY hotel_id;
+        `
+        for (const hotel of hotels) {
+            const lowestPrice = await queryAsync(lowestPriceQuery, [hotel.hotel_id]);
+            hotel.lowestPrice = lowestPrice[0].lowest_price
+        }
+
         if (hotels.length === 0) {
             return res
                 .status(200)
@@ -68,4 +80,47 @@ const getSearchResults = async (req, res) => {
     }
 };
 
-module.exports = { getSearchResults };
+const saveSearchInformation = async (req, res) => {
+  try {
+    const user_id = req.session ? req.session.user.user_id : null;
+    
+    const { location, checkInDate, checkOutDate, adults, children, rooms } = req.body;
+    if (!location || !checkInDate || !checkOutDate || !adults || !children || !rooms) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing search details" });
+    }
+    // xóa nếu trùng
+    const deleteQuery = `
+        DELETE FROM search_logs
+        WHERE user_id = ? AND location = ? AND checkInDate =? AND checkOutDate =?;
+    `;
+    await queryAsync(deleteQuery, [user_id, location, checkInDate, checkOutDate]);
+    
+    const query = `
+        INSERT INTO search_logs (location, user_id, search_time, children, adults,rooms, checkInDate, checkOutDate)
+            VALUES (?, ?, NOW(), ?, ?,?,?,?);`;
+
+    // Thực hiện truy vấn
+    await queryAsync(query, [
+      location,
+      user_id,
+      children,
+      adults,
+      rooms,
+      checkInDate,
+      checkOutDate
+    ]);
+
+    // Trả về phản hồi thành công
+    res
+      .status(201)
+      .json({ success: true, message: "Search log recorded successfully" });
+  } catch (error) {
+    // Xử lý lỗi
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+module.exports = { getSearchResults, saveSearchInformation };

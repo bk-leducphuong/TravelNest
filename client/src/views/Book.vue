@@ -1,7 +1,7 @@
 <script>
 import CheckOut from '@/components/book/CheckOut.vue'
 import TheHeader from '@/components/Header.vue'
-import { mapGetters, mapState } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 import { useToast } from 'vue-toastification'
 
 export default {
@@ -31,6 +31,7 @@ export default {
     }
   },
   methods: {
+    ...mapActions('book', ['checkRoomAvailability']),
     checkFormFulfillment() {
       if (this.email && this.firstName && this.lastName && this.phoneNumber) {
         return true
@@ -45,8 +46,11 @@ export default {
           // if not available, redirect back to the room selection page
           const isAvailable = await this.checkRoomAvailability()
           if (!isAvailable) {
-            this.$toast.error('Phòng đã được đặt hết, vui lòng chọn phòng khác!')
-            this.$router.place({ path: '/hotels', params: { hotel_id: this.getBookingInfor.hotel.hotel_id } })
+            this.toast.error('Phòng đã được đặt hết, vui lòng chọn phòng khác!')
+            this.$router.replace({
+              path: '/hotels',
+              params: { hotel_id: this.getBookingInfor.hotel.hotel_id }
+            })
             return
           } else {
             // if available, book the room
@@ -102,12 +106,12 @@ export default {
         <div class="dates">
           <div class="date-box">
             <strong>Nhận phòng</strong>
-            <div>{{ getSearchData.dateRange.split(' ')[1] }}</div>
+            <div>{{ getSearchData.checkInDate }}</div>
             <div>Từ {{ getBookingInfor.hotel.check_in_time }}</div>
           </div>
           <div class="date-box">
             <strong>Trả phòng</strong>
-            <div>{{ getSearchData.dateRange.split(' ')[3] }}</div>
+            <div>{{ getSearchData.checkOutDate }}</div>
             <div>Đến {{ getBookingInfor.hotel.check_out_time }}</div>
           </div>
         </div>
@@ -224,24 +228,18 @@ export default {
           <div class="two-columns">
             <div class="form-group">
               <label>First name <span class="required">*</span></label>
-              <input v-model="firstName" type="text" value="Đặng" style="width: 95%" required />
+              <input v-model="firstName" type="text" style="width: 95%" required />
             </div>
 
             <div class="form-group">
               <label>Last name <span class="required">*</span></label>
-              <input v-model="lastName" type="text" value="Đình Khải" style="width: 92%" required />
+              <input v-model="lastName" type="text" style="width: 92%" required />
             </div>
           </div>
 
           <div class="form-group">
             <label>Email address <span class="required">*</span></label>
-            <input
-              v-model="email"
-              type="email"
-              value="oingucoolname@gmail.com"
-              style="width: 96%"
-              required
-            />
+            <input v-model="email" type="email" style="width: 96%" required />
             <div class="helper-text">Confirmation email goes to this address</div>
           </div>
 
@@ -258,13 +256,7 @@ export default {
               <select class="phone-code">
                 <option selected>VN +84</option>
               </select>
-              <input
-                v-model="phoneNumber"
-                type="text"
-                class="phone-number"
-                value="0977 326 935"
-                required
-              />
+              <input v-model="phoneNumber" type="text" class="phone-number" required />
             </div>
             <div class="helper-text">Needed by the property to validate your booking</div>
           </div>

@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 export default {
   namespaced: true,
   state: {
@@ -56,9 +58,23 @@ export default {
     updateRooms({ commit }, rooms) {
       commit('setRooms', rooms)
     },
-    async search() {
-      
-    }
+    async saveSearchInformation({ commit,state }) {
+      try {
+        await axios.post('http://localhost:3000/api/search/save-search-information', {
+          location: state.searchData.location,
+          checkInDate: state.searchData.checkInDate,
+          checkOutDate: state.searchData.checkOutDate,
+          adults: state.searchData.adults,
+          children: state.searchData.children,
+          rooms: state.searchData.rooms
+        },
+         {
+          withCredentials: true
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
   },
   getters: {
     getSearchData(state) {

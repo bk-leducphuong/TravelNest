@@ -126,7 +126,7 @@ export default {
 
       this.noRecentSearchesFound = this.recentSearches.length === 0 ? true : false
     },
-
+    
     // Load data from localStorage for viewed hotels
     async loadViewedHotels() {
       let hotels = JSON.parse(localStorage.getItem('viewedHotels')) || []
