@@ -23,7 +23,8 @@ const handlePayment = async (req, res) => {
         hotel_id: bookingDetails.hotel_id, // Add hotel_id into metadata
         buyer_id: buyer_id, // Add seller_id into metadata
         booked_rooms: JSON.stringify(bookingDetails.bookedRooms),
-        date_range: bookingDetails.dateRange,
+        check_in_date: bookingDetails.checkInDate,
+        check_out_date: bookingDetails.checkOutDate,
         number_of_guests: bookingDetails.numberOfGuests
       },
     });

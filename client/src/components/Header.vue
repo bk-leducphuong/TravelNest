@@ -14,8 +14,12 @@
               <span><a @click="this.$router.push('/join')">Đăng chỗ nghỉ của Quý vị</a></span>
             </li>
             <li v-if="!this.isUserAuthenticated">
-              <a @click="this.$router.push('/login')" class="login" style="margin-right: 5px">Đăng ký</a>
-              <a @click="this.$router.push('/login')" class="login" style="margin-left: 5px">Đăng nhập</a>
+              <a @click="this.$router.push('/login')" class="login" style="margin-right: 5px"
+                >Đăng ký</a
+              >
+              <a @click="this.$router.push('/login')" class="login" style="margin-left: 5px"
+                >Đăng nhập</a
+              >
             </li>
             <li v-if="this.isUserAuthenticated">
               <AccountMenu />
@@ -154,52 +158,41 @@ export default {
         { name: 'Đà Nẵng', country: 'Việt Nam' }
       ],
       showLocationPopup: false,
-      showGuestSelector: false
+      showGuestSelector: false,
+      selectedLocation: 'Bạn muốn đến đâu?',
+      dateRange: 'Ngày nhận phòng - Ngày trả phòng',
+      adults: 2,
+      children: 0,
+      rooms: 1,
+      checkInDate: null,
+      checkOutDate: null,
+      numberOfDays: null
+    }
+  },
+  watch: {
+    dateRange(newValue) {
+      const dateRegex = /\b(\d{2}\/\d{2}\/\d{4})\b/g
+      const dates = newValue.match(dateRegex)
+
+      if (dates) {
+        // Convert the date strings to YYYY-MM-DD format
+        for (let i = 0; i < dates.length; i++) {
+          // Split the string into parts: [DD, MM, YYYY]
+          const [day, month, year] = dates[i].split('/')
+
+          // Rearrange into YYYY-MM-DD format
+          dates[i] = `${year}-${month}-${day}`
+        }
+
+        [this.checkInDate, this.checkOutDate] = dates
+         // Calculate the number of days between the start and end dates
+        this.calculateNumberOfDays(this.checkInDate, this.checkOutDate)
+      }
     }
   },
   computed: {
     ...mapGetters('auth', ['isUserAuthenticated', 'getUserRole']),
     ...mapGetters('search', ['getSearchData']),
-    selectedLocation: {
-      get() {
-        return this.getSearchData?.location || ''
-      },
-      set(value) {
-        this.$store.dispatch('search/updateLocation', value)
-      }
-    },
-    dateRange: {
-      get() {
-        return this.getSearchData?.dateRange || ''
-      },
-      set(value) {
-        this.$store.dispatch('search/updateDateRange', value)
-      }
-    },
-    adults: {
-      get() {
-        return this.getSearchData?.adults || 2
-      },
-      set(value) {
-        this.$store.dispatch('search/updateAdults', value)
-      }
-    },
-    children: {
-      get() {
-        return this.getSearchData?.children || 0
-      },
-      set(value) {
-        this.$store.dispatch('search/updateChildren', value)
-      }
-    },
-    rooms: {
-      get() {
-        return this.getSearchData?.rooms || 1
-      },
-      set(value) {
-        this.$store.dispatch('search/updateRooms', value)
-      }
-    },
     guestDetails() {
       return `${this.adults} người lớn · ${this.children} trẻ em · ${this.rooms} phòng`
     }
@@ -227,7 +220,16 @@ export default {
     }
   },
   methods: {
+    calculateNumberOfDays(checkInDateString, checkOutDateString) {
+      const checkInDate = new Date(checkInDateString)
+      const checkOutDate = new Date(checkOutDateString)
+      const timeDifference = checkOutDate - checkInDate
+      this.numberOfDays = (timeDifference / (1000 * 60 * 60 * 24)) + 1
+    },
     toggleLocationPopup() {
+      if (this.location == 'Bạn muốn đến đâu?') {
+        this.location = ''
+      }
       this.showLocationPopup = !this.showLocationPopup
     },
 
@@ -260,10 +262,12 @@ export default {
     async submitSearch() {
       const searchData = {
         location: this.selectedLocation,
-        dateRange: this.dateRange,
+        checkInDate: this.checkInDate,
+        checkOutDate: this.checkOutDate,
         adults: this.adults,
         children: this.children,
-        rooms: this.rooms
+        rooms: this.rooms,
+        numberOfDays: this.numberOfDays
       }
       // store search informations
       let searchHistory = JSON.parse(localStorage.getItem('recentSearches')) || []
@@ -278,13 +282,15 @@ export default {
         name: 'SearchResults',
         query: {
           location: this.selectedLocation,
-          dateRange: this.dateRange,
+          checkInDate: this.checkInDate,
+          checkOutDate: this.checkOutDate,
+          numberOfDays: this.numberOfDays,
           adults: this.adults,
           children: this.children,
           rooms: this.rooms
         }
       })
-    },
+    }
   }
 }
 </script>

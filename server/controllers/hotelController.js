@@ -6,7 +6,7 @@ const { promisify } = require("util");
 const queryAsync = promisify(connection.query).bind(connection);
 
 const getHotelDetails = async (req, res) => {
-  const hotelId = req.params.hotelId;
+  const { hotelId, checkInDate, checkOutDate, numberOfDays, numberOfRooms, numberOfGuests } = req.body;
 
   try {
     const hotelQuery = `
@@ -17,9 +17,21 @@ const getHotelDetails = async (req, res) => {
         `;
 
     const roomQuery = `
-            SELECT room_id, room_name, price_per_night, max_guests, total_rooms, 
-            booked_rooms, image_urls AS room_image_urls, room_amenities 
-            FROM rooms WHERE hotel_id = ?
+          SELECT 
+          MIN(ri.total_inventory - ri.total_reserved) AS available_rooms,
+            r.room_id,
+            r.room_name, r.price_per_night, r.max_guests,
+          r.image_urls AS room_image_urls, r.room_amenities 
+          FROM hotels h
+          JOIN rooms r 
+              ON h.hotel_id = r.hotel_id
+          JOIN room_inventory ri 
+              ON r.room_id = ri.room_id
+          WHERE h.hotel_id = ?
+            AND r.max_guests >= ?
+            AND ri.date BETWEEN ? AND ?
+          GROUP BY r.room_id
+        HAVING COUNT(CASE WHEN ri.total_inventory - ri.total_reserved >= ? THEN 1 END) = ?;
         `;
 
     const reviewsQuery = `
@@ -42,7 +54,7 @@ const getHotelDetails = async (req, res) => {
     const [hotel, rooms, reviews, nearbyPlaces, reviewsBreakdown] =
       await Promise.all([
         queryAsync(hotelQuery, [hotelId]),
-        queryAsync(roomQuery, [hotelId]),
+        queryAsync(roomQuery, [hotelId, numberOfGuests, checkInDate, checkOutDate, numberOfRooms, numberOfDays]),
         queryAsync(reviewsQuery, [hotelId]),
         queryAsync(nearbyPlacesQuery, [hotelId]),
         queryAsync(reviewsBreakdownQuery, [hotelId]),
@@ -64,37 +76,13 @@ const getHotelDetails = async (req, res) => {
 const searchRoom = async (req, res) => {
   try {
     const { hotel_id, dateRange, adults, children, rooms } = req.body;
-    
+
     if (!hotel_id || !dateRange || !adults || !children || !rooms) {
       return res
         .status(400)
         .json({ success: false, message: "Missing search criteria" });
     }
-    // Tổng số khách cần lưu trú
-    const total_guests = parseInt(adults, 10) + parseInt(children, 10);
-
-    // Tách chuỗi dateRange
-    const datePattern = /Từ (\d{2}\/\d{2}\/\d{4}) đến (\d{2}\/\d{2}\/\d{4})/;
-    const match = dateRange.match(datePattern);
-
-    if (!match) {
-      return res
-        .status(400)
-        .json({ success: false, available_rooms: [], message: "Invalid date range format" });
-    }
-    const check_in_parts = match[1].split("/");
-    const check_out_parts = match[2].split("/");
-
-    const check_in = new Date(
-      check_in_parts[2],
-      check_in_parts[1] - 1,
-      check_in_parts[0]
-    ); // YYYY, MM, DD
-    const check_out = new Date(
-      check_out_parts[2],
-      check_out_parts[1] - 1,
-      check_out_parts[0]
-    ); // YYYY, MM, DD
+    
 
     const query = `
             SELECT DISTINCT r.room_id, r.max_guests, r.booked_rooms, r.total_rooms, r.image_urls, r.room_amenities, r.price_per_night, r.room_name
@@ -125,8 +113,58 @@ const searchRoom = async (req, res) => {
     res.status(200).json({ success: true, available_rooms });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, available_rooms: [], message: "Internal Server Error" });
+    res.status(500).json({
+      success: false,
+      available_rooms: [],
+      message: "Internal Server Error",
+    });
   }
 };
 
-module.exports = { getHotelDetails, searchRoom };
+const checkRoomAvailability = async (req, res) => {
+  try {
+    const { bookingInfor } = req.body;
+    const query = `
+      SELECT 
+        MIN(ri.total_inventory - ri.total_reserved) AS available_rooms,
+        r.room_id
+      FROM hotels h
+      JOIN rooms r 
+      ON h.hotel_id = r.hotel_id
+      JOIN room_inventory ri 
+      ON r.room_id = ri.room_id
+      WHERE h.hotel_id = ?
+      AND r.max_guests >= ?
+      AND ri.date BETWEEN ? AND ?
+      GROUP BY  r.room_id
+      HAVING COUNT(CASE WHEN ri.total_inventory - ri.total_reserved >= 0 THEN 1 END) = ?;
+    `;
+
+    const rooms = await queryAsync(query, [
+      bookingInfor.hotel.hotel_id,
+      bookingInfor.numberOfGuests,
+      bookingInfor.checkInDate,
+      bookingInfor.checkOutDate,
+      bookingInfor.numberOfDays
+    ]);
+
+    bookingInfor.selectedRooms.forEach(selectedRoom => {
+      const room = rooms.find(room => room.room_id === selectedRoom.room_id);
+      if (room) {
+        room.available_rooms >= selectedRoom.roomQuantity;
+      }else {
+        return res.status(200).json({ isAvailable: false });
+      }
+    });
+
+    return res.status(200).json({ isAvailable: true });
+   
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
+
+module.exports = { getHotelDetails, searchRoom, checkRoomAvailability };

@@ -71,69 +71,11 @@ const getRecentViewedHotels = async (req, res) => {
   res.status(200).json(results);
 };
 
-// save recent seaches
-const postRecentSearchs = async (req, res) => {
-  try {
-    const user_id = req.session.user.user_id;
-    
-    const { location, dateRange, adults, children, rooms } = req.body;
-    if (!location || !dateRange || !adults || !children || !rooms) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing search details" });
-    }
-    // xóa nếu trùng
-    const deleteQuery = `
-        DELETE FROM search_logs
-        WHERE user_id = ? AND location = ? AND dateRange =?;
-    `;
-    await queryAsync(deleteQuery, [user_id, location, dateRange]);
-    // giới hạn
-    const countQuery = `
-            SELECT COUNT(*) AS count FROM viewed_hotels;
-        `;
-    const result = await queryAsync(countQuery);
-    const count = result[0].count;
-
-    // Nếu tổng số bản ghi lớn hơn hoặc bằng 10, xóa bản ghi cũ nhất
-    if (count >= 10) {
-      const deleteOldestQuery = `
-                DELETE FROM viewed_hotels
-                ORDER BY viewed_at ASC
-                LIMIT 1;
-            `;
-      await queryAsync(deleteOldestQuery);
-    }
-    const query = `
-        INSERT INTO search_logs (location, user_id, search_time, children, adults,rooms, dateRange)
-            VALUES (?, ?, NOW(), ?, ?,?,?);`;
-
-    // Thực hiện truy vấn
-    await queryAsync(query, [
-      location,
-      user_id,
-      children,
-      adults,
-      rooms,
-      dateRange,
-    ]);
-
-    // Trả về phản hồi thành công
-    res
-      .status(201)
-      .json({ success: true, message: "Search log recorded successfully" });
-  } catch (error) {
-    // Xử lý lỗi
-    console.error(error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-};
-
 const getRecentSearchs = async (req, res) => {
   const user_id = req.session.user.user_id;
 
   const query = `
-        SELECT location, dateRange, adults, children, rooms
+        SELECT location, checkInDate, checkOutDate, adults, children, rooms
         FROM search_logs
         WHERE user_id = ?
         LIMIT 10; `;
@@ -243,6 +185,5 @@ module.exports = {
   getRecentSearchs,
   getPopularPlaces,
   getNearByHotels,
-  postRecentSearchs,
   postRecentViewedHotels,
 };

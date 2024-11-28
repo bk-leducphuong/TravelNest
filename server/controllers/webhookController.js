@@ -52,12 +52,11 @@ const storeBooking = async (paymentIntent) => {
     buyer_id: buyerId,
     seller_id: seller_id,
     booked_rooms,
-    date_range: dateRange,
+    check_in_date: checkInDate,
+    check_out_date: checkOutDate,
     number_of_guests: numberOfGuests,
     booking_code: bookingCode,
   } = paymentIntent.metadata;
-
-  const { startDate, endDate } = convertDateStringToDate(dateRange);
 
   const bookedRooms = JSON.parse(booked_rooms);
   bookedRooms.forEach(async (bookedRoom) => {
@@ -69,8 +68,8 @@ const storeBooking = async (paymentIntent) => {
 
     const { insertId: bookingId } = await queryAsync(bookingQuery, [
       buyerId,
-      startDate,
-      endDate,
+      checkInDate,
+      checkOutDate,
       paymentIntent.amount, // price for all booked rooms
       "confirmed",
       numberOfGuests,
@@ -289,7 +288,8 @@ async function sendNewBookingNotification(paymentIntent) {
     hotel_id: hotelId,
     buyer_id: buyerId,
     booked_rooms,
-    date_range: dateRange,
+    check_in_date: checkInDate,
+    check_out_date: checkOutDate,
     number_of_guests: numberOfGuests,
   } = paymentIntent.metadata;
 
@@ -299,10 +299,6 @@ async function sendNewBookingNotification(paymentIntent) {
   `;
   const buyer = await queryAsync(buyerQuery, [buyerId]);
   const buyerName = buyer[0].username;
-  // get booking date
-  const { startDate, endDate } = convertDateStringToDate(dateRange);
-  const  startDateString = startDate.split(" ").slice(0, 4).join(" ");
-  const endDateString = endDate.split(" ").slice(0, 4).join(" ");
   // get total number of rooms
   let totalRooms = 0;
   JSON.parse(booked_rooms).forEach((bookedRoom) => {
@@ -314,7 +310,7 @@ async function sendNewBookingNotification(paymentIntent) {
     senderId: buyerId,
     recieverId: hotelId, // hotel  id
     notificationType: "booking",
-    message: `New booking: ${buyerName} booked ${totalRooms} rooms from ${startDateString} to ${endDateString} for ${numberOfGuests} guests.`,
+    message: `New booking: ${buyerName} booked ${totalRooms} rooms from ${checkInDate} to ${checkOutDate} for ${numberOfGuests} guests.`,
     isRead: false,
   };
 
