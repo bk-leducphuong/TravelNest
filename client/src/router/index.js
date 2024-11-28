@@ -61,7 +61,8 @@ const routes = [
     component: SearchResults,
     props: (route) => ({
       location: route.query.location,
-      dateRange: route.query.dateRange,
+      checkInDate: route.query.checkInDate,
+      checkOutDate: route.query.checkOutDate,
       adults: route.query.adults,
       children: route.query.children,
       rooms: route.query.rooms

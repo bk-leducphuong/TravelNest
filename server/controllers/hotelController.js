@@ -17,9 +17,21 @@ const getHotelDetails = async (req, res) => {
         `;
 
     const roomQuery = `
-            SELECT room_id, room_name, price_per_night, max_guests, total_rooms, 
-            booked_rooms, image_urls AS room_image_urls, room_amenities 
-            FROM rooms WHERE hotel_id = ?
+          SELECT 
+          MIN(ri.total_inventory - ri.total_reserved) AS available_rooms,
+            r.room_id,
+            r.room_name, r.price_per_night, r.max_guests,
+          r.image_urls AS room_image_urls, r.room_amenities 
+          FROM hotels h
+          JOIN rooms r 
+              ON h.hotel_id = r.hotel_id
+          JOIN room_inventory ri 
+              ON r.room_id = ri.room_id
+          WHERE h.hotel_id = ?
+            AND r.max_guests >= ?
+            AND ri.date BETWEEN ? AND ?
+          GROUP BY r.room_id
+        HAVING COUNT(CASE WHEN ri.total_inventory - ri.total_reserved >= ? THEN 1 END) = ?;
         `;
 
     const reviewsQuery = `
@@ -64,7 +76,7 @@ const getHotelDetails = async (req, res) => {
 const searchRoom = async (req, res) => {
   try {
     const { hotel_id, dateRange, adults, children, rooms } = req.body;
-    
+
     if (!hotel_id || !dateRange || !adults || !children || !rooms) {
       return res
         .status(400)
@@ -78,9 +90,11 @@ const searchRoom = async (req, res) => {
     const match = dateRange.match(datePattern);
 
     if (!match) {
-      return res
-        .status(400)
-        .json({ success: false, available_rooms: [], message: "Invalid date range format" });
+      return res.status(400).json({
+        success: false,
+        available_rooms: [],
+        message: "Invalid date range format",
+      });
     }
     const check_in_parts = match[1].split("/");
     const check_out_parts = match[2].split("/");
@@ -125,8 +139,55 @@ const searchRoom = async (req, res) => {
     res.status(200).json({ success: true, available_rooms });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, available_rooms: [], message: "Internal Server Error" });
+    res.status(500).json({
+      success: false,
+      available_rooms: [],
+      message: "Internal Server Error",
+    });
   }
 };
 
-module.exports = { getHotelDetails, searchRoom };
+const checkRoomAvailability = async (req, res) => {
+  try {
+    const { bookingInfor } = req.body;
+
+    const query = `
+      SELECT 
+        MIN(ri.total_inventory - ri.total_reserved) AS available_rooms,
+        r.room_id
+      FROM hotels h
+      JOIN rooms r 
+      ON h.hotel_id = r.hotel_id
+      JOIN room_inventory ri 
+      ON r.room_id = ri.room_id
+      WHERE h.hotel_id = ?
+      AND r.max_guests >= ?
+      AND ri.date BETWEEN ? AND ?
+      GROUP BY  r.room_id
+      HAVING COUNT(CASE WHEN ri.total_inventory - ri.total_reserved >= 1 THEN 1 END) = ?;
+    `;
+
+    const result = await queryAsync(query, [
+      bookingInfor.hotel.hotel_id,
+      bookingInfor.numberOfGuests,
+      bookingInfor.checkInDate,
+      bookingInfor.checkOutDate,
+      bookingInfor.numberOfDays
+    ]);
+
+    if (result.length > 0) {
+      return res.status(200).json({ success: true, available_rooms: result });
+    } else {
+      return res.status(200).json({ success: false, available_rooms: [] });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      available_rooms: [],
+      message: "Internal Server Error",
+    });
+  }
+};
+
+module.exports = { getHotelDetails, searchRoom, checkRoomAvailability };

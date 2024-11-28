@@ -38,11 +38,21 @@ export default {
         return false
       }
     },
-    nextStep() {
+    async nextStep() {
       if (this.currentStep < this.steps.length) {
         if (this.checkFormFulfillment()) {
-          this.currentStep++
-          window.scrollTo(0, 0)
+          //TODO: check whether this room is available or not
+          // if not available, redirect back to the room selection page
+          const isAvailable = await this.checkRoomAvailability()
+          if (!isAvailable) {
+            this.$toast.error('Phòng đã được đặt hết, vui lòng chọn phòng khác!')
+            this.$router.place({ path: '/hotels', params: { hotel_id: this.getBookingInfor.hotel.hotel_id } })
+            return
+          } else {
+            // if available, book the room
+            this.currentStep++
+            window.scrollTo(0, 0)
+          }
         } else {
           this.toast.error('Please fullfill the form!')
         }

@@ -5,61 +5,52 @@ const queryAsync = promisify(connection.query).bind(connection);
 
 const getSearchResults = async (req, res) => {
     try {
-        const { location, adults, children, dateRange, rooms } = req.body;
+        const { location, adults, children, checkInDate, checkOutDate, rooms, numberOfDays } = req.body.searchData;
 
-        if (!location || !adults || !children || !dateRange || !rooms) {
+        if (!location || !adults || !children || !checkInDate || !checkOutDate || !rooms) {
             return res
                 .status(400)
                 .json({ success: false, hotels: [], message: "Missing search criteria" });
         }
 
-        // Tổng số khách cần lưu trú
+        // tổng số khách cần lưu trú
         const total_guests = parseInt(adults, 10) + parseInt(children, 10);
-
-        // Tách chuỗi dateRange
-        const datePattern = /Từ (\d{2}\/\d{2}\/\d{4}) đến (\d{2}\/\d{2}\/\d{4})/;
-        const match = dateRange.match(datePattern);
-
-        if (!match) {
-            return res
-                .status(400)
-                .json({ success: false, message: "Invalid date range format" });
-        }
-        const check_in_parts = match[1].split("/");
-        const check_out_parts = match[2].split("/");
-
-        const check_in = new Date(
-            check_in_parts[2],
-            check_in_parts[1] - 1,
-            check_in_parts[0]
-        ); // YYYY, MM, DD
-        const check_out = new Date(
-            check_out_parts[2],
-            check_out_parts[1] - 1,
-            check_out_parts[0]
-        ); // YYYY, MM, DD
-        // Truy vấn tìm khách sạn và phòng trống dựa trên khoảng thời gian
+       
         const query = `
-            SELECT h.hotel_id, h.name, h.address, h.city, h.overall_rating, h.hotel_class, h.image_urls, h.latitude, h.longitude,
-                   r.room_id, r.price_per_night, r.max_guests, r.room_name, SUM(ri.total_inventory) as total_inventory, SUM(ri.total_reserved) as total_reserved
-            FROM hotels h
-            JOIN rooms r ON h.hotel_id = r.hotel_id
-            JOIN room_inventory ri ON r.room_id = ri.room_id
-            WHERE h.city = ?
+            select distinct 
+                h.hotel_id, 
+                h.name, 
+                h.address, 
+                h.city, 
+                h.overall_rating, 
+                h.hotel_class, 
+                h.image_urls, 
+                h.latitude, 
+                h.longitude
+            from hotels h
+            join rooms r 
+                on h.hotel_id = r.hotel_id
+            join room_inventory ri 
+                on r.room_id = ri.room_id
+            where h.city = ?
             AND r.max_guests >= ?
-            AND (total_inventory - total_reserved) >= ?
             AND ri.date BETWEEN ? AND ?
-            GROUP BY room_id;
-        `;
+            GROUP BY 
+                h.hotel_id, h.name, h.address, h.city, h.overall_rating, h.hotel_class, h.image_urls, 
+                h.latitude, h.longitude, r.room_id, r.price_per_night, r.max_guests, r.room_name
+            HAVING COUNT(CASE WHEN ri.total_inventory - ri.total_reserved >= ? THEN 1 END) = ?;
+        `
 
         // Thực hiện truy vấn
         const hotels = await queryAsync(query, [
             location,
             total_guests,
+            checkInDate,
+            checkOutDate,
             rooms,
-            check_in,
-            check_out,
+            numberOfDays
         ]);
+
         if (hotels.length === 0) {
             return res
                 .status(200)

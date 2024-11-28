@@ -20,6 +20,7 @@
 import { loadStripe } from '@stripe/stripe-js'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
+import { mapGetters } from 'vuex'
 
 export default {
   props: {
@@ -44,6 +45,9 @@ export default {
       paymentStatus: null
     }
   },
+  computed: {
+    ...mapGetters('book', ['getBookingInfor']),
+  },
   async mounted() {
     // Initialize Stripe with your publishable key
     this.stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
@@ -66,72 +70,84 @@ export default {
   methods: {
     async handleSubmit() {
       try {
-        this.processing = true
-        this.paymentStatus = null
+        // check whether this room is available or not
+        // if not available, redirect back to the room selection page
+        const isAvailable = await this.checkRoomAvailability()
+        if (!isAvailable) {
+          this.$toast.error('Phòng đã được đặt hết, vui lòng chọn phòng khác!')
+          this.$router.place({ path: '/hotels', params: { hotel_id: this.getBookingInfor.hotel.hotel_id } })
+          return
+        } else {
+          // if available, book the room
+          this.processing = true
+          this.paymentStatus = null
 
-        // Create payment method
-        const { paymentMethod, error } = await this.stripe.createPaymentMethod({
-          type: 'card',
-          card: this.card,
-          billing_details: {
-            email: this.userInfor.email,
-            name: this.userInfor.lastName + this.userInfor.firstName,
-            phone: this.userInfor.phoneNumber
-          }
-        })
-
-        if (error) {
-          throw new Error(error.message)
-        }
-
-        const bookingCode = uuidv4() // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
-
-        // Send payment method ID and email to server
-        const response = await axios.post(
-          'http://localhost:3000/api/payment',
-          {
-            paymentMethodId: paymentMethod.id,
-            amount: this.bookingInfor.totalPrice, // Amount in cents
-            currency: 'vnd', // default
-            bookingDetails: {
-              bookingCode: bookingCode,
-              hotel_id: this.bookingInfor.hotel.hotel_id,
-              dateRange: this.searchData.dateRange, // checkin date and checkout date
-              bookedRooms: this.bookingInfor.selectedRooms,
-              numberOfGuests: this.bookingInfor.numberOfGuests
+          // Create payment method
+          const { paymentMethod, error } = await this.stripe.createPaymentMethod({
+            type: 'card',
+            card: this.card,
+            billing_details: {
+              email: this.userInfor.email,
+              name: this.userInfor.lastName + this.userInfor.firstName,
+              phone: this.userInfor.phoneNumber
             }
-          },
-          { withCredentials: true }
-        )
+          })
 
-        const result = await response.data
-
-        if (result.error) {
-          throw new Error(result.error)
-        }
-
-        // Handle the result
-        if (result.clientSecret) {
-          // Confirm the payment with Stripe.js
-          const { error: confirmError } = await this.stripe.confirmCardPayment(result.clientSecret)
-
-          if (confirmError) {
-            throw new Error(confirmError.message)
+          if (error) {
+            throw new Error(error.message)
           }
 
-          // Payment successful
-          this.paymentStatus = {
-            type: 'success',
-            message: 'Payment successful! Check your email for confirmation.'
+          const bookingCode = uuidv4() // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
+
+          // Send payment method ID and email to server
+          const response = await axios.post(
+            'http://localhost:3000/api/payment',
+            {
+              paymentMethodId: paymentMethod.id,
+              amount: this.bookingInfor.totalPrice, // Amount in cents
+              currency: 'vnd', // default
+              bookingDetails: {
+                bookingCode: bookingCode,
+                hotel_id: this.bookingInfor.hotel.hotel_id,
+                dateRange: this.searchData.dateRange, // checkin date and checkout date
+                bookedRooms: this.bookingInfor.selectedRooms,
+                numberOfGuests: this.bookingInfor.numberOfGuests
+              }
+            },
+            { withCredentials: true }
+          )
+
+          const result = await response.data
+
+          if (result.error) {
+            throw new Error(result.error)
           }
 
-          setTimeout(() => {
-            this.$router.replace({ path: '/book/complete', query: {bookingCode: bookingCode}})
-          }, 1000)
+          // Handle the result
+          if (result.clientSecret) {
+            // Confirm the payment with Stripe.js
+            const { error: confirmError } = await this.stripe.confirmCardPayment(
+              result.clientSecret
+            )
 
-          // Reset form
-          this.email = ''
-          this.card.clear()
+            if (confirmError) {
+              throw new Error(confirmError.message)
+            }
+
+            // Payment successful
+            this.paymentStatus = {
+              type: 'success',
+              message: 'Payment successful! Check your email for confirmation.'
+            }
+
+            setTimeout(() => {
+              this.$router.replace({ path: '/book/complete', query: { bookingCode: bookingCode } })
+            }, 1000)
+
+            // Reset form
+            this.email = ''
+            this.card.clear()
+          }
         }
       } catch (err) {
         this.paymentStatus = {

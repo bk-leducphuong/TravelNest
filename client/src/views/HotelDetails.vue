@@ -94,15 +94,58 @@ export default {
     }
   },
   methods: {
-    ...mapActions('book', ['booking']),
+    ...mapActions('book', ['booking', 'checkRoomAvailability']),
+    extractDateFromString() {
+      // Regular expression to match dates in the format DD/MM/YYYY
+      const dateRegex = /\b(\d{2}\/\d{2}\/\d{4})\b/g
+
+      // Extract dates
+      const dates = this.dateRange.match(dateRegex)
+      if (dates) {
+        const [startDate, endDate] = dates
+
+        // Convert to Date objects for further use (if needed)
+        const start = new Date(startDate.split('/').reverse().join('-'))
+        const end = new Date(endDate.split('/').reverse().join('-'))
+
+        return { startDate: start, endDate: end }
+      } else {
+        console.log('No dates found in the string.')
+      }
+    },
+    // caculate number of booking days
+    calculateDaysBetween() {
+      const [start, end] = this.dateRange.match(/\d{2}\/\d{2}\/\d{4}/g)
+
+      const startDate = new Date(start.split('/').reverse().join('-'))
+      const endDate = new Date(end.split('/').reverse().join('-'))
+
+      const timeDiff = endDate - startDate
+      const daysDiff = timeDiff / (1000 * 60 * 60 * 24)
+
+      return daysDiff + 1
+    },
     async getHotelDetails() {
-      const response = await axios.get(`http://localhost:3000/api/hotels/${this.hotel_id}`)
-      this.hotel = response.data.hotel
-      this.room_list = response.data.rooms
-      this.reviews = response.data.reviews
-      this.reviews_breakdown = response.data.reviews_breakdown
-      this.nearby_hotels = response.data.nearby_hotels
-      this.hotelImages = JSON.parse(response.data.hotel.hotel_image_urls)
+      try {
+        const {startDate, endDate} = this.extractDateFromString()
+        const numberOfDays = this.calculateNumberOfDays(startDate, endDate)
+        const response = await axios.post(`http://localhost:3000/api/hotels/${this.hotel_id}`, {
+          checkInDate: startDate,
+          checkOutDate: endDate,
+          numberOfDays: numberOfDays,
+          numberOfRooms: this.rooms
+        })
+        
+        this.hotel = response.data.hotel
+        this.room_list = response.data.rooms
+        this.reviews = response.data.reviews
+        this.reviews_breakdown = response.data.reviews_breakdown
+        this.nearby_hotels = response.data.nearby_hotels
+        this.hotelImages = JSON.parse(response.data.hotel.hotel_image_urls)
+      } catch (error) {
+        console.error(error)
+        this.toast.error('Getting hotel details failed! Pls try again!')
+      }
     },
     /******** comment popup *******/
     showCommentPopup() {
@@ -199,9 +242,34 @@ export default {
         }
       }
     },
+    // caculate number of booking days
+    calculateDaysBetween() {
+      const [start, end] = this.$route.query.dateRange.match(/\d{2}\/\d{2}\/\d{4}/g)
+
+      const startDate = new Date(start.split('/').reverse().join('-'))
+      const endDate = new Date(end.split('/').reverse().join('-'))
+
+      const timeDiff = endDate - startDate
+      const daysDiff = timeDiff / (1000 * 60 * 60 * 24)
+
+      return daysDiff + 1
+    },
     // this method will be called when user click book button
-    processBooking() {
+    async processBooking() {
       if (this.selectedRooms.length != 0) {
+        // Tách chuỗi dateRange
+        const datePattern = /Từ (\d{2}\/\d{2}\/\d{4}) đến (\d{2}\/\d{2}\/\d{4})/
+        const match = this.dateRange.match(datePattern)
+
+        if (!match) {
+          return res.status(400).json({ success: false, message: 'Invalid date range format' })
+        }
+        const check_in_parts = match[1].split('/')
+        const check_out_parts = match[2].split('/')
+
+        const check_in = new Date(check_in_parts[2], check_in_parts[1] - 1, check_in_parts[0]) // YYYY, MM, DD
+        const check_out = new Date(check_out_parts[2], check_out_parts[1] - 1, check_out_parts[0]) // YYYY, MM, DD
+
         const bookingInfor = {
           hotel: {
             hotel_id: this.hotel_id,
@@ -214,17 +282,32 @@ export default {
           totalPrice: this.totalPriceSelectedRooms,
           totalRooms: this.totalSelectedRooms,
           selectedRooms: this.selectedRooms,
-          numberOfGuests: this.adults
+          numberOfGuests: this.adults,
+          checkInDate: check_in,
+          checkOutDate: check_out,
+          numberOfDays: this.calculateDaysBetween()
         }
+
         this.booking(bookingInfor)
-        this.$router.push('/book')
+
+        //TODO: check whether this room is available or not
+        // if not available, redirect back to the room selection page
+        const isAvailable = await this.checkRoomAvailability()
+        if (!isAvailable) {
+          this.$toast.error('Phòng đã được đặt hết, vui lòng chọn phòng khác!')
+          this.$router.place({ path: '/hotels', params: { hotel_id: this.hotel_id } })
+          return
+        } else {
+          // continue if room is available
+          this.$router.push('/book')
+        }
       }
     }
   },
-  mounted() {
+  async mounted() {
     this.hotel_id = this.$route.params.hotel_id
     // Fetch hotel details using hotelId
-    this.getHotelDetails(),
+    await this.getHotelDetails(),
       // date picker popup
       flatpickr(this.$refs.dateInput, {
         dateFormat: 'd/m/Y', // Định dạng ngày
@@ -249,7 +332,7 @@ export default {
 </script>
 <template>
   <div id="hotelDetails" class="hotel-details-container">
-    <TheHeader :isSearchOpen="true"/>
+    <TheHeader :isSearchOpen="true" />
     <MapComponent v-if="openMapPopup" :hotels="[hotel]" @close-map-popup="closeMapPopup" />
     <ImageGallery
       :room_list="room_list"
@@ -534,7 +617,9 @@ export default {
                   </div>
                 </div>
                 <button @click="processBooking">Tôi sẽ đặt</button>
-                <div style="color: red; font-size: 13px;" v-if="selectedRooms.length == 0">Vui lòng chọn phòng trước khi đặt</div>
+                <div style="color: red; font-size: 13px" v-if="selectedRooms.length == 0">
+                  Vui lòng chọn phòng trước khi đặt
+                </div>
               </div>
             </td>
           </tr>
