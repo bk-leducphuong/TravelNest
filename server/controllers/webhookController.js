@@ -325,6 +325,19 @@ async function sendNewBookingNotification(paymentIntent) {
     senderId: notification.senderId,
   });
 }
+/******************************************* Room inventory **********************************************/
+const updateRoomInventory = async (paymentIntent) => {
+  const { booked_rooms: bookedRooms, check_in_date: checkInDate, check_out_date: checkOutDate } = paymentIntent.metadata;
+  const bookedRoomsArray = JSON.parse(bookedRooms);
+  for (const bookedRoom of bookedRoomsArray) {
+    const roomQuery = `
+      UPDATE room_inventory
+      SET total_reserved = total_reserved + ?
+      WHERE room_id = ? AND date BETWEEN ? AND ? ;
+    `;
+    await queryAsync(roomQuery, [bookedRoom.roomQuantity, bookedRoom.room_id, checkInDate, checkOutDate]);
+  }
+}
 
 /******************************************* Payout Event **********************************************/
 const handlePayoutEvent = async (payout, status) => {
@@ -405,11 +418,14 @@ const webhookController = async (req, res) => {
         }
         // send notification to hotel owner
         await sendNewBookingNotification(paymentIntent);
-
+        // store transaction and payment
         await handlePaymentIntentSucceeded(paymentIntent);
-
+        // store booking
         await storeBooking(paymentIntent);
+        // store invoice
         await storeInvoice(paymentIntent);
+        // update number of reserved rooms 
+        await updateRoomInventory(paymentIntent);
 
         // Send confirmation email
         if (receiptEmail) {
