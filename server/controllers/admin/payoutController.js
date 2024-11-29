@@ -102,7 +102,7 @@ const getInvoices = async (req, res) => {
   JOIN bookings b ON i.booking_code = b.booking_code
     SET 
    i.status = CASE
-    WHEN b.check_in_date <= CURDATE() AND i.status != 'available' THEN 'available'
+    WHEN b.check_in_date <= CURDATE() AND i.status != 'available' AND i.status != 'done' THEN 'available'
     ELSE i.status
     END,
   i.updated_at = NOW()
@@ -141,7 +141,7 @@ const getInvoices = async (req, res) => {
 };
 const createPayout = async (req, res) => {
   try {
-    const { amount, transaction_id } = req.body;
+    const { amount, transactionId, hotelId } = req.body;
     const userId = req.session.user.user_id;
 
     // get user
@@ -153,10 +153,10 @@ const createPayout = async (req, res) => {
     }
 
     const payout = await stripe.payouts.create({
-      amount: amount * 100, // Convert to cents
+      amount: Math.round(amount), // Convert to cents
       currency: "SGD", // TODO: change to user currency
       destination: user.connect_account_id,
-      metadata: { transaction_id: transaction_id },
+      metadata: { transaction_id: transactionId, hotel_id: hotelId },
     });
     res.json({ success: true, message: "Withdraw money successfully" });
   } catch (error) {

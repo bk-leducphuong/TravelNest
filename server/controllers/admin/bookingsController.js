@@ -18,6 +18,20 @@ const getAllBookings = async (req, res) => {
   }
 };
 
+const getBookerInformation = async (req, res) => {
+  try {
+    const { buyer_id } = req.body;
+    const bookerInformation = await queryAsync(
+      "SELECT username, email, country FROM users WHERE user_id = ?",
+      [buyer_id]
+    );
+    res.status(200).json({ bookerInformation: bookerInformation[0] });
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 module.exports = {
   getAllBookings,
+  getBookerInformation
 };

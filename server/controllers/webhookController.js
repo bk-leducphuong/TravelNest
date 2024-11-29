@@ -453,8 +453,8 @@ const webhookController = async (req, res) => {
         const payoutPaid = event.data.object;
         await handlePayoutEvent(payoutPaid, "completed");
         //TODO: send notification to hotel owner
-        io.to(`owner_${paymentIntent.metadata.hotel_id}`).emit("payout-completed", {
-          transactionId: paymentIntent.metadata.transaction_id
+        io.to(`owner_${payoutPaid.metadata.hotel_id}`).emit("payout-completed", {
+          transactionId: payoutPaid.metadata.transaction_id
         });
         break;
 
@@ -462,8 +462,8 @@ const webhookController = async (req, res) => {
         const failedPayout = event.data.object;
         await handlePayoutEvent(failedPayout, "failed");
         //TODO: send notification to hotel owner
-        io.to(`owner_${paymentIntent.metadata.hotel_id}`).emit("payout-failed", {
-          transactionId: paymentIntent.metadata.transaction_id
+        io.to(`owner_${failedPayout.metadata.hotel_id}`).emit("payout-failed", {
+          transactionId: failedPayout.metadata.transaction_id
         });
         break;
 

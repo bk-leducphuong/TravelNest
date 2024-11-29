@@ -8,7 +8,7 @@ import { useToast } from 'vue-toastification'
 import socket from '@/services/socket'
 
 export default {
- 
+
   components: {
     AdminHeader,
     DashboardMenu,
@@ -57,16 +57,27 @@ export default {
     },
     closeWithdrawConfirmationPopup() {
       this.isWithdrawConfirmationPopupOpen = false
+    },
+    isButtonDisabled(invoice) {
+      if (invoice.status == 'unavailable' || invoice.status == 'done' || invoice.status == 'pending') {
+        return true
+      } else {
+        return false
+      }
     }
   },
   async mounted() {
-    socket.on('payout-completed', (data) => {
+    socket.on('payout-completed', async (data) => {
       this.toast.success('Payout successful!')
-      this.getInvoices()
+
+      this.invoices.forEach(invoice => {
+        if (invoice.transaction_id == data.transactionId) {
+          invoice.status = 'done'
+        }
+      })
     })
-    socket.on('payout-failed', (data) => {
+    socket.on('payout-failed', async (data) => {
       this.toast.error('Payout failed!')
-      this.getInvoices()
     })
 
     await this.getInvoices()
@@ -74,7 +85,13 @@ export default {
 }
 </script>
 <template>
-  <WithdrawConfirmation :withdrawAmount="withdrawAmount" :withdrawTransactionId="withdrawTransactionId" v-if="isWithdrawConfirmationPopupOpen" @close="closeWithdrawConfirmationPopup" />
+  <WithdrawConfirmation
+    :withdrawAmount="withdrawAmount"
+    :withdrawTransactionId="withdrawTransactionId"
+    :hotelId="getCurrentManagingHotelId"
+    v-if="isWithdrawConfirmationPopupOpen"
+    @close="closeWithdrawConfirmationPopup"
+  />
   <div class="invoice-list-container">
     <DashboardMenu />
     <div class="main-wrapper">
@@ -138,13 +155,18 @@ export default {
                       </ul>
                     </td>
                     <td class="icon">
-                      <button class="view" @click="seeInvoiceDetails(invoice.invoice_id)">View</button>
+                      <button class="view" @click="seeInvoiceDetails(invoice.invoice_id)">
+                        View
+                      </button>
                     </td>
                     <td class="icon">
                       <button
                         class="withdraw-btn"
+                        :class="{'disabled': isButtonDisabled(invoice)}"
                         :disabled="invoice.status == 'unavailable' || invoice.status == 'done'"
-                        @click="openWithdrawConfirmationPopup(invoice.amount, invoice.transaction_id)"
+                        @click="
+                          openWithdrawConfirmationPopup(invoice.amount, invoice.transaction_id)
+                        "
                       >
                         Withdraw
                       </button>
@@ -386,6 +408,16 @@ table thead td {
 
 .withdraw-btn:hover {
   background-color: #003b95;
+}
+
+.disabled {
+  background-color: #e0e0e0;
+  color: #8a8d91;
+}
+
+.disabled:hover {
+  background-color: #e0e0e0;
+  color: #8a8d91;
 }
 
 /*end Table*/

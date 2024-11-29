@@ -21,8 +21,18 @@ export default {
         withCredentials: true
       })
       this.bookings = response.data.bookings
-      console.log(this.bookings)
-    }
+      for (let i = 0; i < this.bookings.length; i++) {
+        this.bookings[i].bookerInformation = await this.getBookerInformation(this.bookings[i].buyer_id)
+      }
+    },
+    async getBookerInformation(buyer_id) {
+      const response = await axios.post('http://localhost:3000/api/admin/bookings/get-booker-information', {
+        buyer_id: buyer_id
+      }, {
+        withCredentials: true
+      })
+      return response.data.bookerInformation
+    },
   },
   async mounted() {
     await this.getAllBookings()
@@ -45,7 +55,7 @@ export default {
           <div class="header">
             <div>
               <h1>Booking Lists</h1>
-              <div class="booking-count">You have total 2,595 booking's.</div>
+              <div class="booking-count">You have total {{ bookings.length }} bookings.</div>
             </div>
             <div class="actions">
               <button class="export-btn">
@@ -85,15 +95,14 @@ export default {
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr v-for="booking in bookings" :key="booking.booking_id">
                 <td><input type="checkbox" /></td>
-                <td>AB-357</td>
+                <td>{{ booking.booking_code.slice(0, 5) + '...' }}</td>
                 <td>
                   <div class="customer-info">
-                    <div class="avatar blue">AB</div>
                     <div>
-                      <div class="customer-name">Abu Bin Ishtiyak</div>
-                      <div class="customer-email">info@softinio.com</div>
+                      <div class="customer-name">{{ booking.bookerInformation.username }}</div>
+                      <div class="customer-email">{{ booking.bookerInformation.email }}</div>
                     </div>
                   </div>
                 </td>
@@ -102,25 +111,6 @@ export default {
                 <td>Super Delux</td>
                 <td>10 Feb 2020</td>
                 <td><span class="status active">Paid</span></td>
-                <td><button class="more-btn">⋮</button></td>
-              </tr>
-              <tr>
-                <td><input type="checkbox" /></td>
-                <td>AB-753</td>
-                <td>
-                  <div class="customer-info">
-                    <div class="avatar navy">AL</div>
-                    <div>
-                      <div class="customer-name">Ashley Lawson</div>
-                      <div class="customer-email">ashley@softinio.com</div>
-                    </div>
-                  </div>
-                </td>
-                <td>Strater</td>
-                <td><span class="status pending">Pending</span></td>
-                <td>Single</td>
-                <td>07 Feb 2021</td>
-                <td><span class="status pending">Due</span></td>
                 <td><button class="more-btn">⋮</button></td>
               </tr>
             </tbody>
@@ -151,7 +141,7 @@ export default {
   margin: 0 auto;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
   padding: 20px;
 }
 
