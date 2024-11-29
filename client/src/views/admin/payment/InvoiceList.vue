@@ -6,13 +6,16 @@ import axios from 'axios'
 import { mapGetters } from 'vuex'
 import { useToast } from 'vue-toastification'
 import socket from '@/services/socket'
+import Loading from 'vue-loading-overlay'
+import 'vue-loading-overlay/dist/css/index.css'
 
 export default {
 
   components: {
     AdminHeader,
     DashboardMenu,
-    WithdrawConfirmation
+    WithdrawConfirmation,
+    Loading
   },
    setup() {
     const toast = useToast()
@@ -23,7 +26,8 @@ export default {
       invoices: [],
       isWithdrawConfirmationPopupOpen: false,
       withdrawAmount: 0,
-      withdrawTransactionId: 0
+      withdrawTransactionId: 0,
+      isLoading: false
     }
   },
   computed: {
@@ -32,6 +36,7 @@ export default {
   methods: {
     async getInvoices() {
       try {
+        this.isLoading = true
         const response = await axios.post(
           'http://localhost:3000/api/admin/payout',
           {
@@ -45,6 +50,8 @@ export default {
       } catch (error) {
         this.toast.error(error.message)
         console.log(error)
+      }finally {
+        this.isLoading = false
       }
     },
     seeInvoiceDetails(invoiceId) {
@@ -97,6 +104,13 @@ export default {
     <div class="main-wrapper">
       <AdminHeader />
 
+       <loading
+          v-model:active="isLoading"
+          :can-cancel="true"
+          :on-cancel="onCancel"
+          :color="`#003b95`"
+          :is-full-page="false"
+        />
       <!--Title-->
       <div class="title">
         <div class="container">
@@ -190,6 +204,7 @@ export default {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 /* Main content styles updated */
 /* Title*/
@@ -418,6 +433,12 @@ table thead td {
 .disabled:hover {
   background-color: #e0e0e0;
   color: #8a8d91;
+}
+
+.vl-parent {
+  position: relative;
+  height: 100%;
+  width: 100%;
 }
 
 /*end Table*/

@@ -2,12 +2,20 @@
 import axios from 'axios'
 import DashboardMenu from '@/components/admin/DashboardMenu.vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
-import { mapGetters } from 'vuex';
+import { mapGetters } from 'vuex'
+import Loading from 'vue-loading-overlay'
+import 'vue-loading-overlay/dist/css/index.css'
 
 export default {
+  components: {
+    DashboardMenu,
+    AdminHeader,
+    Loading
+  },
   data() {
     return {
-      bookings: []
+      bookings: [],
+      isLoading: false,
     }
   },
   computed: {
@@ -15,31 +23,49 @@ export default {
   },
   methods: {
     async getAllBookings() {
-      const response = await axios.post('http://localhost:3000/api/admin/bookings/all', {
-        hotelId: this.getCurrentManagingHotelId
-      }, {
-        withCredentials: true
-      })
-      this.bookings = response.data.bookings
-      for (let i = 0; i < this.bookings.length; i++) {
-        this.bookings[i].bookerInformation = await this.getBookerInformation(this.bookings[i].buyer_id)
+      try {
+        
+        const response = await axios.post(
+          'http://localhost:3000/api/admin/bookings/all',
+          {
+            hotelId: this.getCurrentManagingHotelId
+          },
+          {
+            withCredentials: true
+          }
+        )
+        this.bookings = response.data.bookings
+        for (let i = 0; i < this.bookings.length; i++) {
+          this.bookings[i].bookerInformation = await this.getBookerInformation(
+            this.bookings[i].buyer_id
+          )
+        }
+      } catch (error) {
+        console.log(error)
+      } finally {
+        
       }
     },
     async getBookerInformation(buyer_id) {
-      const response = await axios.post('http://localhost:3000/api/admin/bookings/get-booker-information', {
-        buyer_id: buyer_id
-      }, {
-        withCredentials: true
-      })
+      const response = await axios.post(
+        'http://localhost:3000/api/admin/bookings/get-booker-information',
+        {
+          buyer_id: buyer_id
+        },
+        {
+          withCredentials: true
+        }
+      )
       return response.data.bookerInformation
     },
+    onCancel() {
+      console.log('User cancelled the loader.')
+    }
   },
   async mounted() {
+    this.isLoading = true
     await this.getAllBookings()
-  },
-  components: {
-    DashboardMenu,
-    AdminHeader
+    this.isLoading = false
   }
 }
 </script>
@@ -51,6 +77,13 @@ export default {
       <AdminHeader />
       <!-- main content -->
       <div class="main-content">
+        <loading
+          v-model:active="isLoading"
+          :can-cancel="true"
+          :on-cancel="onCancel"
+          :color="`#003b95`"
+          :is-full-page="false"
+        />
         <div class="container">
           <div class="header">
             <div>
@@ -134,6 +167,7 @@ export default {
 
 .main-content {
   padding: 24px;
+  position: relative;
 }
 
 .container {
@@ -279,5 +313,11 @@ td {
   color: #718096;
   cursor: pointer;
   font-size: 20px;
+}
+
+.vl-parent {
+  position: relative;
+  height: 100%;
+  width: 100%;
 }
 </style>
