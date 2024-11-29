@@ -8,6 +8,7 @@ export default {
           isHomeSelected: false,
           isPaymentSelected: false,
           isBookingsSelected: false,
+          isRoomAvailabilitySelected: false,
           selected: false
         }
     },
@@ -38,13 +39,15 @@ export default {
           </div>
           <!-- Availability -->
           <div class="nav-item-container">
-            <div class="title-nav-item">
-              <li class="nav-item" @click="this.$router.push('/admin/home')"><i class="fa fa-calendar" aria-hidden="true"></i>Availability</li>
-              <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;" v-if="!this.selected"></i>
-              <i class="fa fa-angle-down" aria-hidden="true" style="margin-right: 10px;" v-if="this.selected"></i>
+            <div class="title-nav-item" @click="this.isRoomAvailabilitySelected = !this.isRoomAvailabilitySelected">
+              <li class="nav-item"><i class="fa fa-calendar" aria-hidden="true"></i>Availability</li>
+              <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;" v-if="!this.isRoomAvailabilitySelected"></i>
+              <i class="fa fa-angle-down" aria-hidden="true" style="margin-right: 10px;" v-if="this.isRoomAvailabilitySelected"></i>
             </div>
-            <div class="child-item-container">
-              <li class="child-item"></li>
+            <div class="child-item-container" v-if="this.isRoomAvailabilitySelected">
+              <li class="child-item">
+                <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/room-availability/availability-calendar`)">Availability calendar</li>
+              </li>
             </div>
           </div>
           <!-- Bookings -->

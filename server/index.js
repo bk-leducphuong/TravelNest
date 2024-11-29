@@ -88,10 +88,12 @@ app.use('/api/user', userRoutes);
 const adminPayoutRoutes = require('./routes/admin/payoutRoutes.js');
 const bookingsRoutes = require('./routes/admin/bookingsRoutes.js');
 const hotelsManagementRoutes = require('./routes/admin/hotelsManagementRoutes.js');
+const roomRoutes = require('./routes/admin/roomRoutes.js');
 
 app.use('/api/admin/hotels-management', hotelsManagementRoutes);
 app.use('/api/admin/payout', adminPayoutRoutes);
 app.use('/api/admin/bookings', bookingsRoutes);
+app.use('/api/admin/room', roomRoutes);
 
 // Common routes
 const notificationRoutes = require('./routes/notificationRoutes');
