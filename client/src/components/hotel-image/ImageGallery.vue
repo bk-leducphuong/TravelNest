@@ -22,7 +22,7 @@ export default {
   data() {
     return {
       currentSelectedRoomId: 0,
-      currentImages: this.hotelImages,
+      currentImages: null,
       isImageSliderOpen: false
     }
   },
@@ -51,11 +51,17 @@ export default {
   },
   mounted() {
     this.selectRoom(0)
+    this.currentImages = this.hotelImages
   }
 }
 </script>
 <template>
-  <ImageSlider v-if="isImageSliderOpen" :images="currentImages" :isImageSliderOpen="isImageSliderOpen" @close-image-slider="closeImageSlider" />
+  <ImageSlider
+    v-if="isImageSliderOpen"
+    :images="currentImages"
+    :isImageSliderOpen="isImageSliderOpen"
+    @close-image-slider="closeImageSlider"
+  />
   <div class="overlay" v-if="isOpenImageGallery">
     <div class="hotel-card">
       <div class="hotel-header">
@@ -69,13 +75,23 @@ export default {
       </div>
 
       <div class="room-types">
-        <div class="room-card" :class="{selected: currentSelectedRoomId === 0}" @click="selectRoom(0)">
+        <div
+          class="room-card"
+          :class="{ selected: currentSelectedRoomId === 0 }"
+          @click="selectRoom(0)"
+        >
           <img src=" " alt="Overview" class="room-image" />
           <div class="room-info">
             <div class="room-type">Tổng quan</div>
           </div>
         </div>
-        <div class="room-card" v-for="room in room_list" :key="room.room_id" @click="selectRoom(room)" :class="{selected: currentSelectedRoomId === room.room_id}">
+        <div
+          class="room-card"
+          v-for="room in room_list"
+          :key="room.room_id"
+          @click="selectRoom(room)"
+          :class="{ selected: currentSelectedRoomId === room.room_id }"
+        >
           <img
             :src="JSON.parse(room.room_image_urls)[0]"
             :alt="room.room_name"
@@ -116,6 +132,8 @@ export default {
 }
 
 .hotel-card {
+  flex-direction: column;
+  display: flex;
   position: relative;
   width: 80%;
   background: white;
@@ -186,7 +204,7 @@ export default {
   cursor: pointer;
 }
 
-.selected{
+.selected {
   border: 2px solid #0066ff;
 }
 

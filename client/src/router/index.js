@@ -25,7 +25,10 @@ import Return from '@/views/admin/Return.vue'
 import Refresh from '@/views/admin/Refresh.vue'
 // admin bookings
 import AllBookings from '@/views/admin/bookings/AllBookings.vue'
+import BookingDetails from '@/views/admin/bookings/BookingDetails.vue'
 import book from '@/stores/book'
+// admin room availability
+import AvailabilityCalendar from '@/views/admin/room-availability/AvailabilityCalendar.vue'
 
 const routes = [
   // route for customer
@@ -151,6 +154,22 @@ const routes = [
     path: '/return/:connectedAccountId',
     name: 'Return',
     component: Return
+  },
+  {
+    path: '/admin/:hotelId/bookings/booking-details',
+    name: 'BookingDetails',
+    component: BookingDetails,
+    props: (route) => ({
+      bc: route.query.bc // booking code
+    }),
+    meta: {requiresAuth: true}
+  },
+  // admin room availability
+  {
+    path: '/admin/:hotelId/room-availability/availability-calendar',
+    name: 'AvailabilityCalendar',
+    component: AvailabilityCalendar,
+    meta: {requiresAuth: true}
   },
   // Catch-all route (for 404s)
   {

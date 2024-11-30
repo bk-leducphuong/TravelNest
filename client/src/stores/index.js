@@ -7,6 +7,7 @@ import user from './user';
 import search from './search';
 import book from './book';
 import join from './join';
+import booking from './booking';
 // admin
 import manageHotels from './manageHotels';
 
@@ -16,6 +17,7 @@ const vuexSession = new VuexPersistence({
     // Persist the entire `search` and `book` modules
     search: state.search,
     book: state.book,
+    booking: state.booking
   }),
 });
 
@@ -27,6 +29,7 @@ const stores = createStore({
     book,
     join,
     manageHotels,
+    booking
   },
   plugins: [vuexSession.plugin],
 });

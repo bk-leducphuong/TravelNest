@@ -2,34 +2,138 @@
 import axios from 'axios'
 import DashboardMenu from '@/components/admin/DashboardMenu.vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
-import { mapGetters } from 'vuex';
+import { mapActions, mapGetters } from 'vuex'
+import Loading from 'vue-loading-overlay'
+import 'vue-loading-overlay/dist/css/index.css'
 
 export default {
+  components: {
+    DashboardMenu,
+    AdminHeader,
+    Loading
+  },
   data() {
     return {
-      bookings: []
+      bookings: [],
+      isLoading: false,
+      rooms: []
     }
   },
   computed: {
     ...mapGetters('manageHotels', ['getCurrentManagingHotelId'])
   },
   methods: {
+    ...mapActions('booking', ['setBookingInformation']),
     async getAllBookings() {
-      const response = await axios.post('http://localhost:3000/api/admin/bookings/all', {
-        hotelId: this.getCurrentManagingHotelId
-      }, {
-        withCredentials: true
+      try {
+        const response = await axios.post(
+          'http://localhost:3000/api/admin/bookings/all',
+          {
+            hotelId: this.getCurrentManagingHotelId
+          },
+          {
+            withCredentials: true
+          }
+        )
+
+        let bookings = response.data.bookings
+
+        // group bookings which have the same booking code
+        bookings = this.groupBookings(bookings)
+
+        // assign room information for each corresponding booking
+        bookings.forEach((booking) => {
+          booking.bookings.forEach((childBooking) => {
+            childBooking.roomInformation = this.rooms.find((room) => room.room_id === childBooking.room_id)
+          })
+        })
+
+        // Fetch booker information for each corresponding booking
+        this.bookings = await Promise.all(
+          bookings.map(async (booking) => {
+            try {
+              booking.bookerInformation = await this.getBookerInformation(booking.buyer_id)
+            } catch (err) {
+              console.error(`Failed to fetch booker info for booking ${booking.id}:`, err)
+              booking.bookerInformation = null // Assign null if there's an error
+            }
+            return booking
+          })
+        )
+      } catch (error) {
+        console.log(error)
+      } finally {
+      }
+    },
+    groupBookings(bookings) {
+      const groupedBookings = new Map()
+
+      bookings.forEach((booking) => {
+        const bookingCode = booking.booking_code
+
+        if (!groupedBookings.has(bookingCode)) {
+          groupedBookings.set(bookingCode, {
+            booking_code: bookingCode,
+            bookings: [booking],
+            buyer_id: booking.buyer_id,
+            checkInDate: booking.check_in_date,
+            checkOutDate: booking.check_out_date,
+            bookedOn: booking.created_at,
+          })
+        } else {
+          groupedBookings.get(bookingCode).bookings.push(booking)
+        }
       })
-      this.bookings = response.data.bookings
-      console.log(this.bookings)
+
+      // Convert Map to an array
+      return Array.from(groupedBookings.values())
+    },
+    async getBookerInformation(buyer_id) {
+      try {
+        const response = await axios.post(
+          'http://localhost:3000/api/admin/bookings/get-booker-information',
+          {
+            buyer_id: buyer_id
+          },
+          {
+            withCredentials: true
+          }
+        )
+        return response.data.bookerInformation
+      } catch (error) {
+        console.error(`Error fetching booker information for buyer ${buyer_id}:`, error)
+        throw error // Re-throw the error to handle it in `getAllBookings`
+      }
+    },
+    async getAllRooms() {
+      const response = await axios.post(
+        'http://localhost:3000/api/admin/room/get-all-rooms',
+        {
+          hotelId: this.getCurrentManagingHotelId
+        },
+        {
+          withCredentials: true
+        }
+      )
+      this.rooms = response.data
+    },
+    onCancel() {
+      console.log('User cancelled the loader.')
+    },
+    redirectToBookingDetails(bookingCode) {
+      this.bookings.forEach(booking => {
+        if (booking.booking_code == bookingCode) {
+          this.setBookingInformation(booking)
+        }
+      })
+      this.$router.push({ path: `/admin/${this.getCurrentManagingHotelId}/bookings/booking-details`, query: { bc: bookingCode } })
     }
   },
   async mounted() {
+    this.isLoading = true
+    await this.getAllRooms()
     await this.getAllBookings()
-  },
-  components: {
-    DashboardMenu,
-    AdminHeader
+    this.isLoading = false
   }
 }
 </script>
@@ -41,11 +145,18 @@ export default {
       <AdminHeader />
       <!-- main content -->
       <div class="main-content">
+        <loading
+          v-model:active="isLoading"
+          :can-cancel="true"
+          :on-cancel="onCancel"
+          :color="`#003b95`"
+          :is-full-page="false"
+        />
         <div class="container">
           <div class="header">
             <div>
               <h1>Booking Lists</h1>
-              <div class="booking-count">You have total 2,595 booking's.</div>
+              <div class="booking-count">You have total {{ bookings.length }} bookings.</div>
             </div>
             <div class="actions">
               <button class="export-btn">
@@ -76,8 +187,7 @@ export default {
                 <th><input type="checkbox" /></th>
                 <th>ID</th>
                 <th>Customer</th>
-                <th>Package</th>
-                <th>Booking</th>
+                <th>Booked On</th>
                 <th>Room Type</th>
                 <th>Arrive</th>
                 <th>Payment</th>
@@ -85,42 +195,21 @@ export default {
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr v-for="booking in bookings" :key="booking.booking_id">
                 <td><input type="checkbox" /></td>
-                <td>AB-357</td>
+                <td class="booking-code" @click="redirectToBookingDetails(booking.booking_code)">{{ booking.booking_code.slice(0, 5) + '...' }}</td>
                 <td>
                   <div class="customer-info">
-                    <div class="avatar blue">AB</div>
                     <div>
-                      <div class="customer-name">Abu Bin Ishtiyak</div>
-                      <div class="customer-email">info@softinio.com</div>
+                      <div class="customer-name">{{ booking.bookerInformation.username }}</div>
+                      <div class="customer-email">{{ booking.bookerInformation.email }}</div>
                     </div>
                   </div>
                 </td>
-                <td>Continental</td>
-                <td><span class="status active">Active</span></td>
-                <td>Super Delux</td>
-                <td>10 Feb 2020</td>
+                <td>{{ (new Date(booking.bookedOn)).toString().split(' ').splice(0, 3).join(' ') }}</td>
+                <td><div v-for="childBooking in booking.bookings">{{ childBooking.quantity }} x {{ childBooking.roomInformation.room_name }}</div></td>
+                <td>{{ (new Date(booking.checkInDate)).toString().split(' ').splice(0, 3).join(' ') }}</td>
                 <td><span class="status active">Paid</span></td>
-                <td><button class="more-btn">⋮</button></td>
-              </tr>
-              <tr>
-                <td><input type="checkbox" /></td>
-                <td>AB-753</td>
-                <td>
-                  <div class="customer-info">
-                    <div class="avatar navy">AL</div>
-                    <div>
-                      <div class="customer-name">Ashley Lawson</div>
-                      <div class="customer-email">ashley@softinio.com</div>
-                    </div>
-                  </div>
-                </td>
-                <td>Strater</td>
-                <td><span class="status pending">Pending</span></td>
-                <td>Single</td>
-                <td>07 Feb 2021</td>
-                <td><span class="status pending">Due</span></td>
                 <td><button class="more-btn">⋮</button></td>
               </tr>
             </tbody>
@@ -144,6 +233,7 @@ export default {
 
 .main-content {
   padding: 24px;
+  position: relative;
 }
 
 .container {
@@ -151,7 +241,7 @@ export default {
   margin: 0 auto;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
   padding: 20px;
 }
 
@@ -227,6 +317,15 @@ td {
   border-bottom: 1px solid #e2e8f0;
 }
 
+.booking-code {
+  color: #003b95;
+  cursor: pointer;
+}
+
+.booking-code:hover {
+  color: #4e82d1;
+}
+
 .customer-info {
   display: flex;
   align-items: center;
@@ -289,5 +388,11 @@ td {
   color: #718096;
   cursor: pointer;
   font-size: 20px;
+}
+
+.vl-parent {
+  position: relative;
+  height: 100%;
+  width: 100%;
 }
 </style>

@@ -14,6 +14,10 @@ export default {
     withdrawTransactionId: {
       type: Number,
       required: true
+    },
+    hotelId: {
+      type: Number,
+      required: true
     }
   },
   methods: {
@@ -23,14 +27,15 @@ export default {
           'http://localhost:3000/api/admin/payout/create-payout',
           {
             amount: this.withdrawAmount,
-            transaction_id: this.withdrawTransactionId
+            transactionId: this.withdrawTransactionId,
+            hotelId: this.hotelId
           },
           {
             withCredentials: true
           }
         )
 
-        this.toast.success('Withdrawal successful!')
+        // this.toast.success('Withdrawal successful!')
         setTimeout(() => {
            this.$emit('close')
         }, 1000)

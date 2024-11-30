@@ -15,7 +15,8 @@ export default {
       accountCreatePending: false,
       accountLinkCreatePending: false,
       error: false,
-      connectedAccountId: null
+      connectedAccountId: null,
+      isLoading: false
     }
   },
   computed: {
@@ -44,6 +45,7 @@ export default {
     },
     async createAccount() {
       try {
+        this.isLoading = true
         if (!(await this.checkAccountExist())) {
           this.accountCreatePending = true
           this.error = false
@@ -59,13 +61,12 @@ export default {
           this.accountCreatePending = false
           this.connectedAccountId = response.data.connectedAccountId
         }
-
-        console.log(this.connectedAccountId)
-
         // redirect to account onboarding page
         await this.createAccountLink()
       } catch (error) {
         console.log(error)
+      }finally {
+        this.isLoading = false
       }
     },
     async createAccountLink() {
@@ -136,7 +137,7 @@ export default {
         <div class="container">
           <h2>Ready to Get Started?</h2>
           <p>Set up your Stripe account and start managing your earnings today.</p>
-          <a @click="createAccount" class="cta-button">Set Up Stripe Now</a>
+          <a @click="createAccount" class="cta-button">{{ isLoading ? "Loading..." : "Set Up Stripe Now" }}</a>
         </div>
       </section>
 
@@ -196,12 +197,9 @@ a {
 }
 
 .introduction-section {
-  margin-bottom: 30px;
+  margin: 24px;
   background: white;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  max-width: 950px;
-  margin: auto;
-  margin-top: 20px;
   border-radius: 8px;
 }
 
@@ -231,6 +229,7 @@ section .cta-button {
   margin-top: 15px;
   padding: 12px 20px;
   font-size: 18px;
+  font-weight: 700;
   background-color: #0071c2;
   color: white;
   border: none;

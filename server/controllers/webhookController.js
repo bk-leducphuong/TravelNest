@@ -105,8 +105,8 @@ const storeInvoice = async (paymentIntent) => {
 
 const handlePaymentIntentCreated = async (paymentIntent) => {
   try {
-    const { buyer_id: buyerId } = paymentIntent.metadata;
-    const sellerId = await getSellerId(paymentIntent);
+    const { buyer_id: buyerId, hotel_id: hotelId } = paymentIntent.metadata;
+    //const sellerId = await getSellerId(paymentIntent);
     const paymentMethodId = paymentIntent.payment_method;
     const paymentMethod = paymentMethodId
       ? await stripe.paymentMethods.retrieve(paymentMethodId)
@@ -115,12 +115,12 @@ const handlePaymentIntentCreated = async (paymentIntent) => {
     const currency = paymentIntent.currency.toUpperCase();
 
     const transactionQuery = `
-      INSERT INTO Transactions (buyer_id, seller_id, amount, currency, status, transaction_type, payment_intent_id)
+      INSERT INTO Transactions (buyer_id, hotel_id, amount, currency, status, transaction_type, payment_intent_id)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
     const { insertId: transactionId } = await queryAsync(transactionQuery, [
       buyerId,
-      sellerId,
+      hotelId,
       paymentIntent.amount,
       currency,
       "pending",
@@ -188,8 +188,8 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
 };
 const handlePaymentIntentFailed = async (paymentIntent) => {
   try {
-    const { buyer_id: buyerId } = paymentIntent.metadata;
-    const sellerId = await getSellerId(paymentIntent);
+    const { buyer_id: buyerId, hotel_id: hotelId } = paymentIntent.metadata;
+    //const sellerId = await getSellerId(paymentIntent);
     const paymentMethodId = paymentIntent.payment_method;
     const paymentMethod = paymentMethodId
       ? await stripe.paymentMethods.retrieve(paymentMethodId)
@@ -198,12 +198,12 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
     const currency = paymentIntent.currency.toUpperCase();
 
     const transactionQuery = `
-      INSERT INTO Transactions (buyer_id, seller_id, amount, currency, status, transaction_type, payment_intent_id)
+      INSERT INTO Transactions (buyer_id, hotel_id, amount, currency, status, transaction_type, payment_intent_id)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
     const { insertId: transactionId } = await queryAsync(transactionQuery, [
       buyerId,
-      sellerId,
+      hotelId,
       paymentIntent.amount,
       currency,
       "failed",
@@ -233,14 +233,32 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
 // Email template function
 const sendConfirmationEmail = async (paymentIntent) => {
   try {
+    const {
+      hotel_id: hotelId,
+      buyer_id: buyerId,
+      seller_id: seller_id,
+      booked_rooms,
+      check_in_date: checkInDate,
+      check_out_date: checkOutDate,
+      number_of_guests: numberOfGuests,
+      booking_code: bookingCode,
+    } = paymentIntent.metadata;
+    //TODO: get hotel name, get buyer name
+    //...
+    
     // Load the email template
     const templatePath = "./email-templates/thankyou.html";
     let emailTemplate = fs.readFileSync(templatePath, "utf8");
 
-    // TODO: Pass booking information to email template
-    // // Replace placeholders with actual booking details
-    // emailTemplate = emailTemplate
-    //   .replace('{{bookingCode}}', bookingCode)
+    // Replace placeholders with actual booking details
+    emailTemplate = emailTemplate
+      // .replace('{{buyerName}}', buyerName)
+      // .replace('{{hotelName}}', hotelName)
+      .replace('{{bookingCode}}', bookingCode)
+      .replace('{{checkInDate}}', (new Date(checkInDate)).toString().split(' ').splice(0, 4).join(' '))
+      .replace('{{checkOutDate}}', (new Date(checkOutDate)).toString().split(' ').splice(0, 4).join(' '))
+      .replace('{{numberOfGuests}}', numberOfGuests)
+      .replace('{{totalPrice}}', parseInt(paymentIntent.amount).toLocaleString('vi-VN'))
 
     // Email options
     const mailOptions = {
@@ -325,6 +343,28 @@ async function sendNewBookingNotification(paymentIntent) {
     senderId: notification.senderId,
   });
 }
+/******************************************* Room inventory **********************************************/
+const updateRoomInventory = async (paymentIntent) => {
+  const {
+    booked_rooms: bookedRooms,
+    check_in_date: checkInDate,
+    check_out_date: checkOutDate,
+  } = paymentIntent.metadata;
+  const bookedRoomsArray = JSON.parse(bookedRooms);
+  for (const bookedRoom of bookedRoomsArray) {
+    const roomQuery = `
+      UPDATE room_inventory
+      SET total_reserved = total_reserved + ?
+      WHERE room_id = ? AND date BETWEEN ? AND ? ;
+    `;
+    await queryAsync(roomQuery, [
+      bookedRoom.roomQuantity,
+      bookedRoom.room_id,
+      checkInDate,
+      checkOutDate,
+    ]);
+  }
+};
 
 /******************************************* Payout Event **********************************************/
 const handlePayoutEvent = async (payout, status) => {
@@ -376,6 +416,7 @@ const webhookController = async (req, res) => {
 
   // Handle specific event types
   try {
+    const io = getIO();
     const paymentIntent = event.data.object;
 
     switch (event.type) {
@@ -405,11 +446,14 @@ const webhookController = async (req, res) => {
         }
         // send notification to hotel owner
         await sendNewBookingNotification(paymentIntent);
-
+        // store transaction and payment
         await handlePaymentIntentSucceeded(paymentIntent);
-
+        // store booking
         await storeBooking(paymentIntent);
+        // store invoice
         await storeInvoice(paymentIntent);
+        // update number of reserved rooms
+        await updateRoomInventory(paymentIntent);
 
         // Send confirmation email
         if (receiptEmail) {
@@ -436,12 +480,21 @@ const webhookController = async (req, res) => {
         const payoutPaid = event.data.object;
         await handlePayoutEvent(payoutPaid, "completed");
         //TODO: send notification to hotel owner
+        io.to(`owner_${payoutPaid.metadata.hotel_id}`).emit(
+          "payout-completed",
+          {
+            transactionId: payoutPaid.metadata.transaction_id,
+          }
+        );
         break;
 
       case "payout.failed":
         const failedPayout = event.data.object;
         await handlePayoutEvent(failedPayout, "failed");
         //TODO: send notification to hotel owner
+        io.to(`owner_${failedPayout.metadata.hotel_id}`).emit("payout-failed", {
+          transactionId: failedPayout.metadata.transaction_id,
+        });
         break;
 
       // Add more event types as needed
