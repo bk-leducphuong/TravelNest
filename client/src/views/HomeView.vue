@@ -3,11 +3,14 @@ import TheHeader from '../components/Header.vue'
 import TheFooter from '../components/Footer.vue'
 import axios from 'axios'
 import { mapActions, mapState, mapGetters } from 'vuex'
+import Loading from 'vue-loading-overlay'
+import 'vue-loading-overlay/dist/css/index.css'
 
 export default {
   components: {
     TheHeader,
-    TheFooter
+    TheFooter,
+    Loading
   },
   data() {
     return {
@@ -25,7 +28,12 @@ export default {
         ['recentSlider', 0],
         ['viewedSlider', 0],
         ['nearbySlider', 0]
-      ])
+      ]),
+
+      isNearByHotelsLoading: false,
+      isPopularPlacesLoading: false,
+      isRecentSearchesLoading: false,
+      isViewedHotelsLoading: false
     }
   },
   computed: {
@@ -46,7 +54,14 @@ export default {
     }
   },
   methods: {
-    ...mapActions('search', ['updateLocation', 'updateCheckInDate', 'updateCheckOutDate', 'updateAdults', 'updateChildren', 'updateRooms']),
+    ...mapActions('search', [
+      'updateLocation',
+      'updateCheckInDate',
+      'updateCheckOutDate',
+      'updateAdults',
+      'updateChildren',
+      'updateRooms'
+    ]),
     redirectToSearchResults(search) {
       // update vuex store
       this.updateLocation(search.location)
@@ -102,6 +117,7 @@ export default {
     // load hotels which close to user
     async loadNearbyHotels() {
       try {
+        this.isNearByHotelsLoading = true
         const response = await axios.post('http://localhost:3000/api/home/nearby-hotels', {
           location: this.getUserLocation
         })
@@ -109,6 +125,8 @@ export default {
         this.noNearbyHotelsFound = this.nearbyHotels.length === 0 ? true : false
       } catch (error) {
         console.error('Error fetching nearby hotels:', error)
+      } finally {
+        this.isNearByHotelsLoading = false
       }
     },
     // Load data from localStorage for recently searched
@@ -126,7 +144,7 @@ export default {
 
       this.noRecentSearchesFound = this.recentSearches.length === 0 ? true : false
     },
-    
+
     // Load data from localStorage for viewed hotels
     async loadViewedHotels() {
       let hotels = JSON.parse(localStorage.getItem('viewedHotels')) || []
@@ -146,12 +164,19 @@ export default {
 
     // Static popular places data (replace with API or dynamic data)
     async loadPopularPlaces() {
-      const response = await axios.get('http://localhost:3000/api/home/popular-places')
+      try {
+        this.isPopularPlacesLoading = true
+        const response = await axios.get('http://localhost:3000/api/home/popular-places')
 
-      this.popularPlaces = response.data.popular_places
+        this.popularPlaces = response.data.popular_places
 
-      this.noPopularPlacesFound = this.popularPlaces.length === 0 ? true : false
-      // console.log(this.popularPlaces);
+        this.noPopularPlacesFound = this.popularPlaces.length === 0 ? true : false
+        // console.log(this.popularPlaces);
+      } catch (error) {
+        console.error('Error fetching popular places:', error)
+      } finally {
+        this.isPopularPlacesLoading = false
+      }
     },
 
     // Remove a recent search item
@@ -210,7 +235,7 @@ export default {
 </script>
 
 <template>
-  <TheHeader :isSearchOpen="true"/>
+  <TheHeader :isSearchOpen="true" />
   <!-- home body -->
   <div class="home-container">
     <!-- Recently Search -->
@@ -218,24 +243,39 @@ export default {
       <h2 class="h2">Tìm kiếm gần đây của bạn</h2>
       <div class="slider-container">
         <div ref="recentSlider" class="search-slider">
-          <div class="search-card" v-for="(search, index) in recentSearches" :key="index"
-            @click="redirectToSearchResults(search)">
+          <div
+            class="search-card"
+            v-for="(search, index) in recentSearches"
+            :key="index"
+            @click="redirectToSearchResults(search)"
+          >
             <div class="search-image">
-              <img :src="'http://localhost:3000/vietnam_city/' + search.location + '.jpg'" :alt="search.location" />
+              <img
+                :src="'http://localhost:3000/vietnam_city/' + search.location + '.jpg'"
+                :alt="search.location"
+              />
             </div>
             <div class="search-content">
               <h2 class="search-title">{{ search.location }}</h2>
-              <p class="search-details">From {{ search.checkInDate }} to {{ search.checkOutDate}}</p>
+              <p class="search-details">
+                From {{ search.checkInDate }} to {{ search.checkOutDate }}
+              </p>
             </div>
             <button class="close-button" @click="removeSearch(index, $event)">×</button>
           </div>
         </div>
-        <button class="nav-button prev" :disabled="disableScrollLeft('recentSlider')"
-          @click="scrollLeft('recentSlider')">
+        <button
+          class="nav-button prev"
+          :disabled="disableScrollLeft('recentSlider')"
+          @click="scrollLeft('recentSlider')"
+        >
           ‹
         </button>
-        <button class="nav-button next" :disabled="disableScrollRight('recentSlider')"
-          @click="scrollRight('recentSlider')">
+        <button
+          class="nav-button next"
+          :disabled="disableScrollRight('recentSlider')"
+          @click="scrollRight('recentSlider')"
+        >
           ›
         </button>
       </div>
@@ -246,8 +286,12 @@ export default {
       <h2 class="h2">Bạn có còn quan tâm đến những chỗ nghỉ này?</h2>
       <div class="slider-container">
         <div ref="viewedSlider" class="hotel-slider">
-          <div class="hotel-card" v-for="(hotel, index) in viewedHotels" :key="index"
-            @click="redirectToHotelDetails(hotel)">
+          <div
+            class="hotel-card"
+            v-for="(hotel, index) in viewedHotels"
+            :key="index"
+            @click="redirectToHotelDetails(hotel)"
+          >
             <div class="hotel-image">
               <img :src="hotel.image_urls" :alt="hotel.name" />
               <button class="favorite-button" @click="toggleFavorite(index)">
@@ -265,12 +309,18 @@ export default {
             </div>
           </div>
         </div>
-        <button class="nav-button prev" :disabled="disableScrollLeft('viewedSlider')"
-          @click="scrollLeft('viewedSlider')">
+        <button
+          class="nav-button prev"
+          :disabled="disableScrollLeft('viewedSlider')"
+          @click="scrollLeft('viewedSlider')"
+        >
           ‹
         </button>
-        <button class="nav-button next" :disabled="disableScrollRight('viewedSlider')"
-          @click="scrollRight('viewedSlider')">
+        <button
+          class="nav-button next"
+          :disabled="disableScrollRight('viewedSlider')"
+          @click="scrollRight('viewedSlider')"
+        >
           ›
         </button>
       </div>
@@ -279,10 +329,20 @@ export default {
     <!-- Nearby Hotels -->
     <div class="hotel-container container" v-if="!noNearbyHotelsFound">
       <h2 class="h2">Những khách sạn gần đây</h2>
+      <loading
+        v-model:active="isNearByHotelsLoading"
+        :can-cancel="true"
+        :color="`#003b95`"
+        :is-full-page="false"
+      />
       <div class="slider-container">
         <div ref="nearbySlider" class="hotel-slider">
-          <div class="hotel-card" v-for="(hotel, index) in nearbyHotels" :key="index"
-            @click="redirectToHotelDetails(hotel)">
+          <div
+            class="hotel-card"
+            v-for="(hotel, index) in nearbyHotels"
+            :key="index"
+            @click="redirectToHotelDetails(hotel)"
+          >
             <div class="hotel-image">
               <img :src="hotel.image_urls" :alt="hotel.name" />
               <button class="favorite-button" @click="toggleFavorite(index)">
@@ -300,12 +360,18 @@ export default {
             </div>
           </div>
         </div>
-        <button class="nav-button prev" :disabled="disableScrollLeft('nearbySlider')"
-          @click="scrollLeft('nearbySlider')">
+        <button
+          class="nav-button prev"
+          :disabled="disableScrollLeft('nearbySlider')"
+          @click="scrollLeft('nearbySlider')"
+        >
           ‹
         </button>
-        <button class="nav-button next" :disabled="disableScrollRight('nearbySlider')"
-          @click="scrollRight('nearbySlider')">
+        <button
+          class="nav-button next"
+          :disabled="disableScrollRight('nearbySlider')"
+          @click="scrollRight('nearbySlider')"
+        >
           ›
         </button>
       </div>
@@ -317,23 +383,44 @@ export default {
         <h2 class="h2">Điểm đến đang thịnh hành</h2>
         <h4 class="h4">Các lựa chọn phổ biến nhất cho du khách từ Việt Nam</h4>
       </div>
+      <loading
+        v-model:active="isPopularPlacesLoading"
+        :can-cancel="true"
+        :color="`#003b95`"
+        :is-full-page="false"
+      />
       <div class="popular-place-card-up-grid popular-place-card-grid">
-        <div class="popular-place-card" v-for="(place, index) in popularPlaces.slice(0, 2)" :key="index" @click="
-          redirectToSearchResults({
-            location: place.location,
-            checkInDate: '',
-            checkOutDate: '',
-            adults: '',
-            children: '',
-            rooms: ''
-          })
-          ">
-          <img :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'" :alt="place.location" />
+        <div
+          class="popular-place-card"
+          v-for="(place, index) in popularPlaces.slice(0, 2)"
+          :key="index"
+          @click="
+            redirectToSearchResults({
+              location: place.location,
+              checkInDate: '',
+              checkOutDate: '',
+              adults: '',
+              children: '',
+              rooms: ''
+            })
+          "
+        >
+          <img
+            :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'"
+            :alt="place.location"
+          />
         </div>
       </div>
       <div class="popular-place-card-bottom-grid popular-place-card-grid">
-        <div class="popular-place-card" v-for="(place, index) in popularPlaces.slice(2, 5)" :key="index">
-          <img :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'" :alt="place.location" />
+        <div
+          class="popular-place-card"
+          v-for="(place, index) in popularPlaces.slice(2, 5)"
+          :key="index"
+        >
+          <img
+            :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'"
+            :alt="place.location"
+          />
         </div>
       </div>
     </div>
@@ -380,6 +467,7 @@ img {
 .container {
   margin-bottom: 30px;
   margin-top: 30px;
+  position: relative;
 }
 
 .popular-place-card-grid {
@@ -661,5 +749,11 @@ h1 {
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 12px;
+}
+
+.vl-parent {
+  position: relative;
+  height: 100%;
+  width: 100%;
 }
 </style>
