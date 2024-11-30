@@ -75,6 +75,7 @@ const homeRoutes = require('./routes/homeRoutes');
 const joinRoutes = require('./routes/joinRoutes');
 const paymentRoutes = require('./routes/paymentRoutes.js');
 const userRoutes = require('./routes/userRoutes.js');
+const reviewRoutes = require('./routes/reviewRoutes.js');
 
 app.use('/api/search', searchRoutes);
 app.use('/api/home', homeRoutes);
@@ -83,17 +84,20 @@ app.use('/api/auth', authRoutes); // Login route
 app.use('/api/join', joinRoutes); // Become a host route
 app.use('/api/payment', paymentRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/review', reviewRoutes);
 
 // Admin routes
 const adminPayoutRoutes = require('./routes/admin/payoutRoutes.js');
 const bookingsRoutes = require('./routes/admin/bookingsRoutes.js');
 const hotelsManagementRoutes = require('./routes/admin/hotelsManagementRoutes.js');
 const roomRoutes = require('./routes/admin/roomRoutes.js');
+const adminReviewRoutes = require('./routes/admin/reviewRoutes.js');
 
 app.use('/api/admin/hotels-management', hotelsManagementRoutes);
 app.use('/api/admin/payout', adminPayoutRoutes);
 app.use('/api/admin/bookings', bookingsRoutes);
 app.use('/api/admin/room', roomRoutes);
+app.use('/api/admin/review', adminReviewRoutes);
 
 // Common routes
 const notificationRoutes = require('./routes/notificationRoutes');

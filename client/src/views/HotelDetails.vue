@@ -9,13 +9,18 @@ import { useToast } from 'vue-toastification'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
 
+import ReviewForm from '@/components/review/ReviewForm.vue'
+import ReviewValidation from '@/components/review/ReviewValidation.vue'
+
 export default {
   components: {
     TheHeader,
     TheFooter,
     MapComponent,
     ImageGallery,
-    Loading
+    Loading, 
+    ReviewForm,
+    ReviewValidation
   },
   setup() {
     // Get toast interface
@@ -45,8 +50,9 @@ export default {
       openCommentPopup: false,
       openMapPopup: false,
       isImageGalleryOpen: false,
-
       showGuestSelector: false,
+      showReviewForm: false,
+      showReviewValidation: false,
       // search room
       dateRange: null,
       children: 0,
@@ -138,6 +144,16 @@ export default {
     },
     hideCommentPopup() {
       this.openCommentPopup = false
+    },
+    /******** review popup *******/
+    closeReviewValidation() {
+      this.showReviewValidation = false
+    },
+    openReviewForm() {
+      this.showReviewForm = true
+    },
+    closeReviewForm() {
+      this.showReviewForm = false
     },
     /******** map popup ********/
     closeMapPopup() {
@@ -299,6 +315,8 @@ export default {
       :isOpenImageGallery="isImageGalleryOpen"
       @close-image-gallery="closeImageGallery"
     />
+    <ReviewValidation v-if="showReviewValidation" @close="closeReviewValidation" @open-review-form="openReviewForm" />
+    <ReviewForm v-if="showReviewForm" @close-review-form="closeReviewForm" />
     <!-- menu  -->
     <div class="menu">
       <div class="container">
@@ -613,7 +631,7 @@ export default {
           <p>
             Chúng tôi cố gắng mang đến 100% đánh giá thật <i class="fa-solid fa-circle-info"></i>
           </p>
-          <button>Viết đánh giá</button>
+          <button @click="showReviewValidation = true">Viết đánh giá</button>
         </div>
         <hr />
         <div class="review__process">
