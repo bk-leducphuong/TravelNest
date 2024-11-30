@@ -16,6 +16,7 @@ export default {
     return {
       bookings: [],
       isLoading: false,
+      rooms: [],
     }
   },
   computed: {
@@ -35,16 +36,33 @@ export default {
           }
         )
         this.bookings = response.data.bookings
-        for (let i = 0; i < this.bookings.length; i++) {
-          this.bookings[i].bookerInformation = await this.getBookerInformation(
-            this.bookings[i].buyer_id
-          )
-        }
+
+        // get booker information
+        this.bookings.forEach(async (booking) => {
+          booking.bookerInformation = await this.getBookerInformation(booking.buyer_id)
+        })
+        
       } catch (error) {
         console.log(error)
       } finally {
         
       }
+    },
+    groupBookings(bookings) {
+      const groupedBookings = []
+      bookings.forEach((booking) => {
+        const bookingCode = booking.booking_code
+        if (!groupedBookings.some((groupedBooking) => groupedBooking.booking_code === bookingCode)) {
+          groupedBookings.push({
+            booking_code: bookingCode,
+            bookings: [booking]
+          })
+        } else {
+          const existingBooking = groupedBookings.find((groupedBooking) => groupedBooking.booking_code === bookingCode)
+          existingBooking.bookings.push(booking)
+        }
+      })
+      return groupedBookings
     },
     async getBookerInformation(buyer_id) {
       const response = await axios.post(
@@ -58,12 +76,25 @@ export default {
       )
       return response.data.bookerInformation
     },
+    async getAllRooms() {
+      const response = await axios.post(
+        'http://localhost:3000/api/admin/room/get-all-rooms',
+        {
+          hotelId: this.getCurrentManagingHotelId
+        },
+        {
+          withCredentials: true
+        }
+      )
+      this.rooms = response.data
+    },
     onCancel() {
       console.log('User cancelled the loader.')
     }
   },
   async mounted() {
     this.isLoading = true
+    await this.getAllRooms()
     await this.getAllBookings()
     this.isLoading = false
   }
