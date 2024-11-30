@@ -105,8 +105,8 @@ const storeInvoice = async (paymentIntent) => {
 
 const handlePaymentIntentCreated = async (paymentIntent) => {
   try {
-    const { buyer_id: buyerId } = paymentIntent.metadata;
-    const sellerId = await getSellerId(paymentIntent);
+    const { buyer_id: buyerId, hotel_id: hotelId } = paymentIntent.metadata;
+    //const sellerId = await getSellerId(paymentIntent);
     const paymentMethodId = paymentIntent.payment_method;
     const paymentMethod = paymentMethodId
       ? await stripe.paymentMethods.retrieve(paymentMethodId)
@@ -115,12 +115,12 @@ const handlePaymentIntentCreated = async (paymentIntent) => {
     const currency = paymentIntent.currency.toUpperCase();
 
     const transactionQuery = `
-      INSERT INTO Transactions (buyer_id, seller_id, amount, currency, status, transaction_type, payment_intent_id)
+      INSERT INTO Transactions (buyer_id, hotel_id, amount, currency, status, transaction_type, payment_intent_id)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
     const { insertId: transactionId } = await queryAsync(transactionQuery, [
       buyerId,
-      sellerId,
+      hotelId,
       paymentIntent.amount,
       currency,
       "pending",
@@ -188,8 +188,8 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
 };
 const handlePaymentIntentFailed = async (paymentIntent) => {
   try {
-    const { buyer_id: buyerId } = paymentIntent.metadata;
-    const sellerId = await getSellerId(paymentIntent);
+    const { buyer_id: buyerId, hotel_id: hotelId } = paymentIntent.metadata;
+    //const sellerId = await getSellerId(paymentIntent);
     const paymentMethodId = paymentIntent.payment_method;
     const paymentMethod = paymentMethodId
       ? await stripe.paymentMethods.retrieve(paymentMethodId)
@@ -198,12 +198,12 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
     const currency = paymentIntent.currency.toUpperCase();
 
     const transactionQuery = `
-      INSERT INTO Transactions (buyer_id, seller_id, amount, currency, status, transaction_type, payment_intent_id)
+      INSERT INTO Transactions (buyer_id, hotel_id, amount, currency, status, transaction_type, payment_intent_id)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
     const { insertId: transactionId } = await queryAsync(transactionQuery, [
       buyerId,
-      sellerId,
+      hotelId,
       paymentIntent.amount,
       currency,
       "failed",
