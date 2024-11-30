@@ -2,7 +2,7 @@
 import axios from 'axios'
 import DashboardMenu from '@/components/admin/DashboardMenu.vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
-import { mapGetters } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
 
@@ -16,16 +16,16 @@ export default {
     return {
       bookings: [],
       isLoading: false,
-      rooms: [],
+      rooms: []
     }
   },
   computed: {
     ...mapGetters('manageHotels', ['getCurrentManagingHotelId'])
   },
   methods: {
+    ...mapActions('booking', ['setBookingInformation']),
     async getAllBookings() {
       try {
-        
         const response = await axios.post(
           'http://localhost:3000/api/admin/bookings/all',
           {
@@ -35,46 +35,75 @@ export default {
             withCredentials: true
           }
         )
-        this.bookings = response.data.bookings
 
-        // get booker information
-        this.bookings.forEach(async (booking) => {
-          booking.bookerInformation = await this.getBookerInformation(booking.buyer_id)
+        let bookings = response.data.bookings
+
+        // group bookings which have the same booking code
+        bookings = this.groupBookings(bookings)
+
+        // assign room information for each corresponding booking
+        bookings.forEach((booking) => {
+          booking.bookings.forEach((childBooking) => {
+            childBooking.roomInformation = this.rooms.find((room) => room.room_id === childBooking.room_id)
+          })
         })
-        
+
+        // Fetch booker information for each corresponding booking
+        this.bookings = await Promise.all(
+          bookings.map(async (booking) => {
+            try {
+              booking.bookerInformation = await this.getBookerInformation(booking.buyer_id)
+            } catch (err) {
+              console.error(`Failed to fetch booker info for booking ${booking.id}:`, err)
+              booking.bookerInformation = null // Assign null if there's an error
+            }
+            return booking
+          })
+        )
       } catch (error) {
         console.log(error)
       } finally {
-        
       }
     },
     groupBookings(bookings) {
-      const groupedBookings = []
+      const groupedBookings = new Map()
+
       bookings.forEach((booking) => {
         const bookingCode = booking.booking_code
-        if (!groupedBookings.some((groupedBooking) => groupedBooking.booking_code === bookingCode)) {
-          groupedBookings.push({
+
+        if (!groupedBookings.has(bookingCode)) {
+          groupedBookings.set(bookingCode, {
             booking_code: bookingCode,
-            bookings: [booking]
+            bookings: [booking],
+            buyer_id: booking.buyer_id,
+            checkInDate: booking.check_in_date,
+            checkOutDate: booking.check_out_date,
+            bookedOn: booking.created_at,
           })
         } else {
-          const existingBooking = groupedBookings.find((groupedBooking) => groupedBooking.booking_code === bookingCode)
-          existingBooking.bookings.push(booking)
+          groupedBookings.get(bookingCode).bookings.push(booking)
         }
       })
-      return groupedBookings
+
+      // Convert Map to an array
+      return Array.from(groupedBookings.values())
     },
     async getBookerInformation(buyer_id) {
-      const response = await axios.post(
-        'http://localhost:3000/api/admin/bookings/get-booker-information',
-        {
-          buyer_id: buyer_id
-        },
-        {
-          withCredentials: true
-        }
-      )
-      return response.data.bookerInformation
+      try {
+        const response = await axios.post(
+          'http://localhost:3000/api/admin/bookings/get-booker-information',
+          {
+            buyer_id: buyer_id
+          },
+          {
+            withCredentials: true
+          }
+        )
+        return response.data.bookerInformation
+      } catch (error) {
+        console.error(`Error fetching booker information for buyer ${buyer_id}:`, error)
+        throw error // Re-throw the error to handle it in `getAllBookings`
+      }
     },
     async getAllRooms() {
       const response = await axios.post(
@@ -90,6 +119,14 @@ export default {
     },
     onCancel() {
       console.log('User cancelled the loader.')
+    },
+    redirectToBookingDetails(bookingCode) {
+      this.bookings.forEach(booking => {
+        if (booking.booking_code == bookingCode) {
+          this.setBookingInformation(booking)
+        }
+      })
+      this.$router.push({ path: `/admin/${this.getCurrentManagingHotelId}/bookings/booking-details`, query: { bc: bookingCode } })
     }
   },
   async mounted() {
@@ -150,8 +187,7 @@ export default {
                 <th><input type="checkbox" /></th>
                 <th>ID</th>
                 <th>Customer</th>
-                <th>Package</th>
-                <th>Booking</th>
+                <th>Booked On</th>
                 <th>Room Type</th>
                 <th>Arrive</th>
                 <th>Payment</th>
@@ -161,7 +197,7 @@ export default {
             <tbody>
               <tr v-for="booking in bookings" :key="booking.booking_id">
                 <td><input type="checkbox" /></td>
-                <td>{{ booking.booking_code.slice(0, 5) + '...' }}</td>
+                <td class="booking-code" @click="redirectToBookingDetails(booking.booking_code)">{{ booking.booking_code.slice(0, 5) + '...' }}</td>
                 <td>
                   <div class="customer-info">
                     <div>
@@ -170,10 +206,9 @@ export default {
                     </div>
                   </div>
                 </td>
-                <td>Continental</td>
-                <td><span class="status active">Active</span></td>
-                <td>Super Delux</td>
-                <td>10 Feb 2020</td>
+                <td>{{ (new Date(booking.bookedOn)).toString().split(' ').splice(0, 3).join(' ') }}</td>
+                <td><div v-for="childBooking in booking.bookings">{{ childBooking.quantity }} x {{ childBooking.roomInformation.room_name }}</div></td>
+                <td>{{ (new Date(booking.checkInDate)).toString().split(' ').splice(0, 3).join(' ') }}</td>
                 <td><span class="status active">Paid</span></td>
                 <td><button class="more-btn">⋮</button></td>
               </tr>
@@ -280,6 +315,15 @@ th {
 td {
   padding: 12px;
   border-bottom: 1px solid #e2e8f0;
+}
+
+.booking-code {
+  color: #003b95;
+  cursor: pointer;
+}
+
+.booking-code:hover {
+  color: #4e82d1;
 }
 
 .customer-info {
