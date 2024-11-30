@@ -46,11 +46,12 @@ export default {
     }
   },
   methods: {
-    ...mapActions('search', ['updateLocation', 'updateDateRange', 'updateAdults', 'updateChildren', 'updateRooms']),
+    ...mapActions('search', ['updateLocation', 'updateCheckInDate', 'updateCheckOutDate', 'updateAdults', 'updateChildren', 'updateRooms']),
     redirectToSearchResults(search) {
       // update vuex store
       this.updateLocation(search.location)
-      this.updateDateRange(search.dateRange)
+      this.updateCheckInDate(search.checkInDate)
+      this.updateCheckOutDate(search.checkOutDate)
       this.updateAdults(search.adults)
       this.updateChildren(search.children)
       this.updateRooms(search.rooms)
@@ -59,7 +60,8 @@ export default {
         name: 'SearchResults',
         query: {
           location: search.location,
-          dateRange: search.dateRange,
+          checkInDate: search.checkInDate,
+          checkOutDate: search.checkOutDate,
           adults: search.adults,
           children: search.children,
           rooms: search.rooms
@@ -124,7 +126,7 @@ export default {
 
       this.noRecentSearchesFound = this.recentSearches.length === 0 ? true : false
     },
-
+    
     // Load data from localStorage for viewed hotels
     async loadViewedHotels() {
       let hotels = JSON.parse(localStorage.getItem('viewedHotels')) || []
@@ -223,7 +225,7 @@ export default {
             </div>
             <div class="search-content">
               <h2 class="search-title">{{ search.location }}</h2>
-              <p class="search-details">{{ search.dateRange }}</p>
+              <p class="search-details">From {{ search.checkInDate }} to {{ search.checkOutDate}}</p>
             </div>
             <button class="close-button" @click="removeSearch(index, $event)">×</button>
           </div>
@@ -319,7 +321,8 @@ export default {
         <div class="popular-place-card" v-for="(place, index) in popularPlaces.slice(0, 2)" :key="index" @click="
           redirectToSearchResults({
             location: place.location,
-            dateRange: '',
+            checkInDate: '',
+            checkOutDate: '',
             adults: '',
             children: '',
             rooms: ''

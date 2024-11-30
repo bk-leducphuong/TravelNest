@@ -1,9 +1,13 @@
+import axios from 'axios'
+
 export default {
   namespaced: true,
   state: {
     searchData: {
       location: '',
-      dateRange: '',
+      checkInDate: null,
+      checkOutDate: null,
+      numberOfDays: 1,
       adults: 2,
       children: 0,
       rooms: 1
@@ -13,8 +17,14 @@ export default {
     setLocation(state, location) {
       state.searchData.location = location
     },
-    setDateRange(state, dateRange) {
-      state.searchData.dateRange = dateRange
+    setCheckInDate(state, checkInDate) {
+      state.searchData.checkInDate = checkInDate
+    },
+    setCheckOutDate(state, checkOutDate) {
+      state.searchData.checkOutDate = checkOutDate
+    },
+    setNumberOfDays(state, numberOfDays) {
+      state.searchData.numberOfDays = numberOfDays
     },
     setAdults(state, adults) {
       state.searchData.adults = adults
@@ -30,8 +40,14 @@ export default {
     updateLocation({ commit }, location) {
       commit('setLocation', location)
     },
-    updateDateRange({ commit }, dateRange) {
-      commit('setDateRange', dateRange)
+    updateCheckInDate({ commit }, checkInDate) {
+      commit('setCheckInDate', checkInDate)
+    },
+    updateCheckOutDate({ commit }, checkOutDate) {
+      commit('setCheckOutDate', checkOutDate)
+    },
+    updateNumberOfDays({ commit}, numberOfDays) {
+      commit('setNumberOfDays', numberOfDays)
     },
     updateAdults({ commit }, adults) {
       commit('setAdults', adults)
@@ -41,7 +57,24 @@ export default {
     },
     updateRooms({ commit }, rooms) {
       commit('setRooms', rooms)
-    }
+    },
+    async saveSearchInformation({ commit,state }) {
+      try {
+        await axios.post('http://localhost:3000/api/search/save-search-information', {
+          location: state.searchData.location,
+          checkInDate: state.searchData.checkInDate,
+          checkOutDate: state.searchData.checkOutDate,
+          adults: state.searchData.adults,
+          children: state.searchData.children,
+          rooms: state.searchData.rooms
+        },
+         {
+          withCredentials: true
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    },
   },
   getters: {
     getSearchData(state) {

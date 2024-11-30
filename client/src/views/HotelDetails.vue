@@ -5,6 +5,7 @@ import MapComponent from '@/components/map/MapComponent.vue'
 import axios from 'axios'
 import { mapActions, mapGetters } from 'vuex'
 import ImageGallery from '@/components/hotel-image/ImageGallery.vue'
+import { useToast } from 'vue-toastification'
 
 export default {
   components: {
@@ -12,6 +13,12 @@ export default {
     TheFooter,
     MapComponent,
     ImageGallery
+  },
+  setup() {
+    // Get toast interface
+    const toast = useToast()
+    // Make it available inside methods
+    return { toast }
   },
   data() {
     return {
@@ -41,41 +48,9 @@ export default {
   },
   computed: {
     ...mapGetters('search', ['getSearchData']),
-    dateRange: {
-      get() {
-        return this.getSearchData?.dateRange || ''
-      },
-      set(value) {
-        this.$store.dispatch('search/updateDateRange', value)
-      }
-    },
-    adults: {
-      get() {
-        return this.getSearchData?.adults || '2'
-      },
-      set(value) {
-        this.$store.dispatch('search/updateAdults', value)
-      }
-    },
-    children: {
-      get() {
-        return this.getSearchData?.children || '0'
-      },
-      set(value) {
-        this.$store.dispatch('search/updateChildren', value)
-      }
-    },
-    rooms: {
-      get() {
-        return this.getSearchData?.rooms || '1'
-      },
-      set(value) {
-        this.$store.dispatch('search/updateRooms', value)
-      }
-    },
-    guestDetails() {
-      return `${this.adults} người lớn · ${this.children} trẻ em · ${this.rooms} phòng`
-    },
+    // guestDetails() {
+    //   return `${this.adults} người lớn · ${this.children} trẻ em · ${this.rooms} phòng`
+    // },
     displayedThumbnails() {
       return this.hotelImages.slice(3, 3 + this.initialThumbnailCount)
     },
@@ -94,15 +69,29 @@ export default {
     }
   },
   methods: {
-    ...mapActions('book', ['booking']),
+    ...mapActions('book', ['booking', 'checkRoomAvailability']),
+    
     async getHotelDetails() {
-      const response = await axios.get(`http://localhost:3000/api/hotels/${this.hotel_id}`)
-      this.hotel = response.data.hotel
-      this.room_list = response.data.rooms
-      this.reviews = response.data.reviews
-      this.reviews_breakdown = response.data.reviews_breakdown
-      this.nearby_hotels = response.data.nearby_hotels
-      this.hotelImages = JSON.parse(response.data.hotel.hotel_image_urls)
+      try {
+        const response = await axios.post(`http://localhost:3000/api/hotels/get-hotel-details`, {
+          hotelId: this.$route.params.hotel_id,
+          checkInDate: this.getSearchData.checkInDate,
+          checkOutDate: this.getSearchData.checkOutDate,
+          numberOfDays: this.getSearchData.numberOfDays,
+          numberOfRooms: this.getSearchData.rooms,
+          numberOfGuests: parseInt(this.getSearchData.adults) + parseInt(this.getSearchData.children),
+        })
+        
+        this.hotel = response.data.hotel
+        this.room_list = response.data.rooms
+        this.reviews = response.data.reviews
+        this.reviews_breakdown = response.data.reviews_breakdown
+        this.nearby_hotels = response.data.nearby_hotels
+        this.hotelImages = JSON.parse(response.data.hotel.hotel_image_urls)
+      } catch (error) {
+        console.error(error)
+        this.toast.error('Getting hotel details failed! Pls try again!')
+      }
     },
     /******** comment popup *******/
     showCommentPopup() {
@@ -128,43 +117,36 @@ export default {
     toggleGuestSelector() {
       this.showGuestSelector = !this.showGuestSelector
     },
-    updateGuests(type, action) {
-      if (type === 'adults') {
-        if (action === 'increment' && this.adults < 30) this.adults++
-        else if (action === 'decrement' && this.adults > 1) this.adults--
-      } else if (type === 'children') {
-        if (action === 'increment' && this.children < 10) this.children++
-        else if (action === 'decrement' && this.children > 0) this.children--
-      } else if (type === 'rooms') {
-        if (action === 'increment' && this.rooms < 30) this.rooms++
-        else if (action === 'decrement' && this.rooms > 1) this.rooms--
-      }
-    },
+    // updateGuests(type, action) {
+    //   if (type === 'adults') {
+    //     if (action === 'increment' && this.adults < 30) this.adults++
+    //     else if (action === 'decrement' && this.adults > 1) this.adults--
+    //   } else if (type === 'children') {
+    //     if (action === 'increment' && this.children < 10) this.children++
+    //     else if (action === 'decrement' && this.children > 0) this.children--
+    //   } else if (type === 'rooms') {
+    //     if (action === 'increment' && this.rooms < 30) this.rooms++
+    //     else if (action === 'decrement' && this.rooms > 1) this.rooms--
+    //   }
+    // },
     hideGuestSelector() {
       this.showGuestSelector = false
     },
     async applyChange() {
       const response = await axios.post('http://localhost:3000/api/hotels/search-room', {
         hotel_id: this.hotel_id,
-        dateRange: this.dateRange,
-        adults: this.adults,
-        children: this.children,
-        rooms: this.rooms
+        checkIndate: this.getSearchData.checkInDate,
+        checkOutDate: this.getSearchData.checkOutDate,
+        numberOfDays: this.getSearchData.numberOfDays,
+        adults: this.getSearchData.adults,
+        children: this.getSearchData.children,
+        rooms: this.getSearchData.rooms
       })
 
       this.room_list = response.data.available_rooms
     },
     calculateRoomPrice(price_per_night) {
-      const [start, end] = this.dateRange.match(/\d{2}\/\d{2}\/\d{4}/g)
-
-      const startDate = new Date(start.split('/').reverse().join('-'))
-      const endDate = new Date(end.split('/').reverse().join('-'))
-
-      const timeDiff = endDate - startDate
-      const daysDiff = timeDiff / (1000 * 60 * 60 * 24)
-
-      const totalPrice = (daysDiff + 1) * Number(price_per_night)
-
+      const totalPrice = parseInt(this.getSearchData.numberOfDays) * Number(price_per_night)
       return totalPrice
     },
     handleRoomSelection(event, room) {
@@ -200,7 +182,7 @@ export default {
       }
     },
     // this method will be called when user click book button
-    processBooking() {
+    async processBooking() {
       if (this.selectedRooms.length != 0) {
         const bookingInfor = {
           hotel: {
@@ -214,17 +196,31 @@ export default {
           totalPrice: this.totalPriceSelectedRooms,
           totalRooms: this.totalSelectedRooms,
           selectedRooms: this.selectedRooms,
-          numberOfGuests: this.adults
+          numberOfGuests: this.getSearchData.adults,
+          checkInDate: this.getSearchData.checkInDate,
+          checkOutDate: this.getSearchData.checkOutDate,
+          numberOfDays: this.getSearchData.numberOfDays
         }
+
         this.booking(bookingInfor)
-        this.$router.push('/book')
+
+        //TODO: check whether this room is available or not
+        // if not available, redirect back to the room selection page
+        const isAvailable = await this.checkRoomAvailability()
+        if (!isAvailable) {
+          this.toast.error('Phòng đã được đặt hết, vui lòng chọn phòng khác!')
+          return
+        } else {
+          // continue if room is available
+          this.$router.push('/book')
+        }
       }
     }
   },
-  mounted() {
+  async mounted() {
     this.hotel_id = this.$route.params.hotel_id
     // Fetch hotel details using hotelId
-    this.getHotelDetails(),
+    await this.getHotelDetails(),
       // date picker popup
       flatpickr(this.$refs.dateInput, {
         dateFormat: 'd/m/Y', // Định dạng ngày
@@ -249,7 +245,7 @@ export default {
 </script>
 <template>
   <div id="hotelDetails" class="hotel-details-container">
-    <TheHeader :isSearchOpen="true"/>
+    <TheHeader :isSearchOpen="true" />
     <MapComponent v-if="openMapPopup" :hotels="[hotel]" @close-map-popup="closeMapPopup" />
     <ImageGallery
       :room_list="room_list"
@@ -289,7 +285,7 @@ export default {
             </div>
 
             <div class="gallery-container">
-              <!-- Featured large images -->
+              Featured large images
               <div class="featured-images">
                 <div class="featured-left" @click="openImageGallery">
                   <img
@@ -519,7 +515,7 @@ export default {
             <td>
               <select @change="handleRoomSelection($event, room)">
                 <option value="0" selected>0</option>
-                <option v-for="n in room.total_rooms - room.booked_rooms" :key="n" :value="n">
+                <option v-for="n in room.available_rooms" :key="n" :value="n">
                   {{ n }} (VND
                   {{ calculateRoomPrice(n * room.price_per_night).toLocaleString('vi-VN') }})
                 </option>
@@ -534,7 +530,9 @@ export default {
                   </div>
                 </div>
                 <button @click="processBooking">Tôi sẽ đặt</button>
-                <div style="color: red; font-size: 13px;" v-if="selectedRooms.length == 0">Vui lòng chọn phòng trước khi đặt</div>
+                <div style="color: red; font-size: 13px" v-if="selectedRooms.length == 0">
+                  Vui lòng chọn phòng trước khi đặt
+                </div>
               </div>
             </td>
           </tr>

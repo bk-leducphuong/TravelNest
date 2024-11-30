@@ -3,12 +3,20 @@ import axios from 'axios'
 import TheHeader from '@/components/Header.vue'
 import MapComponent from '@/components/map/MapComponent.vue'
 import TheFooter from '@/components/Footer.vue'
+import { mapActions, mapGetters } from 'vuex';
+import { useToast } from 'vue-toastification'
 
 export default {
   components: {
     TheHeader,
     MapComponent,
     TheFooter
+  },
+  setup() {
+    // Get toast interface
+    const toast = useToast()
+    // Make it available inside methods
+    return { toast }
   },
   data() {
     return {
@@ -19,13 +27,14 @@ export default {
     }
   },
   computed: {
+    ...mapGetters('search', ['getSearchData']),
     sortedHotels() {
       // Sort hotels based on the selected criteria
       return [...this.hotels].sort((a, b) => {
         if (this.sortCriteria === 'priceLowToHigh') {
-          return parseFloat(a.price_per_night) - parseFloat(b.price_per_night)
+          return parseFloat(a.lowestPrice) - parseFloat(b.lowestPrice)
         } else if (this.sortCriteria === 'priceHighToLow') {
-          return parseFloat(b.price_per_night) - parseFloat(a.price_per_night)
+          return parseFloat(b.lowestPrice) - parseFloat(a.lowestPrice)
         } else if (this.sortCriteria === 'ratingHighToLow') {
           return parseFloat(b.overall_rating) - parseFloat(a.overall_rating)
         }
@@ -36,21 +45,37 @@ export default {
   watch: {
     '$route.query': {
       handler() {
-        this.searchHotels()
+        if (this.isSearchUrlValid()) {
+          // update search data in store if user changes the search url directly
+          this.updateSearchDataInStore()
+          this.saveSearchInformation()
+          this.searchHotels()
+        }else {
+          this.toast.error('Vui lòng nhập đầy đủ thông tin tìm kiếm!!')
+        }
       },
       immediate: true
     }
   },
   methods: {
+    ...mapActions('search', ['updateLocation', 'updateCheckInDate', 'updateCheckOutDate', 'updateNumberOfDays', 'updateAdults', 'updateRooms', 'updateChildren', 'saveSearchInformation']),
+    isSearchUrlValid() {
+      return this.$route.query.location && this.$route.query.checkInDate && this.$route.query.checkOutDate && this.$route.query.adults && this.$route.query.children && this.$route.query.rooms && this.$route.query.numberOfDays ? true : false
+    },
+    updateSearchDataInStore() {
+      this.updateLocation(this.$route.query.location)
+      this.updateCheckInDate(this.$route.query.checkInDate)
+      this.updateCheckOutDate(this.$route.query.checkOutDate)
+      this.updateNumberOfDays(this.$route.query.numberOfDays)
+      this.updateAdults(this.$route.query.adults)
+      this.updateRooms(this.$route.query.rooms)
+      this.updateChildren(this.$route.query.children)
+    },
     // api query
     async searchHotels() {
       try {
         const response = await axios.post('http://localhost:3000/api/search', {
-          location: this.$route.query.location,
-          dateRange: this.$route.query.dateRange,
-          adults: this.$route.query.adults,
-          children: this.$route.query.children,
-          rooms: this.$route.query.rooms
+          searchData: this.getSearchData
         })
 
         if (response.data.hotels.length === 0) {
@@ -64,18 +89,6 @@ export default {
         console.error('Lỗi khi tìm kiếm khách sạn:', error)
       }
     },
-    // caculate number of booking days
-    calculateDaysBetween() {
-      const [start, end] = this.$route.query.dateRange.match(/\d{2}\/\d{2}\/\d{4}/g)
-
-      const startDate = new Date(start.split('/').reverse().join('-'))
-      const endDate = new Date(end.split('/').reverse().join('-'))
-
-      const timeDiff = endDate - startDate
-      const daysDiff = timeDiff / (1000 * 60 * 60 * 24)
-
-      return daysDiff + 1
-    },
     // close the map popup
     closeMapPopup() {
       this.openMapPopup = false
@@ -86,12 +99,16 @@ export default {
     handleSort() {
       // Trigger reactivity by updating the computed property
       // Sorting is handled automatically in the computed property `sortedHotels`
-    }
+    },
+    calculateHotelPrice(hotelLowestPrice) {
+      const totalPrice = parseInt(this.$route.query.numberOfDays) * Number(hotelLowestPrice)
+      return totalPrice
+    },
   }
 }
 </script>
 <template>
-  <TheHeader :isSearchOpen="true"/>
+  <TheHeader :isSearchOpen="true" />
   <MapComponent v-if="openMapPopup" :hotels="hotels" @close-map-popup="closeMapPopup" />
   <!-- inforSearch -->
   <div class="inforSearch">
@@ -335,7 +352,7 @@ export default {
                       <span class="newPrice"
                         >VND
                         {{
-                          (Number(hotel.price_per_night) * calculateDaysBetween()).toLocaleString(
+                          (calculateHotelPrice(hotel.lowestPrice)).toLocaleString(
                             'vi-VN'
                           )
                         }}</span
