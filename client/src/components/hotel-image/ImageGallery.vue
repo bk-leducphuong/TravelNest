@@ -49,9 +49,13 @@ export default {
       this.isImageSliderOpen = false
     }
   },
+  watch: {
+    hotelImages(newValue) {
+      this.currentImages = newValue
+    }
+  },
   mounted() {
     this.selectRoom(0)
-    this.currentImages = this.hotelImages
   }
 }
 </script>
