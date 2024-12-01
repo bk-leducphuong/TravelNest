@@ -86,6 +86,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters('auth', ['isUserAuthenticated']),
     ...mapGetters('search', ['getSearchData']),
     guestDetails() {
       return `${this.adults} người lớn · ${this.children} trẻ em · ${this.rooms} phòng`
@@ -276,6 +277,13 @@ export default {
           // continue if room is available
           this.$router.push('/book')
         }
+      }
+    },
+    writeReview() {
+      if (this.isUserAuthenticated) {
+        this.showReviewValidation = true
+      }else {
+        this.$router.push({ path: '/login', query: { redirect: this.$route.path } })
       }
     }
   },
@@ -631,7 +639,7 @@ export default {
           <p>
             Chúng tôi cố gắng mang đến 100% đánh giá thật <i class="fa-solid fa-circle-info"></i>
           </p>
-          <button @click="showReviewValidation = true">Viết đánh giá</button>
+          <button @click="writeReview">Viết đánh giá</button>
         </div>
         <hr />
         <div class="review__process">
@@ -1527,7 +1535,7 @@ select {
   height: 100vh;
   width: 100vw;
   position: fixed;
-  z-index: 1000;
+  z-index: 9999;
   background-color: #00000056;
   top: 0px;
   /* display: none; */
