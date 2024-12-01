@@ -46,7 +46,7 @@ export default {
   <div class="container">
     <div class="header">
       <h1>Hotel Management</h1>
-      <button class="add-hotel-btn" @calick="this.$router.push('/join/become-a-host')">
+      <button class="add-hotel-btn" @click="this.$router.push('/join/become-a-host')">
         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"

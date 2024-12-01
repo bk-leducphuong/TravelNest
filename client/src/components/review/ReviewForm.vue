@@ -1,11 +1,53 @@
-<script></script>
+<script>
+import user from '@/stores/user';
+import { mapGetters } from 'vuex'
+import axios from 'axios';
+import { useToast } from 'vue-toastification';
+export default {
+  setup() {
+    const toast = useToast()
+    return {toast}
+  },
+  data() {
+    return {
+      review: null,
+      rating: null
+    }
+  },
+  computed: {
+    ...mapGetters('auth', ['getUserId'])
+  },
+  methods: {
+    async postReview() {
+      try {
+        const response = await axios.post(
+          'http://localhost:3000/api/review/post-review',
+          {
+            hotelId: this.$route.params.hotel_id,
+            rating: this.rating,
+            comment: this.review,
+            userId: this.getUserId
+          },
+          {
+            withCredentials: true
+          }
+        )
+        this.toast.success('Review posted successfully!')
+        this.$emit('close-review-form')
+      } catch (error) {
+        this.toast.error('Error posting review!')
+      }
+    }
+  }
+}
+</script>
 <template>
   <div class="popup">
     <div class="popup-content">
       <h2>Write a Review</h2>
-      <form>
+      <form @submit.prevent="postReview">
         <label for="rating">Rating:</label>
-        <select id="rating" name="rating">
+        <select id="rating" name="rating" v-model="rating">
           <option value="5">5 - Excellent</option>
           <option value="4">4 - Very Good</option>
           <option value="3">3 - Average</option>
@@ -27,6 +69,7 @@
           id="review"
           name="review"
           rows="5"
+          v-model="review"
           placeholder="Share your thoughts about your stay"
           required
         ></textarea>

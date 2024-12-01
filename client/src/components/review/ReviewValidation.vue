@@ -26,7 +26,7 @@ export default {
                 this.$emit('open-review-form')
             }else {
                 this.$emit('close')
-                this.toast.error('Không thể xác nhận đặt phòng!')
+                this.toast.error('Không tìm thất mã đặt phòng này!')
             }
         }
     }

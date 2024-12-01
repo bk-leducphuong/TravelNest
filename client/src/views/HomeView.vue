@@ -264,20 +264,22 @@ export default {
             <button class="close-button" @click="removeSearch(index, $event)">×</button>
           </div>
         </div>
-        <button
-          class="nav-button prev"
-          :disabled="disableScrollLeft('recentSlider')"
-          @click="scrollLeft('recentSlider')"
-        >
-          ‹
-        </button>
-        <button
-          class="nav-button next"
-          :disabled="disableScrollRight('recentSlider')"
-          @click="scrollRight('recentSlider')"
-        >
-          ›
-        </button>
+        <div class="nav-button-container">
+          <button
+            class="nav-button prev"
+            :disabled="disableScrollLeft('recentSlider')"
+            @click="scrollLeft('recentSlider')"
+          >
+            ‹
+          </button>
+          <button
+            class="nav-button next"
+            :disabled="disableScrollRight('recentSlider')"
+            @click="scrollRight('recentSlider')"
+          >
+            ›
+          </button>
+        </div>
       </div>
     </div>
 
@@ -588,7 +590,7 @@ h1 {
 
 .slider-container {
   position: relative;
-  padding: 0 40px;
+  /* padding: 0 40px; */
 }
 
 .hotel-slider {
@@ -702,6 +704,15 @@ h1 {
   font-size: 14px;
 }
 
+.nav-button-container {
+  width: 100%;
+  position: absolute;
+  inset-block-start: 50%;
+  /* transform: translateY(-50%); */
+  display: flex;
+  justify-content: space-between;
+}
+
 .nav-button {
   position: absolute;
   top: 50%;
@@ -728,7 +739,7 @@ h1 {
 }
 
 .nav-button:disabled {
-  opacity: 0.5;
+  /* opacity: 0.5; */
   cursor: not-allowed;
 }
 
