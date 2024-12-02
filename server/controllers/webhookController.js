@@ -101,6 +101,7 @@ const storeInvoice = async (paymentIntent) => {
   ]);
 };
 
+
 /******************************************* Storing Payment and Transaction events **********************************************/
 
 const handlePaymentIntentCreated = async (paymentIntent) => {
@@ -148,6 +149,10 @@ const handlePaymentIntentCreated = async (paymentIntent) => {
 const handlePaymentIntentSucceeded = async (paymentIntent) => {
   try {
     const paymentMethodId = paymentIntent.payment_method;
+   // console.log('PaymentIntent:', paymentIntent)
+    // Lấy Charge ID
+    const chargeId = paymentIntent.latest_charge;
+    console.log('Charge ID:', chargeId);
     const paymentMethod = paymentMethodId
       ? await stripe.paymentMethods.retrieve(paymentMethodId)
       : null;
@@ -163,9 +168,9 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
       const transactionId = transactionExists[0].transaction_id;
 
       const updateTransactionQuery = `
-        UPDATE Transactions SET status = ? WHERE transaction_id = ?
+        UPDATE Transactions SET status = ?, charge_id = ? WHERE transaction_id = ?
       `;
-      await queryAsync(updateTransactionQuery, ["completed", transactionId]);
+      await queryAsync(updateTransactionQuery, ["completed",chargeId, transactionId]);
 
       const updatePaymentQuery = `
         UPDATE Payments SET payment_status = ?, payment_method = ? WHERE transaction_id = ?
@@ -227,6 +232,56 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
     console.error("Error handling payment intent created:", error);
     throw error;
   }
+};
+
+/******************************************* Refund **********************************************/
+const handleRefundIntentSucceeded = async (chargeRefunded) => {
+  try {
+   const {buyer_id: buyerId, hotel_id: hotelId, booking_code: bookingCode, booked_rooms: bookedRooms, check_in_date: checkInDate, check_out_date: checkOutDate, number_of_guests: numberOfGuests} = chargeRefunded.metadata;
+   const chargeId = chargeRefunded.id;
+   const amount = chargeRefunded.amount;
+
+   const transactionQuery = `
+      SELECT transaction_id FROM Transactions WHERE charge_id = ?
+    `;
+    const transaction = await queryAsync(transactionQuery, [chargeId]);
+
+   // store refund
+   const refundQuery = `
+      INSERT INTO refunds ( buyer_id, hotel_id, transaction_id , amount,completed_at)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    await queryAsync(refundQuery, [
+      buyerId,
+      hotelId,
+      transaction[0].transaction_id,
+      amount,
+      new Date(),
+    ]);
+
+    // update booking status
+    const updateBookingQuery = `
+      UPDATE bookings
+      SET status = ?
+      WHERE booking_code = ?
+    `;
+    await queryAsync(updateBookingQuery, ['cancelled', bookingCode]);
+
+    // update number of reserved rooms 
+    const bookedRoomsArray = JSON.parse(bookedRooms);
+    for (const bookedRoom of bookedRoomsArray) {
+      const roomQuery = `
+        UPDATE room_inventory
+        SET total_reserved = total_reserved - ?
+        WHERE room_id = ? AND date BETWEEN ? AND ? ;
+      `;
+      await queryAsync(roomQuery, [bookedRoom.roomQuantity, bookedRoom.room_id, checkInDate, checkOutDate]);
+    }
+    console.log('query successful:');
+  } catch (error) {
+    console.error('Refund failed:', error);
+  } 
+  
 };
 
 /******************************************* Sending Emails **********************************************/
@@ -466,11 +521,18 @@ const webhookController = async (req, res) => {
           transactionId: failedPayout.metadata.transaction_id
         });
         break;
+        case 'charge.refunded':
+          const chargeRefunded = event.data.object;
+         // console.log('Charge refunded:', chargeRefunded);
+          await handleRefundIntentSucceeded(chargeRefunded);
+
+          break;
 
       // Add more event types as needed
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
+
 
     res.json({ received: true });
   } catch (error) {
