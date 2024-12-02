@@ -14,6 +14,7 @@ export default {
       rooms: [],
       currentRoom: null,
       roomInventory: [], // room inventory data for current room
+      roomInventoryMap: new Array(7).fill(0).map(() => new Array(7).fill(0)), // map from the calendar to the room inventory
       currentMonth: null,
       currentYear: null,
       numberOfDays: null,
@@ -71,16 +72,24 @@ export default {
       ],
       dragging: false, // Whether the user is currently dragging
       startCell: null, // Starting cell for drag
-      selectedCells: [] // Array of selected cells
+      selectedCells: [], // Array of selected cells,
+      startDate: null,
+      endDate: null
     }
   },
   watch: {
     currentMonth(newMonth) {
       this.currentMonth = newMonth
       this.generateCalendar(this.currentYear, newMonth)
+      this.mapCalendarToRoomInventory()
     },
     currentRoom(newRoom) {
       this.getRoomInventory()
+    },
+    selectedCells(newSelectedCells) {
+      // update start and end date
+      this.startDate = this.roomInventoryMap[newSelectedCells[0].weekIndex][newSelectedCells[0].dayIndex].date.split('T')[0]
+      this.endDate = this.roomInventoryMap[newSelectedCells[newSelectedCells.length - 1].weekIndex][newSelectedCells[newSelectedCells.length - 1].dayIndex].date.split('T')[0]
     }
   },
   computed: {
@@ -97,7 +106,8 @@ export default {
 
       let weeks = []
       let week = []
-      let dayOfWeek = firstDay.getDay() || 7 // Adjust for Monday start (1 = Monday)
+      let dayOfWeek = firstDay.getDay()
+      if (dayOfWeek === 0) dayOfWeek = 7 // Adjust Sunday to be the 7th day
 
       // Fill leading days from the previous month
       for (let i = 1; i < dayOfWeek; i++) {
@@ -134,6 +144,7 @@ export default {
         )
 
         this.roomInventory = response.data
+        this.mapCalendarToRoomInventory() // map from the calendar to the room inventory
       } catch (error) {
         console.error(error)
       }
@@ -156,6 +167,24 @@ export default {
       } catch (error) {
         console.error(error)
       }
+    },
+    mapCalendarToRoomInventory() {
+      this.roomInventory.forEach((roomInventory) => {
+        // extract month and date from date string '2024-11-26T17:00:00.000Z'
+        const date = roomInventory.date.split('T')[0]  
+        const month = parseInt(date.split('-')[1])
+        const day = parseInt(date.split('-')[2])
+        
+        if (month === this.currentMonth) {
+          this.weeks.forEach((week, weekIndex) => {
+            week.forEach((cell, dayIndex) => {
+              if (cell === day) {
+                this.roomInventoryMap[weekIndex][dayIndex] = roomInventory
+              }
+            })
+          })
+        }
+      })
     },
     // Start dragging operation
     startDrag(weekIndex, dayIndex) {
@@ -228,13 +257,14 @@ export default {
       }
     }
   },
-  mounted() {
+  async mounted() {
     // get all rooms
-    this.getAllRooms()
+    await this.getAllRooms()
 
     const today = new Date()
     this.currentMonth = today.getMonth() + 1
     this.currentYear = today.getFullYear()
+     this.generateCalendar(this.currentYear, this.currentMonth); // Call explicitly
   }
 }
 </script>
@@ -291,8 +321,10 @@ export default {
                 @mouseup="stopDrag"
               >
                 <div class="date-number" v-if="day">{{ day }}</div>
-                <div class="number-available" style="font-size: 10px;" v-if="day">1 left to sell</div>
-                <div class="room-price" v-if="day">
+                <div class="number-available" style="font-size: 10px" v-if="day">
+                  {{ roomInventoryMap[weekIndex][dayIndex].total_inventory - roomInventoryMap[weekIndex][dayIndex].total_reserved }} left to sell
+                </div>
+                <div class="room-price" v-if="day && currentRoom">
                   VND {{ parseInt(currentRoom.price_per_night).toLocaleString('vi-VN') }}
                 </div>
               </div>
@@ -301,9 +333,9 @@ export default {
           <div class="settings-panel">
             <div class="panel-section">
               <h3>Start date</h3>
-              <input type="text" class="date-input" id="start-date" />
+              <input type="text" class="date-input" id="start-date" v-model="startDate" />
               <h3>End date</h3>
-              <input type="text" class="date-input" id="end-date" />
+              <input type="text" class="date-input" id="end-date" v-model="endDate" />
             </div>
             <div class="panel-section">
               <h3>Open or close for bookings</h3>
@@ -311,12 +343,10 @@ export default {
                 <label> <input type="radio" name="status" /> Open </label>
                 <label> <input type="radio" name="status" checked /> Closed </label>
               </div>
-              <h3>Select amount to sell</h3>
-              <select class="select-amount">
-                <option>1 option to sell</option>
-              </select>
+              <h3>How many left rooms to sell</h3>
+              <input type="text" class="price-input" v-model="selectedAmount" />
               <div class="currency">Price</div>
-              <input type="text" class="price-input" />
+              <input type="text" class="price-input" :value="parseInt(currentRoom.price_per_night).toLocaleString('vi-VN')"/>
               <div class="action-button-container">
                 <button class="edit-btn">Edit</button>
                 <button class="save-btn">Save</button>
