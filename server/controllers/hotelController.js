@@ -75,32 +75,35 @@ const getHotelDetails = async (req, res) => {
 
 const searchRoom = async (req, res) => {
   try {
-    const { hotel_id, dateRange, adults, children, rooms } = req.body;
-
-    if (!hotel_id || !dateRange || !adults || !children || !rooms) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing search criteria" });
-    }
+    const { hotel_id, checkInDate, checkOutDate, numberOfDays, adults, children, rooms } = req.body;
     
+    const total_guests = parseInt(adults, 10) + parseInt(children, 10);
 
     const query = `
-            SELECT DISTINCT r.room_id, r.max_guests, r.booked_rooms, r.total_rooms, r.image_urls, r.room_amenities, r.price_per_night, r.room_name
-            FROM rooms r
-            INNER JOIN hotels ON r.hotel_id = hotels.hotel_id
-            JOIN room_availability ra ON r.room_id = ra.room_id
-            WHERE hotels.hotel_id = ?
-            AND r.max_guests >= ?
-            AND (r.total_rooms - r.booked_rooms) >= ?
-            AND ra.available_from <= ?
-            AND ra.available_to >= ?;`;
+            SELECT 
+          MIN(ri.total_inventory - ri.total_reserved) AS available_rooms,
+            r.room_id,
+            r.room_name, r.price_per_night, r.max_guests,
+          r.image_urls AS room_image_urls, r.room_amenities 
+        FROM hotels h
+        JOIN rooms r 
+            ON h.hotel_id = r.hotel_id
+        JOIN room_inventory ri 
+            ON r.room_id = ri.room_id
+        WHERE h.hotel_id = ?
+          AND r.max_guests >= ?
+          AND ri.date BETWEEN ? AND ?
+        GROUP BY r.room_id
+        HAVING COUNT(CASE WHEN ri.total_inventory - ri.total_reserved >= ? THEN 1 END) = ?;
+            `;
     // Thực hiện truy vấn
     const available_rooms = await queryAsync(query, [
       hotel_id,
-      total_guests,
+      total_guests, // total_guests
+      checkInDate,
+      checkOutDate,
       rooms,
-      check_in,
-      check_out,
+      numberOfDays
     ]);
     if (available_rooms.length === 0) {
       return res.status(200).json({
@@ -110,7 +113,7 @@ const searchRoom = async (req, res) => {
       });
     }
 
-    res.status(200).json({ success: true, available_rooms });
+    res.status(200).json({ success: true, available_rooms: available_rooms });
   } catch (error) {
     console.error(error);
     res.status(500).json({

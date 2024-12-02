@@ -175,12 +175,12 @@
 
             <div class="booking-details">
                 <div class="detail-row">
-                    <span class="detail-label">Booking Reference:</span>
-                    <span>#BK123456789</span>
+                    <span class="detail-label">Booking Code:</span>
+                    <span>{{ bookingCode}}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Hotel:</span>
-                    <span>Luxury Beach Resort & Spa</span>
+                    <span>{{ hotelName}}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Room Type:</span>
@@ -188,31 +188,23 @@
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Check-in:</span>
-                    <span>December 20, 2024 (from 14:00)</span>
+                    <span>{{ checkInDate}}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Check-out:</span>
-                    <span>December 23, 2024 (until 12:00)</span>
+                    <span>{{ checkOutDate}}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Guests:</span>
-                    <span>2 Adults</span>
+                    <span>{{numberOfGuests}} Adults</span>
                 </div>
             </div>
 
             <div class="price-summary">
                 <h3 class="info-title">Price Summary</h3>
-                <div class="price-row">
-                    <span>Room Rate (3 nights)</span>
-                    <span>$450.00</span>
-                </div>
-                <div class="price-row">
-                    <span>Taxes & Fees</span>
-                    <span>$45.00</span>
-                </div>
                 <div class="price-row total-row">
                     <span>Total Amount</span>
-                    <span>$495.00</span>
+                    <span>{{ totalPrice }}</span>
                 </div>
             </div>
 

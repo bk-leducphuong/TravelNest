@@ -248,8 +248,8 @@ const handleRefundIntentSucceeded = async (chargeRefunded) => {
 
    // store refund
    const refundQuery = `
-      INSERT INTO refunds ( buyer_id, hotel_id, transaction_id , amount,completed_at)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO refunds ( buyer_id, hotel_id, transaction_id , amount,completed_at,status)
+      VALUES (?, ?, ?, ?, ?,?)
     `;
     await queryAsync(refundQuery, [
       buyerId,
@@ -257,6 +257,7 @@ const handleRefundIntentSucceeded = async (chargeRefunded) => {
       transaction[0].transaction_id,
       amount,
       new Date(),
+      'completed',
     ]);
 
     // update booking status
@@ -288,14 +289,32 @@ const handleRefundIntentSucceeded = async (chargeRefunded) => {
 // Email template function
 const sendConfirmationEmail = async (paymentIntent) => {
   try {
+    const {
+      hotel_id: hotelId,
+      buyer_id: buyerId,
+      seller_id: seller_id,
+      booked_rooms,
+      check_in_date: checkInDate,
+      check_out_date: checkOutDate,
+      number_of_guests: numberOfGuests,
+      booking_code: bookingCode,
+    } = paymentIntent.metadata;
+    //TODO: get hotel name, get buyer name
+    //...
+    
     // Load the email template
     const templatePath = "./email-templates/thankyou.html";
     let emailTemplate = fs.readFileSync(templatePath, "utf8");
 
-    // TODO: Pass booking information to email template
-    // // Replace placeholders with actual booking details
-    // emailTemplate = emailTemplate
-    //   .replace('{{bookingCode}}', bookingCode)
+    // Replace placeholders with actual booking details
+    emailTemplate = emailTemplate
+      // .replace('{{buyerName}}', buyerName)
+      // .replace('{{hotelName}}', hotelName)
+      .replace('{{bookingCode}}', bookingCode)
+      .replace('{{checkInDate}}', (new Date(checkInDate)).toString().split(' ').splice(0, 4).join(' '))
+      .replace('{{checkOutDate}}', (new Date(checkOutDate)).toString().split(' ').splice(0, 4).join(' '))
+      .replace('{{numberOfGuests}}', numberOfGuests)
+      .replace('{{totalPrice}}', parseInt(paymentIntent.amount).toLocaleString('vi-VN'))
 
     // Email options
     const mailOptions = {
@@ -382,7 +401,11 @@ async function sendNewBookingNotification(paymentIntent) {
 }
 /******************************************* Room inventory **********************************************/
 const updateRoomInventory = async (paymentIntent) => {
-  const { booked_rooms: bookedRooms, check_in_date: checkInDate, check_out_date: checkOutDate } = paymentIntent.metadata;
+  const {
+    booked_rooms: bookedRooms,
+    check_in_date: checkInDate,
+    check_out_date: checkOutDate,
+  } = paymentIntent.metadata;
   const bookedRoomsArray = JSON.parse(bookedRooms);
   for (const bookedRoom of bookedRoomsArray) {
     const roomQuery = `
@@ -390,9 +413,14 @@ const updateRoomInventory = async (paymentIntent) => {
       SET total_reserved = total_reserved + ?
       WHERE room_id = ? AND date BETWEEN ? AND ? ;
     `;
-    await queryAsync(roomQuery, [bookedRoom.roomQuantity, bookedRoom.room_id, checkInDate, checkOutDate]);
+    await queryAsync(roomQuery, [
+      bookedRoom.roomQuantity,
+      bookedRoom.room_id,
+      checkInDate,
+      checkOutDate,
+    ]);
   }
-}
+};
 
 /******************************************* Payout Event **********************************************/
 const handlePayoutEvent = async (payout, status) => {
@@ -480,7 +508,7 @@ const webhookController = async (req, res) => {
         await storeBooking(paymentIntent);
         // store invoice
         await storeInvoice(paymentIntent);
-        // update number of reserved rooms 
+        // update number of reserved rooms
         await updateRoomInventory(paymentIntent);
 
         // Send confirmation email
@@ -508,9 +536,12 @@ const webhookController = async (req, res) => {
         const payoutPaid = event.data.object;
         await handlePayoutEvent(payoutPaid, "completed");
         //TODO: send notification to hotel owner
-        io.to(`owner_${payoutPaid.metadata.hotel_id}`).emit("payout-completed", {
-          transactionId: payoutPaid.metadata.transaction_id
-        });
+        io.to(`owner_${payoutPaid.metadata.hotel_id}`).emit(
+          "payout-completed",
+          {
+            transactionId: payoutPaid.metadata.transaction_id,
+          }
+        );
         break;
 
       case "payout.failed":
@@ -518,7 +549,7 @@ const webhookController = async (req, res) => {
         await handlePayoutEvent(failedPayout, "failed");
         //TODO: send notification to hotel owner
         io.to(`owner_${failedPayout.metadata.hotel_id}`).emit("payout-failed", {
-          transactionId: failedPayout.metadata.transaction_id
+          transactionId: failedPayout.metadata.transaction_id,
         });
         break;
         case 'charge.refunded':

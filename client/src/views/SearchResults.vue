@@ -3,7 +3,7 @@ import axios from 'axios'
 import TheHeader from '@/components/Header.vue'
 import MapComponent from '@/components/map/MapComponent.vue'
 import TheFooter from '@/components/Footer.vue'
-import { mapActions, mapGetters } from 'vuex';
+import { mapActions, mapGetters } from 'vuex'
 import { useToast } from 'vue-toastification'
 
 export default {
@@ -23,7 +23,10 @@ export default {
       noResultsFound: false,
       openMapPopup: false,
       hotels: [], // Kết quả tìm kiếm sẽ được lưu ở đây
-      sortCriteria: '' // default sort criteria
+      displayHotels: [],
+      sortCriteria: '', // default sort criteria
+      searchQuery: '', // User's search input,
+      filteredHotels: [] // Matching hotels to display
     }
   },
   computed: {
@@ -50,17 +53,44 @@ export default {
           this.updateSearchDataInStore()
           this.saveSearchInformation()
           this.searchHotels()
-        }else {
+        } else {
           this.toast.error('Vui lòng nhập đầy đủ thông tin tìm kiếm!!')
         }
       },
       immediate: true
+    },
+    sortedHotels(newValue) {
+      this.displayHotels = newValue
+    },
+    filteredHotels(newValue) {
+      if (newValue.length === 0) {
+        this.displayHotels = this.sortedHotels
+        return
+      }
+      this.displayHotels = newValue
     }
   },
   methods: {
-    ...mapActions('search', ['updateLocation', 'updateCheckInDate', 'updateCheckOutDate', 'updateNumberOfDays', 'updateAdults', 'updateRooms', 'updateChildren', 'saveSearchInformation']),
+    ...mapActions('search', [
+      'updateLocation',
+      'updateCheckInDate',
+      'updateCheckOutDate',
+      'updateNumberOfDays',
+      'updateAdults',
+      'updateRooms',
+      'updateChildren',
+      'saveSearchInformation'
+    ]),
     isSearchUrlValid() {
-      return this.$route.query.location && this.$route.query.checkInDate && this.$route.query.checkOutDate && this.$route.query.adults && this.$route.query.children && this.$route.query.rooms && this.$route.query.numberOfDays ? true : false
+      return this.$route.query.location &&
+        this.$route.query.checkInDate &&
+        this.$route.query.checkOutDate &&
+        this.$route.query.adults &&
+        this.$route.query.children &&
+        this.$route.query.rooms &&
+        this.$route.query.numberOfDays
+        ? true
+        : false
     },
     updateSearchDataInStore() {
       this.updateLocation(this.$route.query.location)
@@ -104,6 +134,20 @@ export default {
       const totalPrice = parseInt(this.$route.query.numberOfDays) * Number(hotelLowestPrice)
       return totalPrice
     },
+    filterHotels() {
+      // Filter hotels based on the search query
+      const query = this.searchQuery.toLowerCase()
+      this.filteredHotels = this.hotels.filter((hotel) => hotel.name.toLowerCase().includes(query))
+    },
+    highlightMatch(name) {
+      const query = this.searchQuery.trim()
+      if (!query) return name
+      const regex = new RegExp(`(${query})`, 'gi')
+      return name.replace(regex, '<mark style="background-color: #5dabff;">$1</mark>')
+    }
+  },
+  mounted() {
+    this.displayHotels = this.sortedHotels
   }
 }
 </script>
@@ -270,15 +314,32 @@ export default {
                 nghỉ</strong
               >
               <div class="arrange">
-                <i class="fa-solid fa-repeat"></i>
-                <span>Sắp xếp theo:</span>
-                <!-- Sorting Controls -->
-                <select v-model="sortCriteria" @change="handleSort">
-                  <option value="">Lựa chọn hàng đầu của chúng tôi</option>
-                  <option value="priceLowToHigh">Giá (ưu tiên thấp nhất)</option>
-                  <option value="priceHighToLow">Giá (ưu tiên cao nhất)</option>
-                  <option value="ratingHighToLow">Xếp hạng chỗ nghỉ (Cao đến thấp)</option>
-                </select>
+                <div class="selection-search">
+                  <i class="fa-solid fa-repeat"></i>
+                  <span>Sắp xếp theo:</span>
+                  <!-- Sorting Controls -->
+                  <select v-model="sortCriteria" @change="handleSort">
+                    <option value="">Lựa chọn hàng đầu của chúng tôi</option>
+                    <option value="priceLowToHigh">Giá (ưu tiên thấp nhất)</option>
+                    <option value="priceHighToLow">Giá (ưu tiên cao nhất)</option>
+                    <option value="ratingHighToLow">Xếp hạng chỗ nghỉ (Cao đến thấp)</option>
+                  </select>
+                </div>
+                <div class="type-search">
+                  <input
+                    type="text"
+                    v-model="searchQuery"
+                    placeholder="Search hotels..."
+                    @input="filterHotels"
+                  />
+                  <button>
+                    <i
+                      class="fa fa-search"
+                      aria-hidden="true"
+                      style="color: white; cursor: pointer; font-size: larger"
+                    ></i>
+                  </button>
+                </div>
               </div>
 
               <div v-if="noResultsFound">
@@ -289,7 +350,7 @@ export default {
 
               <div
                 class="room-infor"
-                v-for="hotel in sortedHotels"
+                v-for="hotel in displayHotels"
                 :key="hotel.hotel_id"
                 @click="redirectToHotelDetails(hotel.hotel_id)"
               >
@@ -302,7 +363,9 @@ export default {
                 <div class="inner-show">
                   <div class="inner-introduction">
                     <div class="inner-name">
-                      <strong class="hotel-name">{{ hotel.name }}</strong>
+                      <strong class="hotel-name">
+                        <span v-html="highlightMatch(hotel.name)"></span
+                      ></strong>
                       <br />
                       <div class="address-container">
                         <svg
@@ -351,11 +414,7 @@ export default {
                       <br />
                       <span class="newPrice"
                         >VND
-                        {{
-                          (calculateHotelPrice(hotel.lowestPrice)).toLocaleString(
-                            'vi-VN'
-                          )
-                        }}</span
+                        {{ calculateHotelPrice(hotel.lowestPrice).toLocaleString('vi-VN') }}</span
                       >
                       <br />
                       <span class="desc">Đã bao gồm thuế và phí</span>
@@ -641,6 +700,11 @@ input[type='range']::-moz-range-track {
   padding: 10px 20px;
 }
 
+.arrange {
+  display: flex;
+  justify-content: space-between;
+}
+
 .arrange select {
   border-radius: 20px;
   padding: 5px;
@@ -660,6 +724,27 @@ input[type='range']::-moz-range-track {
 
 .inner-content .arrange span {
   margin-right: 8px;
+}
+
+.type-search {
+  display: flex;
+  align-items: center;
+}
+
+.type-search input {
+  margin: 0px;
+  border: none;
+  border-radius: 20px;
+  padding: 5px;
+  border: #ccc 1px solid;
+  width: 250px;
+}
+
+.type-search button {
+  background-color: #007bff;
+  border: none;
+  cursor: pointer;
+  border-radius: 20px;
 }
 
 /* end content  */

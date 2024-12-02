@@ -6,13 +6,21 @@ import axios from 'axios'
 import { mapActions, mapGetters } from 'vuex'
 import ImageGallery from '@/components/hotel-image/ImageGallery.vue'
 import { useToast } from 'vue-toastification'
+import Loading from 'vue-loading-overlay'
+import 'vue-loading-overlay/dist/css/index.css'
+
+import ReviewForm from '@/components/review/ReviewForm.vue'
+import ReviewValidation from '@/components/review/ReviewValidation.vue'
 
 export default {
   components: {
     TheHeader,
     TheFooter,
     MapComponent,
-    ImageGallery
+    ImageGallery,
+    Loading, 
+    ReviewForm,
+    ReviewValidation
   },
   setup() {
     // Get toast interface
@@ -42,15 +50,47 @@ export default {
       openCommentPopup: false,
       openMapPopup: false,
       isImageGalleryOpen: false,
+      showGuestSelector: false,
+      showReviewForm: false,
+      showReviewValidation: false,
+      // search room
+      dateRange: null,
+      children: 0,
+      adults: 2,
+      rooms: 1,
+      checkInDate: null,
+      checkOutDate: null,
+      numberOfDays: null,
+      isSearchRoomLoading: false
+    }
+  },
+  watch: {
+    dateRange(newValue) {
+      const dateRegex = /\b(\d{2}\/\d{2}\/\d{4})\b/g
+      const dates = newValue.match(dateRegex)
 
-      showGuestSelector: false
+      if (dates) {
+        // Convert the date strings to YYYY-MM-DD format
+        for (let i = 0; i < dates.length; i++) {
+          // Split the string into parts: [DD, MM, YYYY]
+          const [day, month, year] = dates[i].split('/')
+
+          // Rearrange into YYYY-MM-DD format
+          dates[i] = `${year}-${month}-${day}`
+        }
+
+        ;[this.checkInDate, this.checkOutDate] = dates
+        // Calculate the number of days between the start and end dates
+        this.calculateNumberOfDays(this.checkInDate, this.checkOutDate)
+      }
     }
   },
   computed: {
+    ...mapGetters('auth', ['isUserAuthenticated']),
     ...mapGetters('search', ['getSearchData']),
-    // guestDetails() {
-    //   return `${this.adults} người lớn · ${this.children} trẻ em · ${this.rooms} phòng`
-    // },
+    guestDetails() {
+      return `${this.adults} người lớn · ${this.children} trẻ em · ${this.rooms} phòng`
+    },
     displayedThumbnails() {
       return this.hotelImages.slice(3, 3 + this.initialThumbnailCount)
     },
@@ -70,7 +110,12 @@ export default {
   },
   methods: {
     ...mapActions('book', ['booking', 'checkRoomAvailability']),
-    
+    calculateNumberOfDays(checkInDateString, checkOutDateString) {
+      const checkInDate = new Date(checkInDateString)
+      const checkOutDate = new Date(checkOutDateString)
+      const timeDifference = checkOutDate - checkInDate
+      this.numberOfDays = timeDifference / (1000 * 60 * 60 * 24) + 1
+    },
     async getHotelDetails() {
       try {
         const response = await axios.post(`http://localhost:3000/api/hotels/get-hotel-details`, {
@@ -79,9 +124,10 @@ export default {
           checkOutDate: this.getSearchData.checkOutDate,
           numberOfDays: this.getSearchData.numberOfDays,
           numberOfRooms: this.getSearchData.rooms,
-          numberOfGuests: parseInt(this.getSearchData.adults) + parseInt(this.getSearchData.children),
+          numberOfGuests:
+            parseInt(this.getSearchData.adults) + parseInt(this.getSearchData.children)
         })
-        
+
         this.hotel = response.data.hotel
         this.room_list = response.data.rooms
         this.reviews = response.data.reviews
@@ -100,6 +146,16 @@ export default {
     hideCommentPopup() {
       this.openCommentPopup = false
     },
+    /******** review popup *******/
+    closeReviewValidation() {
+      this.showReviewValidation = false
+    },
+    openReviewForm() {
+      this.showReviewForm = true
+    },
+    closeReviewForm() {
+      this.showReviewForm = false
+    },
     /******** map popup ********/
     closeMapPopup() {
       this.openMapPopup = false
@@ -117,33 +173,40 @@ export default {
     toggleGuestSelector() {
       this.showGuestSelector = !this.showGuestSelector
     },
-    // updateGuests(type, action) {
-    //   if (type === 'adults') {
-    //     if (action === 'increment' && this.adults < 30) this.adults++
-    //     else if (action === 'decrement' && this.adults > 1) this.adults--
-    //   } else if (type === 'children') {
-    //     if (action === 'increment' && this.children < 10) this.children++
-    //     else if (action === 'decrement' && this.children > 0) this.children--
-    //   } else if (type === 'rooms') {
-    //     if (action === 'increment' && this.rooms < 30) this.rooms++
-    //     else if (action === 'decrement' && this.rooms > 1) this.rooms--
-    //   }
-    // },
+    updateGuests(type, action) {
+      if (type === 'adults') {
+        if (action === 'increment' && this.adults < 30) this.adults++
+        else if (action === 'decrement' && this.adults > 1) this.adults--
+      } else if (type === 'children') {
+        if (action === 'increment' && this.children < 10) this.children++
+        else if (action === 'decrement' && this.children > 0) this.children--
+      } else if (type === 'rooms') {
+        if (action === 'increment' && this.rooms < 30) this.rooms++
+        else if (action === 'decrement' && this.rooms > 1) this.rooms--
+      }
+    },
     hideGuestSelector() {
       this.showGuestSelector = false
     },
     async applyChange() {
-      const response = await axios.post('http://localhost:3000/api/hotels/search-room', {
-        hotel_id: this.hotel_id,
-        checkIndate: this.getSearchData.checkInDate,
-        checkOutDate: this.getSearchData.checkOutDate,
-        numberOfDays: this.getSearchData.numberOfDays,
-        adults: this.getSearchData.adults,
-        children: this.getSearchData.children,
-        rooms: this.getSearchData.rooms
-      })
+      try {
+        this.isSearchRoomLoading = true
+        const response = await axios.post('http://localhost:3000/api/hotels/search-room', {
+          hotel_id: this.hotel_id,
+          checkInDate: this.checkInDate,
+          checkOutDate: this.checkOutDate,
+          numberOfDays: this.numberOfDays,
+          adults: this.adults,
+          children: this.children,
+          rooms: this.rooms
+        })
 
-      this.room_list = response.data.available_rooms
+        this.room_list = response.data.available_rooms
+      } catch (error) {
+        console.error(error)
+      } finally {
+        this.isSearchRoomLoading = false
+      }
     },
     calculateRoomPrice(price_per_night) {
       const totalPrice = parseInt(this.getSearchData.numberOfDays) * Number(price_per_night)
@@ -215,6 +278,13 @@ export default {
           this.$router.push('/book')
         }
       }
+    },
+    writeReview() {
+      if (this.isUserAuthenticated) {
+        this.showReviewValidation = true
+      }else {
+        this.$router.push({ path: '/login', query: { redirect: this.$route.path } })
+      }
     }
   },
   async mounted() {
@@ -253,6 +323,8 @@ export default {
       :isOpenImageGallery="isImageGalleryOpen"
       @close-image-gallery="closeImageGallery"
     />
+    <ReviewValidation v-if="showReviewValidation" @close="closeReviewValidation" @open-review-form="openReviewForm" />
+    <ReviewForm v-if="showReviewForm" @close-review-form="closeReviewForm" />
     <!-- menu  -->
     <div class="menu">
       <div class="container">
@@ -481,6 +553,7 @@ export default {
             <th></th>
           </tr>
         </thead>
+
         <tbody>
           <tr class="room_1" v-for="(room, index) in room_list" :key="room.room_id">
             <td>
@@ -538,6 +611,14 @@ export default {
           </tr>
         </tbody>
       </table>
+      <loading
+          v-model:active="isSearchRoomLoading"
+          :color="`#003b95`"
+          :is-full-page="false"
+        />
+      <div v-if="room_list.length == 0" class="no-room-found">
+        <h5>Không tìm thấy phòng phù hợp với lựa chọn của bạn.</h5>
+      </div>
     </div>
 
     <!-- end price -->
@@ -558,7 +639,7 @@ export default {
           <p>
             Chúng tôi cố gắng mang đến 100% đánh giá thật <i class="fa-solid fa-circle-info"></i>
           </p>
-          <button>Viết đánh giá</button>
+          <button @click="writeReview">Viết đánh giá</button>
         </div>
         <hr />
         <div class="review__process">
@@ -1439,6 +1520,11 @@ select {
   margin-left: 5px;
 }
 
+.no-room-found {
+  text-align: center;
+  margin: 40px;
+}
+
 /* end price  */
 
 /* review  */
@@ -1449,7 +1535,7 @@ select {
   height: 100vh;
   width: 100vw;
   position: fixed;
-  z-index: 1000;
+  z-index: 9999;
   background-color: #00000056;
   top: 0px;
   /* display: none; */
