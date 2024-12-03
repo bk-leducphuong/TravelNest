@@ -175,9 +175,76 @@ const editAvatar = async (req, res) => {
   }
 };
 
+// Get or set favorite hotels controllers
+const getFavoriteHotels = async (req, res) => {
+  try {
+    const userId = req.session.user.user_id;
+    const query = 'SELECT hotel_id FROM saved_hotels WHERE user_id = ?';
+    const favoriteHotels = await queryAsync(query, [userId]);
+    res.status(200).json(favoriteHotels);
+  } catch (error) {
+    console.log("Error getting favorite hotels:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const setFavoriteHotels = async (req, res) => {
+  try {
+    const userId = req.session.user.user_id;
+    const hotelId = req.body.hotelId;
+    // Check if hotel is already saved
+    const query1 = 'SELECT * FROM saved_hotels WHERE hotel_id = ? AND user_id = ?';
+    const hotelIsSaved = await queryAsync(query1, [hotelId, userId]);
+    if (hotelIsSaved.length > 0) {
+      res.status(200).json({ success: true });
+      return;
+    }
+    // Insert hotel into saved_hotels table
+    const query2 = 'INSERT INTO saved_hotels (hotel_id, user_id) VALUES (?, ?)';
+    await queryAsync(query2, [hotelId, userId]);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.log("Error setting favorite hotels:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const deleteFavoriteHotel = async (req, res) => {
+  try {
+    const userId = req.session.user.user_id;
+    const hotelId = req.body.hotelId;
+    // Delete hotel from saved_hotels table
+    const query = 'DELETE FROM saved_hotels WHERE hotel_id = ? AND user_id = ?';
+    await queryAsync(query, [hotelId, userId]);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.log("Error deleting favorite hotel:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const checkFavoriteHotel = async (req, res) => {
+  try {
+    const userId = req.session.user.user_id;
+    const hotelId = req.body.hotelId;
+    // Check if hotel is already saved
+    const query = 'SELECT * FROM saved_hotels WHERE hotel_id = ? AND user_id = ?';
+    const hotelIsSaved = await queryAsync(query, [hotelId, userId]);
+    if (hotelIsSaved.length > 0) {
+      res.status(200).json({ isFavorite: true });
+    } else {
+      res.status(200).json({ isFavorite: false });
+    }
+  } catch (error) {
+    console.log("Error checking favorite hotel:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   getUserInformation,
   getBookingInformation,
+  // Edit user information controllers
   editName,
   editDisplayName,
   editEmail,
@@ -188,4 +255,9 @@ module.exports = {
   editCountry,
   editGender,
   editAvatar,
+  // Get or set favorite hotels controllers
+  getFavoriteHotels,
+  setFavoriteHotels,
+  deleteFavoriteHotel,
+  checkFavoriteHotel
 };
