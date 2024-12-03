@@ -111,7 +111,7 @@ export default {
     },
     async editAddress() {
       const response = await axios.post('http://localhost:3000/api/user/edit-address', {
-        address: this.address + ',' + this.city
+        address: this.address + ', ' + this.city
       }, {
         withCredentials: true
       })

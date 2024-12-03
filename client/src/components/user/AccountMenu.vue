@@ -30,7 +30,7 @@ export default {
     <button @click="this.showPopup = !this.showPopup" class="popup-button">
       <div style="border-radius: 5px; width: 170px; height: 35px; margin: 0 auto">
         <div class="avatar">
-          <img v-if="getUserInformation" :src="getUserInformation.profile_picture_url" alt="" />
+          <img v-if="getUserInformation" :src="getUserInformation.profile_picture_url" alt="avatar" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;"/>
           <img v-else src="../../assets/avatar/default_avatar.png" alt="" />
         </div>
         <span>

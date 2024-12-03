@@ -11,7 +11,7 @@ const queryAsync = promisify(connection.query).bind(connection);
 const getUserInformation = async (req, res) => {
   try {
     const userId = req.session.user.user_id;
-    const userQuery = `SELECT user_id, user_role, username, email, full_name, phone_number, address, nationality, country, profile_picture_url, date_of_birth FROM users WHERE user_id = ?`;
+    const userQuery = `SELECT user_id, user_role, username, email, full_name, phone_number, address, nationality, country, profile_picture_url, date_of_birth, gender FROM users WHERE user_id = ?`;
     const user = await queryAsync(userQuery, [userId]);
     res.status(200).json({ success: true, user: user[0] });
   } catch (error) {
