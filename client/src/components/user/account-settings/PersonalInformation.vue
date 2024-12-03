@@ -16,9 +16,14 @@ export default {
       phoneNumber: '',
       dateOfBirth: '',
       address: '',
+      country: '',
+      city: '',
+      postalCode: '',
       nationality: '',
       gender: '',
       avatar: '',
+      avatarFile: '',
+      uploadAvatarImage: '',
       isNameEdit: false,
       isDisplayNameEdit: false,
       isEmailEdit: false,
@@ -43,9 +48,10 @@ export default {
       this.phoneNumber = user.phone_number
       this.dateOfBirth = user.date_of_birth
       this.address = user.address
-      this.nationality = user.country
+      this.nationality = user.nationality
       this.gender = user.gender
       this.avatar = user.profile_picture_url
+      this.country = user.country
       //...
     },
     async editName() {
@@ -56,6 +62,7 @@ export default {
       })
       if (response.data.success) {
         this.toast.success('Đã cập nhật thông tin')
+        this.isNameEdit = false
       }
     },
     async editDisplayName() {
@@ -66,6 +73,7 @@ export default {
       })
       if (response.data.success) {
         this.toast.success('Đã cập nhật thông tin')
+        this.isDisplayNameEdit = false
       }
     },
     async editEmail() {
@@ -76,6 +84,7 @@ export default {
       })
       if (response.data.success) {
         this.toast.success('Đã cập nhật thông tin')
+        this.isEmailEdit = false
       }
     },
     async editPhoneNumber() {
@@ -86,6 +95,7 @@ export default {
       })
       if (response.data.success) {
         this.toast.success('Đã cập nhật thông tin')
+        this.isPhoneNumberEdit = false
       }
     },
     async editDateOfBirth() {
@@ -96,16 +106,24 @@ export default {
       })
       if (response.data.success) {
         this.toast.success('Đã cập nhật thông tin')
+        this.isDateOfBirthEdit = false
       }
     },
     async editAddress() {
       const response = await axios.post('http://localhost:3000/api/user/edit-address', {
-        address: this.address
+        address: this.address + ',' + this.city
       }, {
         withCredentials: true
       })
-      if (response.data.success) {
+
+      const response2 = await axios.post('http://localhost:3000/api/user/edit-country', {
+        country: this.country
+      }, {
+        withCredentials: true
+      })
+      if (response.data.success && response2.data.success) {
         this.toast.success('Đã cập nhật thông tin')
+        this.isAddressEdit = false
       }
     },
     async editNationality() {
@@ -116,6 +134,7 @@ export default {
       })
       if (response.data.success) {
         this.toast.success('Đã cập nhật thông tin')
+        this.isNationalityEdit = false
       }
     },
     async editGender() {
@@ -126,17 +145,36 @@ export default {
       })
       if (response.data.success) {
         this.toast.success('Đã cập nhật thông tin')
+        this.isGenderEdit = false
       }
     },
     async editAvatar() {
-      const response = await axios.post('http://localhost:3000/api/user/edit-avatar', {
-        avatar: this.avatar
-      }, {
+      const formData = new FormData();
+      formData.append('avatar', this.avatarFile);
+      const response = await axios.post('http://localhost:3000/api/user/edit-avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
         withCredentials: true
       })
       if (response.data.success) {
         this.toast.success('Đã cập nhật thông tin')
+        this.closeAvatarUploadPopup()
       }
+    },
+    handleFileUpload(event) {
+      this.avatarFile = event.target.files[0];
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.uploadAvatarImage = e.target.result;
+      };
+      reader.readAsDataURL(this.avatarFile);
+    },
+    closeAvatarUploadPopup() {
+      this.isAvatarEdit = false;
+      this.avatarFile = '';
+      this.uploadAvatarImage = '';
     }
   },
   async mounted() {
@@ -152,16 +190,17 @@ export default {
     <div class="popup-content">
       <div class="popup-header">
         <span>Chọn hình ảnh để tải lên</span>
-        <button class="close-btn" @click="isAvatarEdit = false">×</button>
+        <button class="close-btn" @click="closeAvatarUploadPopup">×</button>
       </div>
       <div class="popup-body">
         <div class="avatar-circle">
-          <!-- Avatar Circle -->
+          <img :src="uploadAvatarImage" v-if="uploadAvatarImage" alt="avatar" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;"/>
+          <img v-if="!uploadAvatarImage" :src="avatar" alt="avatar" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;"/>
         </div>
         <label for="fileInput" class="upload-btn">Chọn tập tin</label>
-        <input type="file" id="fileInput" class="file-input" accept="image/*" />
+        <input v-on:change="handleFileUpload" type="file" id="fileInput" class="file-input" accept="image/*" />
       </div>
-      <button class="save-btn" disabled id="saveButton">Lưu</button>
+      <button class="save-btn" :disabled="!avatarFile" id="saveButton" @click="editAvatar">Lưu</button>
     </div>
   </div>
   <!-- Main Content Container -->
@@ -189,7 +228,7 @@ export default {
             "
             @click="isAvatarEdit = true"
           >
-            <img :src="this.avatar" alt="avatar" style="width: 100px; height: 100px"/>
+            <img :src="this.avatar" alt="avatar" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;"/>
         </div>
         </div>
         <!-- name  -->
@@ -210,7 +249,7 @@ export default {
               <button class="cancel-button" @click="isNameEdit = false">Cancel</button>
               <br />
               <br />
-              <button class="edit-button">Save</button>
+              <button class="edit-button" @click="editName">Save</button>
             </div>
           </div>
           <div class="display-container" v-if="!isNameEdit">
@@ -231,7 +270,7 @@ export default {
             <div class="button-container">
               <button class="cancel-button" @click="isDisplayNameEdit = false">Cancel</button
               ><br /><br />
-              <button class="edit-button">Save</button>
+              <button class="edit-button"  @click="editDisplayName">Save</button>
             </div>
           </div>
           <div class="display-container" v-if="!isDisplayNameEdit">
@@ -254,7 +293,7 @@ export default {
             </div>
             <div class="button-container">
               <button class="cancel-button" @click="isEmailEdit = false">Cancel</button><br /><br />
-              <button class="edit-button">Save</button>
+              <button class="edit-button" @click="editEmail">Save</button>
             </div>
           </div>
           <div class="display-container" v-if="!isEmailEdit">
@@ -275,7 +314,7 @@ export default {
             <div class="button-container">
               <button class="cancel-button" @click="isPhoneNumberEdit = false">Cancel</button>
               <br /><br />
-              <button class="edit-button">Save</button>
+              <button class="edit-button" @click="editPhoneNumber">Save</button>
             </div>
           </div>
           <div class="display-container" v-if="!isPhoneNumberEdit">
@@ -289,55 +328,18 @@ export default {
           <div class="container1" v-if="isDateOfBirthEdit">
             <div class="edit-container">
               <div style="width: 430px; padding-right: 30px">
-                <p1>DOB</p1><br /><br />
-                <input type="text" style="width: 20%" value="DD" />
-
-                <select
-                  style="
-                    border-radius: 5px;
-                    border-color: #4285f4;
-                    border-style: solid;
-                    border-width: 1px;
-                    width: 100px;
-                    height: 29px;
-                  "
-                >
-                  <option value="1">Jan</option>
-                  /
-                  <option value="2">Feb</option>
-                  /
-                  <option value="3">Mar</option>
-                  /
-                  <option value="4">Apr</option>
-                  /
-                  <option value="5">May</option>
-                  /
-                  <option value="6">Jun</option>
-                  /
-                  <option value="7">Jul</option>
-                  /
-                  <option value="8">Aug</option>
-                  /
-                  <option value="9">Sep</option>
-                  /
-                  <option value="10">Oct</option>
-                  /
-                  <option value="11">Nov</option>
-                  /
-                  <option value="12">Dec</option>
-                  /
-                </select>
-                <input type="text" style="width: 30%" value="YYYY" />
+                <p1>Date of birth</p1><br /><br />
+                <input type="date" v-model="dateOfBirth" />
               </div>
             </div>
             <div class="button-container">
               <button class="cancel-button" @click="isDateOfBirthEdit = false">Cancel</button
               ><br /><br />
-              <button class="edit-button">Save</button>
+              <button class="edit-button" @click="editDateOfBirth">Save</button>
             </div>
           </div>
           <div class="display-container" v-if="!isDateOfBirthEdit">
-            <div class="value">Enter your date of birth</div>
+            <div class="value">{{ dateOfBirth || "Enter your date of birth" }}</div>
             <button class="edit-button" @click="isDateOfBirthEdit = true">Edit</button>
           </div>
         </div>
@@ -348,17 +350,17 @@ export default {
             <div class="edit-container">
               <div style="width: 300px; padding-right: 30px">
                 <p1>Nationality</p1><br /><br />
-                <input type="text" style="width: 100%" />
+                <input type="text" style="width: 100%" v-model="nationality" />
               </div>
             </div>
             <div class="button-container">
               <button class="cancel-button" @click="isNationalityEdit = false">Cancel</button
               ><br /><br />
-              <button class="edit-button">Save</button>
+              <button class="edit-button" @click="editNationality">Save</button>
             </div>
           </div>
           <div class="display-container" v-if="!isNationalityEdit">
-            <div class="value">+Vietnam</div>
+            <div class="value">{{ nationality || "Select your nationality" }}</div>
             <button class="edit-button" @click="isNationalityEdit = true">Edit</button>
           </div>
         </div>
@@ -378,12 +380,12 @@ export default {
                     width: 100px;
                     height: 29px;
                   "
+                  v-model="gender"
                 >
-                  <option value="1">Male</option>
+                  <option value="male">Male</option>
                   /
-                  <option value="2">Female</option>
+                  <option value="female">Female</option>
                   /
-                  <option value="3">Others</option>
                   /
                 </select>
               </div>
@@ -391,11 +393,11 @@ export default {
             <div class="button-container">
               <button class="cancel-button" @click="isGenderEdit = false">Cancel</button>
               <br /><br />
-              <button class="edit-button">Save</button>
+              <button class="edit-button" @click="editGender">Save</button>
             </div>
           </div>
           <div class="display-container" v-if="!isGenderEdit">
-            <div class="value">Select your gender</div>
+            <div class="value">{{ gender || "Select your gender" }}</div>
             <button class="edit-button" @click="isGenderEdit = true">Edit</button>
           </div>
         </div>
@@ -406,30 +408,30 @@ export default {
             <div class="edit-container" style="flex-direction: column">
               <div style="padding-right: 30px">
                 <p1>National</p1><br />
-                <input type="text" style="width: 100%" />
+                <input type="text" style="width: 100%" placeholder="Chọn quốc gia nơi bạn sống" v-model="country"/>
               </div>
               <div style="padding-right: 30px">
                 <p1>Address</p1><br />
-                <input type="text" style="width: 100%" />
+                <input type="text" placeholder="Tên đường và số nhà/căn hộ" v-model="address" style="width: 100%" />
               </div>
               <div style="display: flex; justify-content: space-between">
                 <div style="padding-right: 30px">
-                  <p1>City</p1><br />
-                  <input type="text" style="width: 100%" />
+                  <p1>Town/City</p1><br />
+                  <input type="text" style="width: 100%" v-model="city"/>
                 </div>
                 <div style="padding-right: 30px">
                   <p1>Postal code</p1><br />
-                  <input type="text" style="width: 100%" />
+                  <input type="text" style="width: 100%" v-model="postalCode"/>
                 </div>
               </div>
             </div>
             <div class="button-container">
               <button class="cancel-button" @click="isAddressEdit = false">Cancel</button><br /><br />
-              <button class="edit-button">Save</button>
+              <button class="edit-button" @click="editAddress">Save</button>
             </div>
           </div>
           <div class="display-container" v-if="!isAddressEdit">
-            <div class="value">Vietnam</div>
+            <div class="value">{{ address || "Select your address" }}, {{ country }}</div>
             <button class="edit-button" @click="isAddressEdit = true">Edit</button>
           </div>
         </div>
