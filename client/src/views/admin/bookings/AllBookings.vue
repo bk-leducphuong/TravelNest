@@ -43,8 +43,8 @@ export default {
 
         // assign room information for each corresponding booking
         bookings.forEach((booking) => {
-          booking.bookings.forEach((childBooking) => {
-            childBooking.roomInformation = this.rooms.find((room) => room.room_id === childBooking.room_id)
+          booking.rooms.forEach((room) => {
+            room.roomInformation = this.rooms.find((room) => room.room_id === room.room_id)
           })
         })
 
@@ -70,18 +70,24 @@ export default {
 
       bookings.forEach((booking) => {
         const bookingCode = booking.booking_code
+        const room = {
+          roomId: booking.room_id,
+          quantity: booking.quantity,
+        }
 
         if (!groupedBookings.has(bookingCode)) {
           groupedBookings.set(bookingCode, {
             booking_code: bookingCode,
-            bookings: [booking],
+            rooms: [room],
             buyer_id: booking.buyer_id,
             checkInDate: booking.check_in_date,
             checkOutDate: booking.check_out_date,
             bookedOn: booking.created_at,
+            status: booking.status,
+            totalPrice: booking.total_price
           })
         } else {
-          groupedBookings.get(bookingCode).bookings.push(booking)
+          groupedBookings.get(bookingCode).rooms.push(room)
         }
       })
 
@@ -207,9 +213,9 @@ export default {
                   </div>
                 </td>
                 <td>{{ (new Date(booking.bookedOn)).toString().split(' ').splice(0, 3).join(' ') }}</td>
-                <td><div v-for="childBooking in booking.bookings">{{ childBooking.quantity }} x {{ childBooking.roomInformation.room_name }}</div></td>
+                <td><div v-for="room in booking.rooms">{{ room.quantity }} x {{ room.roomInformation.room_name }}</div></td>
                 <td>{{ (new Date(booking.checkInDate)).toString().split(' ').splice(0, 3).join(' ') }}</td>
-                <td><span class="status active">Paid</span></td>
+                <td><span class="status active">{{ booking.status }}</span></td>
                 <td><button class="more-btn">⋮</button></td>
               </tr>
             </tbody>

@@ -81,7 +81,7 @@ export default {
             <span class="nav-text">Manage account</span>
           </a>
 
-          <a href="#" class="nav-item">
+          <a  @click="this.$router.push('/bookings')" class="nav-item">
             <svg
               class="nav-icon"
               viewBox="0 0 24 24"

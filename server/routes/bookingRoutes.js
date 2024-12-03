@@ -1,12 +1,12 @@
 const express = require('express');
+const { getAllBookings } = require('../controllers/bookingController');
+const {isUserAuthenticated} = require('../middlewares/sessionAuth');
 const router = express.Router();
 
-// Route to make a booking
-router.post('/bookings');
-// Route to fetch details of specific booking
-router.get('/bookings/:id');
+// root route: /api/booking
+router.use(isUserAuthenticated);
 // Route to fetch all bookings of user
-router.get('/bookings');
+router.get('/get-all-bookings', getAllBookings);
 // Route to cancel specific booking
 router.delete('/bookings/:id');
 

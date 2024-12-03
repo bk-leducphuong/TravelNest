@@ -77,6 +77,7 @@ const paymentRoutes = require('./routes/paymentRoutes.js');
 const userRoutes = require('./routes/userRoutes.js');
 const reviewRoutes = require('./routes/reviewRoutes.js');
 const refundRoutes = require('./routes/refundRoutes.js'); 
+const bookingRoutes = require('./routes/bookingRoutes.js');
 
 app.use('/api/search', searchRoutes);
 app.use('/api/home', homeRoutes);
@@ -87,6 +88,7 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/refund', refundRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/review', reviewRoutes);
+app.use('/api/booking', bookingRoutes);
 
 // Admin routes
 const adminPayoutRoutes = require('./routes/admin/payoutRoutes.js');

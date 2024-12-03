@@ -10,6 +10,7 @@
             <li><strong>VND</strong></li>
             <li><img src="../assets/header/Vn@3x.png" alt="Vietnam" /></li>
             <li><i class="fa-regular fa-circle-question"></i></li>
+            <li><i class="fa-regular fa-bell fa-lg"></i></li>
             <li>
               <span><a @click="this.$router.push('/join')">Đăng chỗ nghỉ của Quý vị</a></span>
             </li>
@@ -30,7 +31,7 @@
     </div>
   </div>
 
-  <div class="slide">
+  <div class="slide" v-if="isSearchOpen">
     <div class="container">
       <div class="inner-wrap" v-if="this.$route.name === 'Home'">
         <strong>Tìm chỗ nghỉ tiếp theo</strong>
