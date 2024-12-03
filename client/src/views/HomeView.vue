@@ -237,7 +237,7 @@ export default {
   <div class="home-container">
     <!-- Recently Search -->
     <div class="recent-search-container container" v-if="recentSearches.length > 0">
-      <h2 class="h2" >Tìm kiếm gần đây của bạn</h2>
+      <h2 class="h2">Tìm kiếm gần đây của bạn</h2>
       <div class="slider-container">
         <div ref="recentSlider" class="search-slider">
           <div
@@ -266,7 +266,6 @@ export default {
             class="nav-button prev"
             :disabled="disableScrollLeft('recentSlider')"
             @click="scrollLeft('recentSlider')"
-           
           >
             ‹
           </button>
@@ -274,7 +273,6 @@ export default {
             class="nav-button next"
             :disabled="disableScrollRight('recentSlider')"
             @click="scrollRight('recentSlider')"
-            
           >
             ›
           </button>
@@ -284,7 +282,7 @@ export default {
 
     <!-- Viewed Hotels -->
     <div class="hotel-container container" v-if="viewedHotels.length > 0">
-      <h2 class="h2" >Bạn có còn quan tâm đến những chỗ nghỉ này?</h2>
+      <h2 class="h2">Bạn có còn quan tâm đến những chỗ nghỉ này?</h2>
       <div class="slider-container">
         <div ref="viewedSlider" class="hotel-slider">
           <div
@@ -295,7 +293,7 @@ export default {
           >
             <div class="hotel-image">
               <img :src="hotel.image_urls" :alt="hotel.name" />
-              <SavedHotelIcon :hotelId="hotel.hotel_id"/>
+              <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
               <h2 class="hotel-name">{{ hotel.name }}</h2>
@@ -312,7 +310,6 @@ export default {
           class="nav-button prev"
           :disabled="disableScrollLeft('viewedSlider')"
           @click="scrollLeft('viewedSlider')"
-          
         >
           ‹
         </button>
@@ -320,7 +317,6 @@ export default {
           class="nav-button next"
           :disabled="disableScrollRight('viewedSlider')"
           @click="scrollRight('viewedSlider')"
-          
         >
           ›
         </button>
@@ -329,7 +325,7 @@ export default {
 
     <!-- Nearby Hotels -->
     <div class="hotel-container container" v-if="nearbyHotels.length > 0">
-      <h2 class="h2" >Những khách sạn gần đây</h2>
+      <h2 class="h2">Những khách sạn gần đây</h2>
       <loading
         v-model:active="isNearByHotelsLoading"
         :can-cancel="true"
@@ -346,7 +342,7 @@ export default {
           >
             <div class="hotel-image">
               <img :src="hotel.image_urls" :alt="hotel.name" />
-              <SavedHotelIcon :hotelId="hotel.hotel_id"/>
+              <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
               <h2 class="hotel-name">{{ hotel.name }}</h2>
@@ -363,7 +359,6 @@ export default {
           class="nav-button prev"
           :disabled="disableScrollLeft('nearbySlider')"
           @click="scrollLeft('nearbySlider')"
-        
         >
           ‹
         </button>
@@ -371,7 +366,6 @@ export default {
           class="nav-button next"
           :disabled="disableScrollRight('nearbySlider')"
           @click="scrollRight('nearbySlider')"
-         
         >
           ›
         </button>
@@ -380,7 +374,7 @@ export default {
 
     <!-- Popular Places -->
     <div class="popular-container container" v-if="popularPlaces.length > 0">
-      <div class="popular-header" >
+      <div class="popular-header">
         <h2 class="h2">Điểm đến đang thịnh hành</h2>
         <h4 class="h4">Các lựa chọn phổ biến nhất cho du khách từ Việt Nam</h4>
       </div>
@@ -412,7 +406,10 @@ export default {
           />
         </div>
       </div>
-      <div class="popular-place-card-bottom-grid popular-place-card-grid" v-if="popularPlaces.length > 2">
+      <div
+        class="popular-place-card-bottom-grid popular-place-card-grid"
+        v-if="popularPlaces.length > 2"
+      >
         <div
           class="popular-place-card"
           v-for="(place, index) in popularPlaces.slice(2, 5)"
@@ -630,8 +627,6 @@ h1 {
   object-fit: cover;
 }
 
-
-
 .hotel-content {
   height: 40%;
   padding: 15px;
@@ -717,11 +712,11 @@ h1 {
 }
 
 .prev {
-  left: 0;
+  left: -20px;
 }
 
 .next {
-  right: 0;
+  right: -20px;
 }
 
 .award-badge {
