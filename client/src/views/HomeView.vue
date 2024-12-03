@@ -16,11 +16,6 @@ export default {
   },
   data() {
     return {
-      noNearbyHotelsFound: false,
-      noViewedHotelsFound: false,
-      noRecentSearchesFound: false,
-      noPopularPlacesFound: false,
-
       recentSearches: [], // Array to store recently searched data
       viewedHotels: [], // Array to store viewed hotels data
       nearbyHotels: [], // Example nearby hotels data
@@ -241,8 +236,8 @@ export default {
   <!-- home body -->
   <div class="home-container">
     <!-- Recently Search -->
-    <div class="recent-search-container container" v-if="!noRecentSearchesFound">
-      <h2 class="h2" v-if="recentSearches.length > 0">Tìm kiếm gần đây của bạn</h2>
+    <div class="recent-search-container container" v-if="recentSearches.length > 0">
+      <h2 class="h2" >Tìm kiếm gần đây của bạn</h2>
       <div class="slider-container">
         <div ref="recentSlider" class="search-slider">
           <div
@@ -271,7 +266,7 @@ export default {
             class="nav-button prev"
             :disabled="disableScrollLeft('recentSlider')"
             @click="scrollLeft('recentSlider')"
-            v-if="recentSearches.length > 0"
+           
           >
             ‹
           </button>
@@ -279,7 +274,7 @@ export default {
             class="nav-button next"
             :disabled="disableScrollRight('recentSlider')"
             @click="scrollRight('recentSlider')"
-             v-if="recentSearches.length > 0"
+            
           >
             ›
           </button>
@@ -288,8 +283,8 @@ export default {
     </div>
 
     <!-- Viewed Hotels -->
-    <div class="hotel-container container" v-if="!noViewedHotelsFound">
-      <h2 class="h2" v-if="viewedHotels.length > 0">Bạn có còn quan tâm đến những chỗ nghỉ này?</h2>
+    <div class="hotel-container container" v-if="viewedHotels.length > 0">
+      <h2 class="h2" >Bạn có còn quan tâm đến những chỗ nghỉ này?</h2>
       <div class="slider-container">
         <div ref="viewedSlider" class="hotel-slider">
           <div
@@ -317,7 +312,7 @@ export default {
           class="nav-button prev"
           :disabled="disableScrollLeft('viewedSlider')"
           @click="scrollLeft('viewedSlider')"
-           v-if="viewedHotels.length > 0"
+          
         >
           ‹
         </button>
@@ -325,7 +320,7 @@ export default {
           class="nav-button next"
           :disabled="disableScrollRight('viewedSlider')"
           @click="scrollRight('viewedSlider')"
-          v-if="viewedHotels.length > 0"
+          
         >
           ›
         </button>
@@ -333,8 +328,8 @@ export default {
     </div>
 
     <!-- Nearby Hotels -->
-    <div class="hotel-container container" v-if="!noNearbyHotelsFound">
-      <h2 class="h2" v-if="nearbyHotels.length > 0">Những khách sạn gần đây</h2>
+    <div class="hotel-container container" v-if="nearbyHotels.length > 0">
+      <h2 class="h2" >Những khách sạn gần đây</h2>
       <loading
         v-model:active="isNearByHotelsLoading"
         :can-cancel="true"
@@ -368,7 +363,7 @@ export default {
           class="nav-button prev"
           :disabled="disableScrollLeft('nearbySlider')"
           @click="scrollLeft('nearbySlider')"
-          v-if="nearbyHotels.length > 0"
+        
         >
           ‹
         </button>
@@ -376,7 +371,7 @@ export default {
           class="nav-button next"
           :disabled="disableScrollRight('nearbySlider')"
           @click="scrollRight('nearbySlider')"
-          v-if="nearbyHotels.length > 0"
+         
         >
           ›
         </button>
@@ -384,8 +379,8 @@ export default {
     </div>
 
     <!-- Popular Places -->
-    <div class="popular-container container" v-if="!noPopularPlacesFound">
-      <div class="popular-header" v-if="popularPlaces.length > 0">
+    <div class="popular-container container" v-if="popularPlaces.length > 0">
+      <div class="popular-header" >
         <h2 class="h2">Điểm đến đang thịnh hành</h2>
         <h4 class="h4">Các lựa chọn phổ biến nhất cho du khách từ Việt Nam</h4>
       </div>
@@ -395,7 +390,7 @@ export default {
         :color="`#003b95`"
         :is-full-page="false"
       />
-      <div class="popular-place-card-up-grid popular-place-card-grid" v-if="popularPlaces.length > 0">
+      <div class="popular-place-card-up-grid popular-place-card-grid">
         <div
           class="popular-place-card"
           v-for="(place, index) in popularPlaces.slice(0, 2)"
