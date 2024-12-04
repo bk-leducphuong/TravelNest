@@ -60,13 +60,7 @@ export default {
       'updateRooms'
     ]),
     redirectToSearchResults(search) {
-      // update vuex store
-      this.updateLocation(search.location)
-      this.updateCheckInDate(search.checkInDate)
-      this.updateCheckOutDate(search.checkOutDate)
-      this.updateAdults(search.adults)
-      this.updateChildren(search.children)
-      this.updateRooms(search.rooms)
+      const numberOfDays = this.calculateNumberOfDays(search.checkInDate, search.checkOutDate)
       // Redirect user to search results page with query params
       this.$router.push({
         name: 'SearchResults',
@@ -76,7 +70,8 @@ export default {
           checkOutDate: search.checkOutDate,
           adults: search.adults,
           children: search.children,
-          rooms: search.rooms
+          rooms: search.rooms,
+          numberOfDays: numberOfDays
         }
       })
     },
@@ -210,7 +205,13 @@ export default {
       )
 
       slider.scrollTo({ left: this.sliderPosition.get(sliderRef), behavior: 'smooth' })
-    }
+    },
+    calculateNumberOfDays(checkInDateString, checkOutDateString) {
+      const checkInDate = new Date(checkInDateString)
+      const checkOutDate = new Date(checkOutDateString)
+      const timeDifference = checkOutDate - checkInDate
+      return (timeDifference / (1000 * 60 * 60 * 24)) + 1
+    },
   },
   watch: {
     getUserLocation: {

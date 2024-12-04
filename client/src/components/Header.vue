@@ -160,7 +160,7 @@ export default {
       ],
       showLocationPopup: false,
       showGuestSelector: false,
-      selectedLocation: 'Bạn muốn đến đâu?',
+      selectedLocation: null,
       dateRange: 'Ngày nhận phòng - Ngày trả phòng',
       adults: 2,
       children: 0,
