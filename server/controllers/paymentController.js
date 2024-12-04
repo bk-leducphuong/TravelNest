@@ -21,13 +21,14 @@ const handlePayment = async (req, res) => {
       metadata: {
         booking_code: bookingDetails.bookingCode,
         hotel_id: bookingDetails.hotel_id, // Add hotel_id into metadata
-        buyer_id: buyer_id, // Add seller_id into metadata
+        buyer_id: buyer_id, // Add buyer_id into metadata
         booked_rooms: JSON.stringify(bookingDetails.bookedRooms),
         check_in_date: bookingDetails.checkInDate,
         check_out_date: bookingDetails.checkOutDate,
         number_of_guests: bookingDetails.numberOfGuests
       },
     });
+    // store chargeId into transaction
 
     res.json({ clientSecret: paymentIntent.client_secret });
   } catch (err) {

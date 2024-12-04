@@ -82,9 +82,9 @@ export default {
               <div class="info-item">
                 <label>Booked rooms:</label>
                 <span
-                  v-for="childBooking in getBookingInformation.bookings"
-                  :key="childBooking.booking_id"
-                  >{{ childBooking.quantity }} x {{ childBooking.roomInformation.room_name }}</span
+                  v-for="(room, index) in getBookingInformation.rooms"
+                  :key="index"
+                  >{{ room.quantity }} x {{ room.roomInformation.room_name }}</span
                 >
               </div>
               <div class="info-item">
@@ -97,7 +97,7 @@ export default {
               </div>
               <div class="info-item">
                 <label>Commission:</label>
-                <span>VND {{ parseInt(getBookingInformation.bookings[0].total_price).toLocaleString('vi-VN') }}</span>
+                <span>VND {{ parseInt(getBookingInformation.totalPrice).toLocaleString('vi-VN') }}</span>
               </div>
               <div class="info-item">
                 <label>Payment received:</label>
@@ -114,7 +114,7 @@ export default {
             </div>
             <div class="info-item" style="margin-top: 20px;">
               <label>Total price:</label>
-              <span class="price">VND {{ parseInt(getBookingInformation.bookings[0].total_price).toLocaleString('vi-VN') }}</span>
+              <span class="price">VND {{ parseInt(getBookingInformation.totalPrice).toLocaleString('vi-VN') }}</span>
             </div>
           </div>
           <div class="reservation-actions">

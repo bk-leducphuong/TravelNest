@@ -137,18 +137,23 @@ const checkHotelExist = (latitude, longitude, callback) => {
 // Hàm chèn dữ liệu room_availability vào database
 const insertRoomAvailability = async () => {
   const NUMBER_OF_DAYS = 60; // 2 months
-  const query = "SELECT room_id FROM rooms ORDER BY room_id ASC";
+  const query = "SELECT room_id, price_per_night FROM rooms ORDER BY room_id ASC";
   const results = await queryPromise(query);
 
-  for (room of results) {
-    for (let i = 0; i < NUMBER_OF_DAYS; i++) {
-      const d = new Date();
-      d.setDate(d.getDate() + i);
+  // for (room of results) {
+  //   for (let i = 0; i < NUMBER_OF_DAYS; i++) {
+  //     const d = new Date();
+  //     d.setDate(d.getDate() + i);
 
-      const query = `INSERT INTO room_inventory (room_id, date, total_inventory, total_reserved) VALUES (?, ?, ?, ?)`;
-      await queryPromise(query, [room.room_id, d, 10, 0]);
-      ``;
-    }
+  //     const query = `INSERT INTO room_inventory (room_id, date, total_inventory, total_reserved) VALUES (?, ?, ?, ?)`;
+  //     await queryPromise(query, [room.room_id, d, 10, 0]);
+  //     ``;
+  //   }
+  // }
+
+  for (room of results) {
+    const query = `UPDATE room_inventory SET status = 'open', price_per_night = ? WHERE room_id = ?`;
+    await queryPromise(query, [room.price_per_night, room.room_id]);
   }
 };
 

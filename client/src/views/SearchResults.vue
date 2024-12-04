@@ -5,12 +5,14 @@ import MapComponent from '@/components/map/MapComponent.vue'
 import TheFooter from '@/components/Footer.vue'
 import { mapActions, mapGetters } from 'vuex'
 import { useToast } from 'vue-toastification'
+import SavedHotelIcon from '@/components/SavedHotelIcon.vue'
 
 export default {
   components: {
     TheHeader,
     MapComponent,
-    TheFooter
+    TheFooter,
+    SavedHotelIcon
   },
   setup() {
     // Get toast interface
@@ -355,6 +357,7 @@ export default {
                 @click="redirectToHotelDetails(hotel.hotel_id)"
               >
                 <div class="inner-img">
+                  <SavedHotelIcon :hotelId="hotel.hotel_id"/>
                   <img
                     src="https://cf.bstatic.com/xdata/images/hotel/square600/584426827.webp?k=bb9814a06488db8b686ac44963015b0f0a861f5536304a689fc2d00ed60a1679&o="
                     alt=""
@@ -778,6 +781,7 @@ input[type='range']::-moz-range-track {
 }
 
 .room-infor .inner-img {
+  position: relative;
   width: 31%;
   height: auto;
 }

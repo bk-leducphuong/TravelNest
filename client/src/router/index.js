@@ -10,6 +10,8 @@ import Book from '@/views/Book.vue'
 import AccountSettings from '@/views/account-settings/AccountSettings.vue'
 import SettingDetails from '@/views/account-settings/SettingDetails.vue'
 import BookingConfirmation from '@/views/BookingConfirmation.vue'
+import Bookings from '@/views/Bookings.vue'
+import BookingDetails from '@/views/BookingDetails.vue'
 
 import stores from '@/stores/index.js'
 
@@ -25,10 +27,11 @@ import Return from '@/views/admin/Return.vue'
 import Refresh from '@/views/admin/Refresh.vue'
 // admin bookings
 import AllBookings from '@/views/admin/bookings/AllBookings.vue'
-import BookingDetails from '@/views/admin/bookings/BookingDetails.vue'
+import AdminBookingDetails from '@/views/admin/bookings/BookingDetails.vue'
 import book from '@/stores/book'
 // admin room availability
 import AvailabilityCalendar from '@/views/admin/room-availability/AvailabilityCalendar.vue'
+import BookingCancellation from '@/views/BookingCancellation.vue'
 
 const routes = [
   // route for customer
@@ -98,6 +101,24 @@ const routes = [
     component: SettingDetails,
     meta: { requiresAuth: true }
   },
+  {
+    path: '/bookings',
+    name: 'Bookings',
+    component: Bookings,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/bookings/:bookingCode',
+    name: 'BookingDetails',
+    component: BookingDetails,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/bookings/:bookingCode/cancel',
+    name: 'BookingCancellation',
+    component: BookingCancellation,
+    meta: { requiresAuth: true }
+  },
   // route for partner/admin
   {
     path: '/admin/login',
@@ -157,8 +178,8 @@ const routes = [
   },
   {
     path: '/admin/:hotelId/bookings/booking-details',
-    name: 'BookingDetails',
-    component: BookingDetails,
+    name: 'AdminBookingDetails',
+    component: AdminBookingDetails,
     props: (route) => ({
       bc: route.query.bc // booking code
     }),

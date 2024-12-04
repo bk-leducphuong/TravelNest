@@ -3,17 +3,23 @@ import DashboardMenu from '@/components/admin/DashboardMenu.vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
 import { mapGetters } from 'vuex'
 import axios from 'axios'
+import { useToast } from 'vue-toastification'
 
 export default {
   components: {
     DashboardMenu,
     AdminHeader
   },
+  setup() {
+    const toast = useToast()
+    return { toast }
+  },
   data() {
     return {
       rooms: [],
       currentRoom: null,
       roomInventory: [], // room inventory data for current room
+      roomInventoryMap: new Array(7).fill(0).map(() => new Array(7).fill(0)), // map from the calendar to the room inventory
       currentMonth: null,
       currentYear: null,
       numberOfDays: null,
@@ -71,16 +77,53 @@ export default {
       ],
       dragging: false, // Whether the user is currently dragging
       startCell: null, // Starting cell for drag
-      selectedCells: [] // Array of selected cells
+      selectedCells: [], // Array of selected cells,
+      startDate: null, // Starting date for selected dates
+      endDate: null, // Ending date for selected dates
+      price: 0, // price of all selected dates
+      enableEdit: false,
+      // edit information for all selected cells
+      newRoomStatus: null, // 'close' or 'open'
+      newPrice: 0,
+      numberOfLeftRoom: 0,
+
+      isLoading: false
     }
   },
   watch: {
     currentMonth(newMonth) {
       this.currentMonth = newMonth
       this.generateCalendar(this.currentYear, newMonth)
+      this.mapCalendarToRoomInventory()
     },
     currentRoom(newRoom) {
       this.getRoomInventory()
+    },
+    selectedCells(newSelectedCells) {
+      // lock for editing
+      this.enableEdit = false
+      this.newRoomStatus = null
+      this.newPrice = 0
+      this.numberOfLeftRoom = 0
+
+      // update start and end date
+      this.startDate =
+        this.roomInventoryMap[newSelectedCells[0].weekIndex][
+          newSelectedCells[0].dayIndex
+        ].date.split('T')[0]
+      this.endDate =
+        this.roomInventoryMap[newSelectedCells[newSelectedCells.length - 1].weekIndex][
+          newSelectedCells[newSelectedCells.length - 1].dayIndex
+        ].date.split('T')[0]
+
+      // update price
+      this.price = 0
+      for (let i = 0; i < newSelectedCells.length; i++) {
+        this.price += parseInt(
+          this.roomInventoryMap[newSelectedCells[0].weekIndex][newSelectedCells[0].dayIndex]
+            .price_per_night
+        )
+      }
     }
   },
   computed: {
@@ -97,7 +140,8 @@ export default {
 
       let weeks = []
       let week = []
-      let dayOfWeek = firstDay.getDay() || 7 // Adjust for Monday start (1 = Monday)
+      let dayOfWeek = firstDay.getDay()
+      if (dayOfWeek === 0) dayOfWeek = 7 // Adjust Sunday to be the 7th day
 
       // Fill leading days from the previous month
       for (let i = 1; i < dayOfWeek; i++) {
@@ -134,6 +178,7 @@ export default {
         )
 
         this.roomInventory = response.data
+        this.mapCalendarToRoomInventory() // map from the calendar to the room inventory
       } catch (error) {
         console.error(error)
       }
@@ -156,6 +201,24 @@ export default {
       } catch (error) {
         console.error(error)
       }
+    },
+    mapCalendarToRoomInventory() {
+      this.roomInventory.forEach((roomInventory) => {
+        // extract month and date from date string '2024-11-26T17:00:00.000Z'
+        const date = roomInventory.date.split('T')[0]
+        const month = parseInt(date.split('-')[1])
+        const day = parseInt(date.split('-')[2])
+
+        if (month === this.currentMonth) {
+          this.weeks.forEach((week, weekIndex) => {
+            week.forEach((cell, dayIndex) => {
+              if (cell === day) {
+                this.roomInventoryMap[weekIndex][dayIndex] = roomInventory
+              }
+            })
+          })
+        }
+      })
     },
     // Start dragging operation
     startDrag(weekIndex, dayIndex) {
@@ -226,15 +289,63 @@ export default {
         // Clear previous selection and select only the clicked cell
         this.selectedCells = [{ weekIndex, dayIndex }]
       }
+    },
+    async updateRoomInventory() {
+      try {
+        this.isLoading = true
+        for (let i = 0; i < this.selectedCells.length; i++) {
+          const cell = this.selectedCells[i]
+          // update room status
+          if (this.newRoomStatus) {
+            this.roomInventoryMap[cell.weekIndex][cell.dayIndex].status = this.newRoomStatus
+          }
+          // update price
+          if (this.newPrice) {
+            this.roomInventoryMap[cell.weekIndex][cell.dayIndex].price_per_night = this.newPrice
+          }
+          // update room reserved
+          if (this.numberOfLeftRoom) {
+            this.roomInventoryMap[cell.weekIndex][cell.dayIndex].total_reserved =
+              this.numberOfLeftRoom
+          }
+        }
+
+        let newRoomInventory = []
+        for (let i = 0; i < this.selectedCells.length; i++) {
+          const cell = this.selectedCells[i]
+          newRoomInventory.push(this.roomInventoryMap[cell.weekIndex][cell.dayIndex])
+        }
+
+        const response = await axios.post(
+          'http://localhost:3000/api/admin/room/update-room-inventory',
+          {
+            newRoomInventory: newRoomInventory
+          },
+          {
+            withCredentials: true
+          }
+        )
+
+        if (response.data.success) {
+          this.toast.success('Cập nhật thành công')
+          this.enableEdit = false
+        }
+      } catch (error) {
+        console.error(error)
+        this.toast.error('Có lỗi xảy ra, vui lòng thử lại sau')
+      }finally {
+        this.isLoading = false
+      }
     }
   },
-  mounted() {
+  async mounted() {
     // get all rooms
-    this.getAllRooms()
+    await this.getAllRooms()
 
     const today = new Date()
     this.currentMonth = today.getMonth() + 1
     this.currentYear = today.getFullYear()
+    this.generateCalendar(this.currentYear, this.currentMonth) // Call explicitly
   }
 }
 </script>
@@ -284,16 +395,30 @@ export default {
                 v-for="(day, dayIndex) in week"
                 :key="`${weekIndex}-${dayIndex}`"
                 class="calendar-cell"
-                :class="{ selected: isSelected(weekIndex, dayIndex) }"
+                :class="{
+                  selected: isSelected(weekIndex, dayIndex),
+                  'close-cell': roomInventoryMap[weekIndex][dayIndex].status === 'close'
+                }"
                 @click="selectSingleCell(weekIndex, dayIndex)"
                 @mousedown="startDrag(weekIndex, dayIndex)"
                 @mousemove="dragOver(weekIndex, dayIndex)"
                 @mouseup="stopDrag"
               >
                 <div class="date-number" v-if="day">{{ day }}</div>
-                <div class="number-available" style="font-size: 10px;" v-if="day">1 left to sell</div>
-                <div class="room-price" v-if="day">
-                  VND {{ parseInt(currentRoom.price_per_night).toLocaleString('vi-VN') }}
+                <div class="number-available" style="font-size: 10px" v-if="day">
+                  {{
+                    roomInventoryMap[weekIndex][dayIndex].total_inventory -
+                    roomInventoryMap[weekIndex][dayIndex].total_reserved
+                  }}
+                  left to sell
+                </div>
+                <div class="room-price" v-if="day && currentRoom">
+                  VND
+                  {{
+                    parseInt(roomInventoryMap[weekIndex][dayIndex].price_per_night).toLocaleString(
+                      'vi-VN'
+                    )
+                  }}
                 </div>
               </div>
             </div>
@@ -301,25 +426,67 @@ export default {
           <div class="settings-panel">
             <div class="panel-section">
               <h3>Start date</h3>
-              <input type="text" class="date-input" id="start-date" />
+              <input disabled type="text" class="date-input" id="start-date" v-model="startDate" />
               <h3>End date</h3>
-              <input type="text" class="date-input" id="end-date" />
+              <input disabled type="text" class="date-input" id="end-date" v-model="endDate" />
             </div>
             <div class="panel-section">
               <h3>Open or close for bookings</h3>
               <div class="radio-group">
-                <label> <input type="radio" name="status" /> Open </label>
-                <label> <input type="radio" name="status" checked /> Closed </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="status"
+                    :disabled="!enableEdit"
+                    v-model="newRoomStatus"
+                    value="open"
+                  />
+                  Open
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="status"
+                    :disabled="!enableEdit"
+                    v-model="newRoomStatus"
+                    value="close"
+                  />
+                  Closed
+                </label>
               </div>
-              <h3>Select amount to sell</h3>
-              <select class="select-amount">
-                <option>1 option to sell</option>
-              </select>
-              <div class="currency">Price</div>
-              <input type="text" class="price-input" />
+              <h3>How many left rooms to sell</h3>
+              <input
+                :disabled="!enableEdit"
+                type="text"
+                class="price-input"
+                v-model="numberOfLeftRoom"
+              />
+              <div class="currency">Total price (VND)</div>
+              <input
+                disabled
+                type="text"
+                class="price-input"
+                :value="price.toLocaleString('vi-VN')"
+              />
+              <div class="currency">Price for one days (VND)</div>
+              <input :disabled="!enableEdit" type="text" class="price-input" v-model="newPrice" />
               <div class="action-button-container">
-                <button class="edit-btn">Edit</button>
-                <button class="save-btn">Save</button>
+                <button
+                  class="edit-btn"
+                  @click="enableEdit = true"
+                  :disabled="enableEdit"
+                  :class="{ 'disabled-button': enableEdit }"
+                >
+                  Edit
+                </button>
+                <button
+                  class="save-btn"
+                  :disabled="!enableEdit"
+                  :class="{ 'disabled-button': !enableEdit }"
+                  @click="updateRoomInventory"
+                >
+                  {{ isLoading ? 'Saving...' : 'Save' }}
+                </button>
               </div>
             </div>
           </div>
@@ -463,21 +630,6 @@ export default {
   font-size: 14px;
 }
 
-.select-amount {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  margin: 5px 0;
-  font-size: 14px;
-  color: #666;
-  background-color: white;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%23333' d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-}
-
 .price-input {
   width: 100%;
   padding: 8px 12px;
@@ -485,7 +637,6 @@ export default {
   border-radius: 4px;
   margin: 5px 0;
   font-size: 14px;
-  color: #999;
   background-color: #f8f9fa;
 }
 
@@ -506,7 +657,6 @@ export default {
 }
 
 .currency {
-  color: #999;
   font-size: 14px;
   margin-bottom: 5px;
 }
@@ -586,5 +736,17 @@ export default {
   font-size: 13px;
   bottom: 5px;
   position: absolute;
+}
+
+.disabled-button {
+  background-color: #ccc !important;
+}
+
+.close-cell {
+  background-color: #ff8f8f;
+}
+
+.close-cell:hover {
+  background-color: #ff5f5f;
 }
 </style>

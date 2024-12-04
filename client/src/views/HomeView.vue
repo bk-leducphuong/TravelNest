@@ -1,6 +1,7 @@
 <script>
 import TheHeader from '../components/Header.vue'
 import TheFooter from '../components/Footer.vue'
+import SavedHotelIcon from '@/components/SavedHotelIcon.vue'
 import axios from 'axios'
 import { mapActions, mapState, mapGetters } from 'vuex'
 import Loading from 'vue-loading-overlay'
@@ -10,15 +11,11 @@ export default {
   components: {
     TheHeader,
     TheFooter,
-    Loading
+    Loading,
+    SavedHotelIcon
   },
   data() {
     return {
-      noNearbyHotelsFound: false,
-      noViewedHotelsFound: false,
-      noRecentSearchesFound: false,
-      noPopularPlacesFound: false,
-
       recentSearches: [], // Array to store recently searched data
       viewedHotels: [], // Array to store viewed hotels data
       nearbyHotels: [], // Example nearby hotels data
@@ -239,7 +236,7 @@ export default {
   <!-- home body -->
   <div class="home-container">
     <!-- Recently Search -->
-    <div class="recent-search-container container" v-if="!noRecentSearchesFound">
+    <div class="recent-search-container container" v-if="recentSearches.length > 0">
       <h2 class="h2">Tìm kiếm gần đây của bạn</h2>
       <div class="slider-container">
         <div ref="recentSlider" class="search-slider">
@@ -284,7 +281,7 @@ export default {
     </div>
 
     <!-- Viewed Hotels -->
-    <div class="hotel-container container" v-if="!noViewedHotelsFound">
+    <div class="hotel-container container" v-if="viewedHotels.length > 0">
       <h2 class="h2">Bạn có còn quan tâm đến những chỗ nghỉ này?</h2>
       <div class="slider-container">
         <div ref="viewedSlider" class="hotel-slider">
@@ -296,9 +293,7 @@ export default {
           >
             <div class="hotel-image">
               <img :src="hotel.image_urls" :alt="hotel.name" />
-              <button class="favorite-button" @click="toggleFavorite(index)">
-                {{ hotel.isFavorite ? '♥' : '♡' }}
-              </button>
+              <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
               <h2 class="hotel-name">{{ hotel.name }}</h2>
@@ -329,7 +324,7 @@ export default {
     </div>
 
     <!-- Nearby Hotels -->
-    <div class="hotel-container container" v-if="!noNearbyHotelsFound">
+    <div class="hotel-container container" v-if="nearbyHotels.length > 0">
       <h2 class="h2">Những khách sạn gần đây</h2>
       <loading
         v-model:active="isNearByHotelsLoading"
@@ -347,9 +342,7 @@ export default {
           >
             <div class="hotel-image">
               <img :src="hotel.image_urls" :alt="hotel.name" />
-              <button class="favorite-button" @click="toggleFavorite(index)">
-                {{ hotel.isFavorite ? '♥' : '♡' }}
-              </button>
+              <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
               <h2 class="hotel-name">{{ hotel.name }}</h2>
@@ -380,7 +373,7 @@ export default {
     </div>
 
     <!-- Popular Places -->
-    <div class="popular-container container" v-if="!noPopularPlacesFound">
+    <div class="popular-container container" v-if="popularPlaces.length > 0">
       <div class="popular-header">
         <h2 class="h2">Điểm đến đang thịnh hành</h2>
         <h4 class="h4">Các lựa chọn phổ biến nhất cho du khách từ Việt Nam</h4>
@@ -413,7 +406,10 @@ export default {
           />
         </div>
       </div>
-      <div class="popular-place-card-bottom-grid popular-place-card-grid">
+      <div
+        class="popular-place-card-bottom-grid popular-place-card-grid"
+        v-if="popularPlaces.length > 2"
+      >
         <div
           class="popular-place-card"
           v-for="(place, index) in popularPlaces.slice(2, 5)"
@@ -631,34 +627,6 @@ h1 {
   object-fit: cover;
 }
 
-.favorite-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: white;
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition:
-    background-color 0.3s,
-    transform 0.3s;
-}
-
-.favorite-button:hover {
-  background: #f8f8f8;
-  transform: scale(1.1);
-}
-
-.favorite-button.active {
-  color: red;
-}
-
 .hotel-content {
   height: 40%;
   padding: 15px;
@@ -744,11 +712,11 @@ h1 {
 }
 
 .prev {
-  left: 0;
+  left: -20px;
 }
 
 .next {
-  right: 0;
+  right: -20px;
 }
 
 .award-badge {
