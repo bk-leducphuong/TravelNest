@@ -6,6 +6,9 @@ const queryAsync = promisify(connection.query).bind(connection);
 const getAllBookings = async (req, res) => {
     try {
         const buyerId = req.session.user.user_id;
+        //TODO: update booking status
+        //...
+        
         const query = 'SELECT * FROM bookings WHERE buyer_id = ? ORDER BY created_at DESC';
         const bookings = await queryAsync(query, [buyerId]);
 

@@ -7,6 +7,8 @@ const queryAsync = promisify(connection.query).bind(connection);
 const getAllBookings = async (req, res) => {
   try {
     const { hotelId } = req.body;
+    //TODO: update booking status
+    //...
     const bookings = await queryAsync(
       "SELECT * FROM bookings WHERE hotel_id = ?",
       [hotelId]
