@@ -106,7 +106,7 @@ const storeInvoice = async (paymentIntent) => {
 
 const handlePaymentIntentCreated = async (paymentIntent) => {
   try {
-    const { buyer_id: buyerId, hotel_id: hotelId } = paymentIntent.metadata;
+    const { buyer_id: buyerId, hotel_id: hotelId, booking_code: bookingCode } = paymentIntent.metadata;
     //const sellerId = await getSellerId(paymentIntent);
     const paymentMethodId = paymentIntent.payment_method;
     const paymentMethod = paymentMethodId
@@ -149,10 +149,9 @@ const handlePaymentIntentCreated = async (paymentIntent) => {
 const handlePaymentIntentSucceeded = async (paymentIntent) => {
   try {
     const paymentMethodId = paymentIntent.payment_method;
-   // console.log('PaymentIntent:', paymentIntent)
+    const bookingCode = paymentIntent.metadata.booking_code;
     // Lấy Charge ID
     const chargeId = paymentIntent.latest_charge;
-    console.log('Charge ID:', chargeId);
     const paymentMethod = paymentMethodId
       ? await stripe.paymentMethods.retrieve(paymentMethodId)
       : null;
@@ -168,9 +167,9 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
       const transactionId = transactionExists[0].transaction_id;
 
       const updateTransactionQuery = `
-        UPDATE Transactions SET status = ?, charge_id = ? WHERE transaction_id = ?
+        UPDATE Transactions SET status = ?, charge_id = ?, booking_code = ? WHERE transaction_id = ?
       `;
-      await queryAsync(updateTransactionQuery, ["completed",chargeId, transactionId]);
+      await queryAsync(updateTransactionQuery, ["completed",chargeId, bookingCode, transactionId]);
 
       const updatePaymentQuery = `
         UPDATE Payments SET payment_status = ?, payment_method = ? WHERE transaction_id = ?

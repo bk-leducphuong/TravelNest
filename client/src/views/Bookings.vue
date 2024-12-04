@@ -4,6 +4,8 @@ import Footer from '@/components/Footer.vue'
 import axios from 'axios'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
+import { mapActions } from 'vuex'
+import router from '@/router/index.js'
 
 export default {
   components: {
@@ -18,6 +20,7 @@ export default {
     }
   },
   methods: {
+    ...mapActions('booking', ['setBookingInformation']),
     async getAllBookings() {
       try {
         this.isLoading = true
@@ -62,6 +65,15 @@ export default {
 
       // Convert Map to an array
       return Array.from(groupedBookings.values())
+    }, 
+    seeDetails(bookingCode) { 
+      this.bookings.forEach(booking => {
+        if (booking.booking_code === bookingCode) {
+           this.setBookingInformation(booking)
+        }
+      })
+     
+      router.push({ name: 'BookingDetails', params: { bookingCode: bookingCode } })
     }
   },
   async mounted() {
@@ -73,7 +85,7 @@ export default {
   <Header :isSearchOpen="false" />
   <div class="account-settings">
     <loading v-model:active="isLoading" :color="`#003b95`" :is-full-page="false" />
-    <h1 style="font-weight: 700;">Bookings & Trips</h1>
+    <h2 style="font-weight: 700;">Bookings & Trips</h2>
     <br />
     <div class="booking-container" v-for="booking in bookings" :key="booking.booking_id">
       <h3 style="margin-bottom: 5px; font-weight: 700">{{ booking.hotel.city }}</h3>
@@ -104,7 +116,7 @@ export default {
           </div>
         </div>
         <div class="line"></div>
-        <div class="see-more-section" @click="this.$router.push({ name: 'BookingDetails', params: { bookingCode: booking.booking_code } })">
+        <div class="see-more-section" @click="seeDetails(booking.booking_code)">
           <i class="fa-solid fa-angle-right fa-xl"></i>
         </div>
       </div>
@@ -121,8 +133,10 @@ export default {
   font-family: Arial, sans-serif;
 }
 .booking-content-container {
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.1);
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   cursor: pointer;
   border-radius: 10px;
   margin-bottom: 30px;
@@ -146,11 +160,7 @@ export default {
 }
 
 .see-more-section:hover {
-  background-color: #ccc;
-}
-
-.booking-content-container:hover {
-  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.2);
+  background-color: #f3f3f3;
 }
 
 .hotel-image-container {

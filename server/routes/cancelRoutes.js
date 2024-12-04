@@ -1,11 +1,12 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { handleRefund } = require('../controllers/refundController');
+const { handleCancel } = require('../controllers/cancelController');
 const { isUserAuthenticated } = require('../middlewares/sessionAuth');
 const router = express.Router();
 
-//router.use(isUserAuthenticated);
+// root route: /api/cancel-bookings
+router.use(isUserAuthenticated);
 // Route to handle refund
-router.post('/', handleRefund);
+router.post('/', handleCancel);
 
 module.exports = router;

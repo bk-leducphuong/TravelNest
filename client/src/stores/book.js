@@ -1,4 +1,4 @@
-// store/index.js
+// This store will be used to store booking information when user make a booking
 import axios from 'axios'
 export default {
   namespaced: true,

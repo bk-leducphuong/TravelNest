@@ -1,25 +1,35 @@
 <script>
 import Footer from '@/components/Footer.vue';
 import Header from '@/components/Header.vue'
+import { mapGetters } from 'vuex';
 export default {
   components: {
     Header,
     Footer
-  }
+  },
+  data() {
+    return {
+      bookingCode: this.$route.params.bookingCode
+    }
+  },
+  computed: {
+    ...mapGetters('booking', ['getBookingInformation']),
+    ...mapGetters('user', ['getUserInformation'])
+  },
 }
 </script>
 <template>
   <Header :isSearchOpen="false" />
   <div class="confirmation-container">
-    <h1 class="greeting">Thanks, Adnan!</h1>
-    <h2 class="confirmation-title">Your booking in Islamabad is confirmed.</h2>
+    <h1 class="greeting">Thanks, {{ getUserInformation.username}}!</h1>
+    <h2 class="confirmation-title">Your booking in {{ getBookingInformation.hotel.name }} is confirmed.</h2>
     <ul class="details-list">
       <li>
         <span class="icon">✔</span> We sent your confirmation email to
-        <strong>adnan75500@hotmail.com</strong> <a href="#" class="edit-link">Edit</a>
+        <strong>{{ getUserInformation.email }}</strong> <a href="#" class="edit-link">Edit</a>
       </li>
       <li>
-        <span class="icon">✔</span> <a href="#" class="highlight-link">Get a better room</a> for
+        <span class="icon">✔</span> <a href="#" class="highlight-link">Get a better room </a> for
         just PKR 1,721.26
       </li>
       <li>
@@ -37,8 +47,8 @@ export default {
       </li>
     </ul>
     <div class="button-container">
-      <button class="button print-btn">Print confirmation</button>
-      <button class="button save-btn">Save confirmation to phone</button>
+      <button class="button print-btn"><i class="fa-solid fa-print"></i>  Print confirmation</button>
+      <button class="button save-btn"><i class="fa-solid fa-floppy-disk"></i>  Save confirmation to phone</button>
     </div>
   </div>
   <h1 class="section-title">Check Your Details</h1>
@@ -46,15 +56,14 @@ export default {
     <!-- Left Section -->
     <div class="details-left">
       <div class="property-details">
-        <h2 class="property-name">Chalet Islamabad <span class="badge">Genius</span></h2>
-        <p class="rating">★★★★★</p>
-        <p><strong>Confirmation number:</strong> 2998.711.171</p>
+        <h2 class="property-name">{{ getBookingInformation.hotel.name }}  <span class="rating">★★★★★</span> <span class="badge">Genius</span></h2>
+        <p><strong>Booking code:</strong> {{ getBookingInformation.booking_code }}</p>
         <p><strong>PIN Code:</strong> 4338 <span class="lock-icon">🔒</span></p>
         <h3 class="subheading">Booking Details</h3>
-        <p>2 nights, 1 selected <a href="#" class="action-link">Add space for more guests</a></p>
-        <p><strong>You booked for:</strong> 1 adult</p>
-        <p><strong>Check-in:</strong> Sunday, October 1, 2023 (12:00 PM - 12:00 AM)</p>
-        <p><strong>Check-out:</strong> Tuesday, October 3, 2023 (12:00 PM - 1:00 PM)</p>
+        <p v-for="room in getBookingInformation.rooms">{{ room.roomName }} x {{ room.quantity }}</p>
+        <p><strong>You booked for:</strong> {{ getBookingInformation.numberOfGuests }} adult</p>
+        <p><strong>Check-in:</strong> {{ new Date(getBookingInformation.checkInDate).toString().split(' ').slice(0, 4).join(' ') }} (12:00 PM - 12:00 AM)</p>
+        <p><strong>Check-out:</strong>  {{ new Date(getBookingInformation.checkOutDate).toString().split(' ').slice(0, 4).join(' ') }}  (12:00 PM - 1:00 PM)</p>
         <div class="calendar-links">
           <a href="#" class="calendar-link">Outlook/iCal</a>
           <a href="#" class="calendar-link">Google calendar</a>
@@ -69,11 +78,11 @@ export default {
         You can always view or change your booking online – no registration required.
       </p>
       <ul class="action-list">
-        <li><a href="#" class="action-link">❌ Cancel your booking</a></li>
-        <li><a href="#" class="action-link">Edit guest details</a></li>
-        <li><a href="#" class="action-link">Message property</a></li>
-        <li><a href="#" class="action-link">Change dates</a></li>
-        <li><a href="#" class="action-link">Change your room</a></li>
+        <li><router-link :to="{path: `/bookings/${bookingCode}/cancel`}" class="action-link"><i class="fa-solid fa-xmark" style="color: #ea1010;"></i> Cancel your booking</router-link></li>
+        <li><a href="#" class="action-link"><i class="fa-solid fa-pen-to-square" style="color: #0d5de7;"></i> Edit guest details</a></li>
+        <li><a href="#" class="action-link"><i class="fa-solid fa-message" style="color: #005eff;"></i> Message property</a></li>
+        <li><a href="#" class="action-link"><i class="fa-regular fa-calendar-days" style="color: #005eff;"></i> Change dates</a></li>
+        <li><a href="#" class="action-link"><i class="fa-solid fa-wrench" style="color: #005eff;"></i> Change your room</a></li>
       </ul>
     </div>
   </div>
