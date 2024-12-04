@@ -140,7 +140,7 @@ export default {
             <span class="nav-text">Reviews</span>
           </a>
 
-          <a href="#" class="nav-item">
+          <a class="nav-item" @click="this.$router.push('/saved-hotels')">
             <svg
               class="nav-icon"
               viewBox="0 0 24 24"

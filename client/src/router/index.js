@@ -32,6 +32,7 @@ import book from '@/stores/book'
 // admin room availability
 import AvailabilityCalendar from '@/views/admin/room-availability/AvailabilityCalendar.vue'
 import BookingCancellation from '@/views/BookingCancellation.vue'
+import SavedHotels from '@/views/SavedHotels.vue'
 
 const routes = [
   // route for customer
@@ -117,6 +118,12 @@ const routes = [
     path: '/bookings/:bookingCode/cancel',
     name: 'BookingCancellation',
     component: BookingCancellation,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/saved-hotels',
+    name: 'SavedHotels',
+    component: SavedHotels,
     meta: { requiresAuth: true }
   },
   // route for partner/admin

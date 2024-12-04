@@ -181,7 +181,14 @@ const getFavoriteHotels = async (req, res) => {
     const userId = req.session.user.user_id;
     const query = 'SELECT hotel_id FROM saved_hotels WHERE user_id = ?';
     const favoriteHotels = await queryAsync(query, [userId]);
-    res.status(200).json(favoriteHotels);
+
+    for (let hotel of favoriteHotels) {
+      const hotelId = hotel.hotel_id;
+      const query2 = 'SELECT name, overall_rating, address, hotel_class, image_urls FROM hotels WHERE hotel_id = ?';
+      const hotelInformation = await queryAsync(query2, [hotelId]);
+      hotel.hotelInformation = hotelInformation[0];
+    }
+    res.status(200).json({hotels: favoriteHotels});
   } catch (error) {
     console.log("Error getting favorite hotels:", error);
     res.status(500).json({ message: "Internal Server Error" });
