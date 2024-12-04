@@ -20,7 +20,7 @@ export default {
 </script>
 <template>
   <Header :isSearchOpen="false" />
-  <div class="confirmation-container">
+  <div class="confirmation-container" v-if="getBookingInformation.status === 'confirmed'">
     <h1 class="greeting">Thanks, {{ getUserInformation.username}}!</h1>
     <h2 class="confirmation-title">Your booking in {{ getBookingInformation.hotel.name }} is confirmed.</h2>
     <ul class="details-list">
@@ -51,6 +51,12 @@ export default {
       <button class="button save-btn"><i class="fa-solid fa-floppy-disk"></i>  Save confirmation to phone</button>
     </div>
   </div>
+
+  <div class="confirmation-container" v-if="getBookingInformation.status != 'confirmed'">
+    <h1 class="greeting">Thank you for using our service!</h1>
+    <h2 class="confirmation-title">Your booking in {{ getBookingInformation.hotel.name }} is {{ getBookingInformation.status }}.</h2>
+  </div>
+
   <h1 class="section-title">Check Your Details</h1>
   <div class="details-container">
     <!-- Left Section -->
@@ -72,7 +78,7 @@ export default {
     </div>
 
     <!-- Right Section -->
-    <div class="details-right">
+    <div class="details-right" v-if="getBookingInformation.status === 'confirmed'">
       <h2 class="subheading">Is everything correct?</h2>
       <p class="note">
         You can always view or change your booking online – no registration required.
@@ -83,6 +89,16 @@ export default {
         <li><a href="#" class="action-link"><i class="fa-solid fa-message" style="color: #005eff;"></i> Message property</a></li>
         <li><a href="#" class="action-link"><i class="fa-regular fa-calendar-days" style="color: #005eff;"></i> Change dates</a></li>
         <li><a href="#" class="action-link"><i class="fa-solid fa-wrench" style="color: #005eff;"></i> Change your room</a></li>
+      </ul>
+    </div>
+    <div class="details-right" v-if="getBookingInformation.status !== 'confirmed'">
+      <h2 class="subheading">What happens next?</h2>
+      <p class="note">
+        
+      </p>
+      <ul class="action-list">
+        <li><a href="#" class="action-link"><i class="fa-solid fa-wrench" style="color: #005eff;"></i> Book another room</a></li>
+        <li><a href="#" class="action-link"><i class="fa-solid fa-pen-to-square" style="color: #0d5de7;"></i> Report a problem</a></li>
       </ul>
     </div>
   </div>
