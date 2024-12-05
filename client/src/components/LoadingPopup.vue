@@ -79,7 +79,7 @@ export default {
       if (newValue == true) {
         setTimeout(() => {
           this.openLoadingPopup = false
-          this.$router.push(this.redirectUrl)
+          this.$router.go() // reload page
         }, 2000)
         // this.openLoadingPopup = false
       }
@@ -94,8 +94,8 @@ export default {
   z-index: 99999999;
   left: 0;
   top: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.4);
   display: flex;

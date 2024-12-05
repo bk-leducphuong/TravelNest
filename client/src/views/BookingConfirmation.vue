@@ -1,6 +1,13 @@
 <script>
 import axios from 'axios'
+import { useToast } from 'vue-toastification'
 export default {
+  setup() {
+    // Get toast interface
+    const toast = useToast()
+    // Make it available inside methods
+    return { toast }
+  },
   data() {
     return {
       bookingInformation: null
@@ -8,17 +15,64 @@ export default {
   },
   methods: {
     async getBookingInformation() {
-      const response = await axios.post(
-        'http://localhost:3000/api/user/booking/get-booking-information',
-        {
-          bookingCode: this.$route.query.bookingCode
-        },
-        { withCredentials: true }
-      )
+      const bookingCode = this.$route.query.bookingCode
+      if (bookingCode) {
+        try {
+          // get all bookings of user
+          const response = await axios.get('http://localhost:3000/api/booking/get-all-bookings', {
+            withCredentials: true
+          })
 
-      this.bookingInformation = response.data.bookingInformation
-      // console.log(response.data)
-    }
+          // filter bookings to find booking which has the same bookingCode
+          let bookings = response.data.bookings.filter(booking => booking.booking_code == bookingCode)
+
+          bookings = this.groupBookings(bookings)
+          
+          if (bookings.length > 0) {
+            this.bookingInformation = bookings[0]
+          }else {
+            this.$router.replace({ name: 'NotFound' })
+          }
+
+        } catch (error) {
+          console.log(error)
+          this.toast.error('Hệ thống bị lỗi, vui lòng thử lại sau!')
+          this.$router.replace({ name: 'NotFound' })
+        }
+      } else {
+        this.$router.replace({ name: 'NotFound' })
+      }
+    },
+    groupBookings(bookings) {
+      const groupedBookings = new Map()
+
+      bookings.forEach((booking) => {
+        const bookingCode = booking.booking_code
+        const room = {
+          roomId: booking.room_id,
+          quantity: booking.quantity,
+          roomName: booking.roomName
+        }
+        if (!groupedBookings.has(bookingCode)) {
+          groupedBookings.set(bookingCode, {
+            booking_code: bookingCode,
+            rooms: [room],
+            checkInDate: booking.check_in_date,
+            checkOutDate: booking.check_out_date,
+            bookedOn: booking.created_at,
+            hotel: booking.hotel,
+            status: booking.status,
+            totalPrice: booking.total_price,
+            numberOfGuests: booking.number_of_guests
+          })
+        } else {
+          groupedBookings.get(bookingCode).rooms.push(room)
+        }
+      })
+
+      // Convert Map to an array
+      return Array.from(groupedBookings.values())
+    },
   },
   async mounted() {
     await this.getBookingInformation()
@@ -28,7 +82,7 @@ export default {
 <template>
   <!-- header  -->
   <div class="header">
-    <div class="" style="padding: 0px 20px;">
+    <div class="" style="padding: 0px 20px">
       <div class="inner-wrap">
         <div class="inner-logo">
           <strong @click="this.$router.push('/')" style="cursor: pointer">Booking.com</strong>
@@ -45,10 +99,10 @@ export default {
     </div>
   </div>
   <!-- end header  -->
-  <div class="container">
+  <div class="container" v-if="bookingInformation">
     <div class="success-card">
       <div class="success-header">
-        <div class="success-icon">✓</div>
+        <div class="success-icon"><i class="fa fa-check" aria-hidden="true" style="font-size: 50px; color: green;"></i></div>
         <h1 class="success-title">Your booking is confirmed!</h1>
         <p v-if="bookingInformation">Booking ID: {{ bookingInformation.booking_code }}</p>
       </div>
@@ -59,11 +113,11 @@ export default {
           <div class="detail-grid">
             <div class="detail-item">
               <div class="detail-label">Hotel Name</div>
-              <div class="detail-value">Luxury Beach Resort & Spa</div>
+              <div class="detail-value">{{ bookingInformation.hotel.name }}</div>
             </div>
             <div class="detail-item">
               <div class="detail-label">Room Type</div>
-              <div class="detail-value">Deluxe Ocean View</div>
+              <div class="detail-value" v-for="room in bookingInformation.rooms">{{ room.roomName }} x {{ room.quantity }}</div>
             </div>
           </div>
         </div>
@@ -73,11 +127,11 @@ export default {
           <div class="detail-grid">
             <div class="detail-item">
               <div class="detail-label">Check-in</div>
-              <div class="detail-value">Monday, Dec 20, 2024 (from 14:00)</div>
+              <div class="detail-value">{{ new Date(bookingInformation.checkInDate).toLocaleDateString('vi-VN') }}</div>
             </div>
             <div class="detail-item">
               <div class="detail-label">Check-out</div>
-              <div class="detail-value">Thursday, Dec 23, 2024 (until 12:00)</div>
+              <div class="detail-value">{{ new Date(bookingInformation.checkOutDate).toLocaleDateString('vi-VN') }}</div>
             </div>
             <div class="detail-item">
               <div class="detail-label">Length of Stay</div>
@@ -85,7 +139,7 @@ export default {
             </div>
             <div class="detail-item">
               <div class="detail-label">Guests</div>
-              <div class="detail-value">2 Adults</div>
+              <div class="detail-value">{{ bookingInformation.numberOfGuests }} Adults</div>
             </div>
           </div>
         </div>
@@ -95,23 +149,23 @@ export default {
           <div class="price-summary">
             <div class="price-row">
               <span>Room Rate (3 nights)</span>
-              <span>$450.00</span>
+              <span>VND {{ parseInt(bookingInformation.totalPrice).toLocaleString('vi-VN') }}</span>
             </div>
             <div class="price-row">
               <span>Taxes & Fees</span>
-              <span>$45.00</span>
+              <span>VND 0</span>
             </div>
             <div class="price-row total-row">
               <span>Total Amount Paid</span>
-              <span>$495.00</span>
+              <span>VND {{ parseInt(bookingInformation.totalPrice).toLocaleString('vi-VN') }}</span>
             </div>
           </div>
         </div>
       </div>
 
       <div class="action-buttons">
-        <a href="#" class="btn btn-primary">View Booking Details</a>
-        <a href="#" class="btn btn-secondary">Download Receipt</a>
+        <a @click="this.$router.push('/')" class="btn btn-primary">Home</a>
+        <a class="btn btn-secondary">Download Receipt</a>
       </div>
     </div>
   </div>
@@ -119,19 +173,19 @@ export default {
 
 <style scoped>
 /* header  */
-.header{
-  background-color: #003B95 ;
+.header {
+  background-color: #003b95;
   margin-bottom: 35px;
 }
 
-.header .inner-wrap{
+.header .inner-wrap {
   display: flex;
   justify-content: space-between;
   padding: 12px 0;
   align-items: center;
 }
 
-.header .inner-logo strong{
+.header .inner-logo strong {
   font-size: 24px;
   color: #fff;
 }
@@ -139,12 +193,12 @@ export default {
 .header .inner-login ul {
   display: flex;
   color: #fff;
-  list-style-type:none ;
+  list-style-type: none;
   align-items: center;
   margin-bottom: 0;
 }
 
-.header .inner-login ul li{
+.header .inner-login ul li {
   padding: 10px;
   margin-left: 15px;
   border-radius: 5px;
@@ -154,36 +208,36 @@ export default {
   font-size: 14px;
 }
 
-.header .inner-login ul li:hover{
-  background-color: #1A4FA0;
+.header .inner-login ul li:hover {
+  background-color: #1a4fa0;
 }
 
-.header .inner-login ul li img{
+.header .inner-login ul li img {
   border-radius: 50%;
   height: 18px;
   overflow: hidden;
   width: auto;
 }
-.header .inner-login ul li span{
+.header .inner-login ul li span {
   font-weight: 600;
 }
 
 .header .inner-login ul .login {
   padding: 5px 10px;
-  color:  #1d5fc2;
+  color: #1d5fc2;
   font-weight: 500;
   background-color: #fff;
   border-radius: 5px;
 }
 .header .inner-login ul .guides {
   padding: 5px 10px;
-  color:  #1d5fc2;
+  color: #1d5fc2;
   font-weight: 500;
   background-color: #fff;
   border-radius: 5px;
 }
 
-.header .inner-login ul .login:hover{
+.header .inner-login ul .login:hover {
   background-color: #f0f6fde8;
 }
 .header .inner-login ul .guides:hover {
@@ -207,17 +261,11 @@ export default {
   text-align: center;
   margin-bottom: 30px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #eee;
-}
-
-.success-icon {
-  color: #4caf50;
-  font-size: 48px;
-  margin-bottom: 20px;
+  border-bottom: 2px solid #ccc;
 }
 
 .success-title {
-  color: #4caf50;
+  color: green;
   font-size: 24px;
   margin-bottom: 10px;
 }
@@ -232,9 +280,8 @@ export default {
 
 .section-title {
   font-size: 18px;
-  font-weight: bold;
+  font-weight: 800;
   margin-bottom: 15px;
-  color: #2962ff;
 }
 
 .detail-grid {
@@ -282,9 +329,10 @@ export default {
 
 .action-buttons {
   display: flex;
-  gap: 15px;
+  /* gap: 15px; */
+  
   margin-top: 30px;
-  justify-content: center;
+  justify-content: space-between;
 }
 
 .btn {
@@ -296,6 +344,7 @@ export default {
   text-decoration: none;
   text-align: center;
   transition: all 0.3s ease;
+  font-weight: 700;
 }
 
 .btn-primary {
