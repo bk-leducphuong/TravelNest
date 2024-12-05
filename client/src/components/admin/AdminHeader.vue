@@ -57,7 +57,9 @@ export default {
       <!-- account  -->
       <div class="header-right">
         <div class="user-profile">
-          <div class="avatar">T</div>
+          <div class="avatar">
+            <img :src="JSON.parse(getCurrentManagingHotelInformation.image_urls)[0]" alt="avatar" style="width: 45px; height: 45px; border-radius: 10px; object-fit: cover;"/>
+          </div>
           <div class="hotel-infor">
             <span v-if="getCurrentManagingHotelInformation" style="font-weight: 600">{{
               getCurrentManagingHotelInformation.name
@@ -162,9 +164,9 @@ export default {
 }
 
 .avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;

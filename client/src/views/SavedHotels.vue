@@ -149,6 +149,7 @@ export default {
   <TheFooter />
 </template>
 <style scoped>
+/* header */
 .header-container {
   /* max-width: 1200px; */
   margin: 0 auto;
@@ -208,6 +209,7 @@ export default {
   color: white;
   padding: 8px 16px;
 }
+/* end header */
 
 .info-group {
   display: flex;

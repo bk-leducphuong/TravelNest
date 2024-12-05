@@ -46,7 +46,8 @@ export default {
         const slider = this.$refs[sliderRef]
         if (!slider) return true // Ensure the ref exists
         // Check if the slider is scrolled all the way to the right
-        return this.sliderPosition.get(sliderRef) >= slider.scrollWidth - slider.clientWidth
+        console.log(sliderRef, this.sliderPosition.get(sliderRef), slider.scrollWidth, slider.clientWidth)
+        return this.sliderPosition.get(sliderRef) >= (slider.scrollWidth - slider.clientWidth)
       }
     }
   },
@@ -262,7 +263,7 @@ export default {
             <button class="close-button" @click="removeSearch(index, $event)">×</button>
           </div>
         </div>
-        <div class="nav-button-container">
+        <div class="nav-button-container" v-if="recentSearches.length > 0">
           <button
             class="nav-button prev"
             :disabled="disableScrollLeft('recentSlider')"
@@ -293,7 +294,7 @@ export default {
             @click="redirectToHotelDetails(hotel)"
           >
             <div class="hotel-image">
-              <img :src="hotel.image_urls" :alt="hotel.name" />
+              <img :src="JSON.parse(hotel.image_urls)[0]" :alt="hotel.name" />
               <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
@@ -307,20 +308,22 @@ export default {
             </div>
           </div>
         </div>
-        <button
-          class="nav-button prev"
-          :disabled="disableScrollLeft('viewedSlider')"
-          @click="scrollLeft('viewedSlider')"
-        >
-          ‹
-        </button>
-        <button
-          class="nav-button next"
-          :disabled="disableScrollRight('viewedSlider')"
-          @click="scrollRight('viewedSlider')"
-        >
-          ›
-        </button>
+        <div class="nav-button-container" v-if="viewedHotels.length > 0">
+          <button
+            class="nav-button prev"
+            :disabled="disableScrollLeft('viewedSlider')"
+            @click="scrollLeft('viewedSlider')"
+          >
+            ‹
+          </button>
+          <button
+            class="nav-button next"
+            :disabled="disableScrollRight('viewedSlider')"
+            @click="scrollRight('viewedSlider')"
+          >
+            ›
+          </button>
+        </div>
       </div>
     </div>
 
@@ -342,7 +345,7 @@ export default {
             @click="redirectToHotelDetails(hotel)"
           >
             <div class="hotel-image">
-              <img :src="hotel.image_urls" :alt="hotel.name" />
+              <img :src="JSON.parse(hotel.image_urls)[0]" :alt="hotel.name" />
               <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
@@ -356,20 +359,22 @@ export default {
             </div>
           </div>
         </div>
-        <button
-          class="nav-button prev"
-          :disabled="disableScrollLeft('nearbySlider')"
-          @click="scrollLeft('nearbySlider')"
-        >
-          ‹
-        </button>
-        <button
-          class="nav-button next"
-          :disabled="disableScrollRight('nearbySlider')"
-          @click="scrollRight('nearbySlider')"
-        >
-          ›
-        </button>
+        <div class="nav-button-container" v-if="nearbyHotels.length > 0">
+          <button
+            class="nav-button prev"
+            :disabled="disableScrollLeft('nearbySlider')"
+            @click="scrollLeft('nearbySlider')"
+          >
+            ‹
+          </button>
+          <button
+            class="nav-button next"
+            :disabled="disableScrollRight('nearbySlider')"
+            @click="scrollRight('nearbySlider')"
+          >
+            ›
+          </button>
+        </div>
       </div>
     </div>
 
@@ -525,10 +530,13 @@ img {
 .search-slider {
   display: flex;
   gap: 20px;
-  overflow-x: hidden;
+  overflow-x: auto;
   scroll-behavior: smooth;
   padding: 10px 0;
   scroll-snap-type: x mandatory;
+}
+.search-slider::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
 }
 
 .search-card {
@@ -593,10 +601,14 @@ h1 {
 .hotel-slider {
   display: flex;
   gap: 20px;
-  overflow-x: hidden;
+  overflow-x: auto;
+  /* width: 100%; */
   scroll-behavior: smooth;
   padding: 10px 0;
   scroll-snap-type: x mandatory;
+}
+.hotel-slider::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
 }
 
 .hotel-card {
