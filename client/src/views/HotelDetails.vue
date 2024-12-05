@@ -110,6 +110,7 @@ export default {
   },
   methods: {
     ...mapActions('book', ['booking', 'checkRoomAvailability']),
+    ...mapActions('search', ['updateCheckInDate', 'updateCheckOutDate', 'updateNumberOfDays', 'updateAdults', 'updateRooms', 'updateChildren']),
     calculateNumberOfDays(checkInDateString, checkOutDateString) {
       const checkInDate = new Date(checkInDateString)
       const checkOutDate = new Date(checkOutDateString)
@@ -201,6 +202,9 @@ export default {
           rooms: this.rooms
         })
 
+        // update search data in store 
+        this.updateSearchDataInStore()
+
         this.room_list = response.data.available_rooms
       } catch (error) {
         console.error(error)
@@ -285,9 +289,28 @@ export default {
       }else {
         this.$router.push({ path: '/login', query: { redirect: this.$route.path } })
       }
+    },
+    updateSearchDataInStore() {
+      this.updateCheckInDate(this.checkInDate)
+      this.updateCheckOutDate(this.checkOutDate)
+      this.updateNumberOfDays(this.numberOfDays)
+      this.updateAdults(this.adults)
+      this.updateRooms(this.rooms)
+      this.updateChildren(this.children)
     }
   },
   async mounted() {
+     if (this.getSearchData) {
+      this.selectedLocation = this.getSearchData.location
+      this.dateRange = 'Từ ' + new Date(this.getSearchData.checkInDate).toLocaleDateString('vi-VN') + ' đến ' + new Date(this.getSearchData.checkOutDate).toLocaleDateString('vi-VN')
+      this.children = this.getSearchData.children
+      this.adults = this.getSearchData.adults
+      this.rooms = this.getSearchData.rooms
+      this.numberOfDays = this.getSearchData.numberOfDays
+      this.checkInDate = this.getSearchData.checkInDate
+      this.checkOutDate = this.getSearchData.checkOutDate
+    }
+
     this.hotel_id = this.$route.params.hotel_id
     // Fetch hotel details using hotelId
     await this.getHotelDetails(),
@@ -734,11 +757,12 @@ export default {
         <div class="review__open--text" v-for="review in reviews" :key="review.review_id">
           <div class="review__open--infor">
             <div class="name">
-              <img src="" alt="" />
+              <img :src="review.profile_picture_url" alt="avatar" />
               <div class="infor">
                 <span style="font-weight: 600">{{ review.username }}</span>
                 <br />
-                <span>Nga</span>
+                <span v-if="review.country">{{ review.country }}</span>
+                <span v-else>Việt Nam</span>
               </div>
             </div>
             <div>
@@ -754,7 +778,7 @@ export default {
           <div class="review__open--desc">
             <div class="point">
               <div>
-                <p>Ngày đánh giá: ngày 11 tháng 4 năm 2023</p>
+                <p>Ngày đánh giá: {{ new Date(review.created_at).toLocaleDateString('vi-VN') }}</p>
                 <strong>Xuất sắc</strong>
               </div>
               <span>{{ review.rating }}</span>
@@ -824,11 +848,12 @@ export default {
               <div class="col-xl-4 col-md-6 col-12" v-for="(review, index) in reviews" :key="index">
                 <div class="reviewer" v-if="index <= 2">
                   <div class="name">
-                    <img src="" alt="" />
+                    <img :src="review.profile_picture_url" alt="" />
                     <div class="infor">
                       <span style="font-weight: 600">{{ review.username }}</span>
                       <br />
-                      <span>Nga</span>
+                      <span v-if="review.country">{{ review.country }}</span>
+                      <span v-else>Việt Nam</span>
                     </div>
                   </div>
                   <div class="text">

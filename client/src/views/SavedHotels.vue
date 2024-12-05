@@ -73,7 +73,11 @@ export default {
       if (response.data.success) {
         this.hotels = this.hotels.filter(hotel => hotel.hotel_id !== hotelId)
       }
-    }
+    },
+     handleScroll(event) {
+      const slider = event.target
+      this.sliderPosition = slider.scrollLeft
+    },
   },
   async mounted() {
     await this.getSavedHotels()
@@ -108,7 +112,7 @@ export default {
     </div>
   </div>
   <div class="slider-container">
-    <div class="slider-wrapper" ref="slider">
+    <div class="slider-wrapper" ref="slider" @scroll="handleScroll">
       <div class="hotel-card" v-for="hotel in hotels" :key="hotel.hotel_id">
         <div>
           <img
@@ -242,10 +246,14 @@ export default {
   display: flex;
   /* justify-content: space-between; */
   gap: 20px;
-  overflow-x: hidden;
+  overflow-x: auto;
   scroll-behavior: smooth;
   padding: 10px 0;
   scroll-snap-type: x mandatory;
+}
+
+.slider-wrapper::-webkit-scrollbar{
+  display: none;
 }
 
 .hotel-card {

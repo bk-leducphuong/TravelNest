@@ -7,12 +7,16 @@ import { mapActions, mapGetters } from 'vuex'
 import { useToast } from 'vue-toastification'
 import SavedHotelIcon from '@/components/SavedHotelIcon.vue'
 
+import Loading from 'vue-loading-overlay'
+import 'vue-loading-overlay/dist/css/index.css'
+
 export default {
   components: {
     TheHeader,
     MapComponent,
     TheFooter,
-    SavedHotelIcon
+    SavedHotelIcon,
+    Loading
   },
   setup() {
     // Get toast interface
@@ -28,7 +32,8 @@ export default {
       displayHotels: [],
       sortCriteria: '', // default sort criteria
       searchQuery: '', // User's search input,
-      filteredHotels: [] // Matching hotels to display
+      filteredHotels: [], // Matching hotels to display
+      isLoading: false,
     }
   },
   computed: {
@@ -49,12 +54,14 @@ export default {
   },
   watch: {
     '$route.query': {
-      handler() {
+      async handler() {
         if (this.isSearchUrlValid()) {
           // update search data in store if user changes the search url directly
+          this.isLoading = true
           this.updateSearchDataInStore()
-          this.saveSearchInformation()
-          this.searchHotels()
+          await this.saveSearchInformation()
+          await this.searchHotels()
+          this.isLoading = false
         } else {
           this.toast.error('Vui lòng nhập đầy đủ thông tin tìm kiếm!!')
         }
@@ -159,6 +166,7 @@ export default {
   <!-- inforSearch -->
   <div class="inforSearch">
     <div class="container">
+      <Loading v-model:active="isLoading" :can-cancel="true" :color="`#003b95`" :is-full-page="false" />
       <div class="inner-wrap">
         <div class="row">
           <div class="col-3">
@@ -438,6 +446,10 @@ export default {
 /* searchInfor */
 .inforSearch {
   margin-bottom: 50px;
+}
+
+.container {
+  position: relative;
 }
 
 .search-container {
@@ -926,4 +938,11 @@ input[type='range']::-moz-range-track {
   display: flex;
 }
 /* end room  */
+
+/* loading */
+.vl-parent {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
 </style>

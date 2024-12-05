@@ -46,7 +46,7 @@ export default {
         const slider = this.$refs[sliderRef]
         if (!slider) return true // Ensure the ref exists
         // Check if the slider is scrolled all the way to the right
-        console.log(sliderRef, this.sliderPosition.get(sliderRef), slider.scrollWidth, slider.clientWidth)
+        // console.log(sliderRef, this.sliderPosition.get(sliderRef), slider.scrollWidth, slider.clientWidth)
         return this.sliderPosition.get(sliderRef) >= (slider.scrollWidth - slider.clientWidth)
       }
     }
@@ -207,6 +207,10 @@ export default {
 
       slider.scrollTo({ left: this.sliderPosition.get(sliderRef), behavior: 'smooth' })
     },
+    handleScroll(event, sliderRef) {
+      const slider = event.target
+      this.sliderPosition.set(sliderRef, slider.scrollLeft)
+    },
     calculateNumberOfDays(checkInDateString, checkOutDateString) {
       const checkInDate = new Date(checkInDateString)
       const checkOutDate = new Date(checkOutDateString)
@@ -227,7 +231,6 @@ export default {
   mounted() {
     this.loadRecentSearches()
     this.loadViewedHotels()
-    this.loadNearbyHotels()
     this.loadPopularPlaces()
   }
 }
@@ -241,7 +244,7 @@ export default {
     <div class="recent-search-container container" v-if="recentSearches.length > 0">
       <h2 class="h2">Tìm kiếm gần đây của bạn</h2>
       <div class="slider-container">
-        <div ref="recentSlider" class="search-slider">
+        <div ref="recentSlider" class="search-slider"   @scroll="(event) => handleScroll(event, 'recentSlider')">
           <div
             class="search-card"
             v-for="(search, index) in recentSearches"
@@ -286,7 +289,7 @@ export default {
     <div class="hotel-container container" v-if="viewedHotels.length > 0">
       <h2 class="h2">Bạn có còn quan tâm đến những chỗ nghỉ này?</h2>
       <div class="slider-container">
-        <div ref="viewedSlider" class="hotel-slider">
+        <div ref="viewedSlider" class="hotel-slider"  @scroll="(event) => handleScroll(event, 'viewedSlider')">
           <div
             class="hotel-card"
             v-for="(hotel, index) in viewedHotels"
@@ -337,7 +340,7 @@ export default {
         :is-full-page="false"
       />
       <div class="slider-container">
-        <div ref="nearbySlider" class="hotel-slider">
+        <div ref="nearbySlider" class="hotel-slider"   @scroll="(event) => handleScroll(event, 'nearbySlider')">
           <div
             class="hotel-card"
             v-for="(hotel, index) in nearbyHotels"

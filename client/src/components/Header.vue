@@ -161,7 +161,7 @@ export default {
       showLocationPopup: false,
       showGuestSelector: false,
       selectedLocation: null,
-      dateRange: 'Ngày nhận phòng - Ngày trả phòng',
+      dateRange: null,
       adults: 2,
       children: 0,
       rooms: 1,
@@ -185,11 +185,11 @@ export default {
           dates[i] = `${year}-${month}-${day}`
         }
 
-        [this.checkInDate, this.checkOutDate] = dates
-         // Calculate the number of days between the start and end dates
+        ;[this.checkInDate, this.checkOutDate] = dates
+        // Calculate the number of days between the start and end dates
         this.calculateNumberOfDays(this.checkInDate, this.checkOutDate)
       }
-    }
+    },
   },
   computed: {
     ...mapGetters('auth', ['isUserAuthenticated', 'getUserRole']),
@@ -198,39 +198,14 @@ export default {
       return `${this.adults} người lớn · ${this.children} trẻ em · ${this.rooms} phòng`
     }
   },
-  mounted() {
-    if (this.isSearchOpen) {
-      flatpickr(this.$refs.dateInput, {
-        dateFormat: 'd/m/Y', // Định dạng ngày
-        locale: 'vn', // Ngôn ngữ tiếng Việt cho tên ngày tháng
-        mode: 'range', // Cho phép chọn dải ngày
-
-        minDate: 'today', // Không cho phép chọn ngày trong quá khứ
-        showMonths: 2, // Hiển thị 2 tháng cạnh nhau
-        onChange: function (selectedDates, dateStr, instance) {},
-        mode: 'range',
-        locale: {
-          rangeSeparator: ' đến ' // Thay "to" bằng "đến"
-        },
-        onValueUpdate: function (selectedDates, dateStr, instance) {
-          // Thêm "Từ" vào trước ngày bắt đầu
-          const display = instance.element.value
-          instance.element.value = 'Từ ' + display
-        }
-      }) // Run immediately if `isSearchOpen` already has a value
-    }
-  },
   methods: {
     calculateNumberOfDays(checkInDateString, checkOutDateString) {
       const checkInDate = new Date(checkInDateString)
       const checkOutDate = new Date(checkOutDateString)
       const timeDifference = checkOutDate - checkInDate
-      this.numberOfDays = (timeDifference / (1000 * 60 * 60 * 24)) + 1
+      this.numberOfDays = timeDifference / (1000 * 60 * 60 * 24) + 1
     },
     toggleLocationPopup() {
-      if (this.location == 'Bạn muốn đến đâu?') {
-        this.location = ''
-      }
       this.showLocationPopup = !this.showLocationPopup
     },
 
@@ -291,6 +266,39 @@ export default {
           rooms: this.rooms
         }
       })
+    }
+  },
+  mounted() {
+    if (this.getSearchData) {
+      this.selectedLocation = this.getSearchData.location
+      this.dateRange = 'Từ ' + new Date(this.getSearchData.checkInDate).toLocaleDateString('vi-VN') + ' đến ' + new Date(this.getSearchData.checkOutDate).toLocaleDateString('vi-VN')
+      this.children = this.getSearchData.children
+      this.adults = this.getSearchData.adults
+      this.rooms = this.getSearchData.rooms
+      this.numberOfDays = this.getSearchData.numberOfDays
+      this.checkInDate = this.getSearchData.checkInDate
+      this.checkOutDate = this.getSearchData.checkOutDate
+    }
+
+    if (this.isSearchOpen) {
+      flatpickr(this.$refs.dateInput, {
+        dateFormat: 'd/m/Y', // Định dạng ngày
+        locale: 'vn', // Ngôn ngữ tiếng Việt cho tên ngày tháng
+        mode: 'range', // Cho phép chọn dải ngày
+
+        minDate: 'today', // Không cho phép chọn ngày trong quá khứ
+        showMonths: 2, // Hiển thị 2 tháng cạnh nhau
+        onChange: function (selectedDates, dateStr, instance) {},
+        mode: 'range',
+        locale: {
+          rangeSeparator: ' đến ' // Thay "to" bằng "đến"
+        },
+        onValueUpdate: function (selectedDates, dateStr, instance) {
+          // Thêm "Từ" vào trước ngày bắt đầu
+          const display = instance.element.value
+          instance.element.value = 'Từ ' + display
+        }
+      }) // Run immediately if `isSearchOpen` already has a value
     }
   }
 }
