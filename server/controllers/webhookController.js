@@ -101,12 +101,15 @@ const storeInvoice = async (paymentIntent) => {
   ]);
 };
 
-
 /******************************************* Storing Payment and Transaction events **********************************************/
 
 const handlePaymentIntentCreated = async (paymentIntent) => {
   try {
-    const { buyer_id: buyerId, hotel_id: hotelId, booking_code: bookingCode } = paymentIntent.metadata;
+    const {
+      buyer_id: buyerId,
+      hotel_id: hotelId,
+      booking_code: bookingCode,
+    } = paymentIntent.metadata;
     //const sellerId = await getSellerId(paymentIntent);
     const paymentMethodId = paymentIntent.payment_method;
     const paymentMethod = paymentMethodId
@@ -169,7 +172,12 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
       const updateTransactionQuery = `
         UPDATE Transactions SET status = ?, charge_id = ?, booking_code = ? WHERE transaction_id = ?
       `;
-      await queryAsync(updateTransactionQuery, ["completed",chargeId, bookingCode, transactionId]);
+      await queryAsync(updateTransactionQuery, [
+        "completed",
+        chargeId,
+        bookingCode,
+        transactionId,
+      ]);
 
       const updatePaymentQuery = `
         UPDATE Payments SET payment_status = ?, payment_method = ? WHERE transaction_id = ?
@@ -236,17 +244,25 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
 /******************************************* Refund **********************************************/
 const handleRefundIntentSucceeded = async (chargeRefunded) => {
   try {
-   const {buyer_id: buyerId, hotel_id: hotelId, booking_code: bookingCode, booked_rooms: bookedRooms, check_in_date: checkInDate, check_out_date: checkOutDate, number_of_guests: numberOfGuests} = chargeRefunded.metadata;
-   const chargeId = chargeRefunded.id;
-   const amount = chargeRefunded.amount;
+    const {
+      buyer_id: buyerId,
+      hotel_id: hotelId,
+      booking_code: bookingCode,
+      booked_rooms: bookedRooms,
+      check_in_date: checkInDate,
+      check_out_date: checkOutDate,
+      number_of_guests: numberOfGuests,
+    } = chargeRefunded.metadata;
+    const chargeId = chargeRefunded.id;
+    const amount = chargeRefunded.amount;
 
-   const transactionQuery = `
+    const transactionQuery = `
       SELECT transaction_id FROM Transactions WHERE charge_id = ?
     `;
     const transaction = await queryAsync(transactionQuery, [chargeId]);
 
-   // store refund
-   const refundQuery = `
+    // store refund
+    const refundQuery = `
       INSERT INTO refunds ( buyer_id, hotel_id, transaction_id , amount,completed_at,status)
       VALUES (?, ?, ?, ?, ?,?)
     `;
@@ -256,7 +272,7 @@ const handleRefundIntentSucceeded = async (chargeRefunded) => {
       transaction[0].transaction_id,
       amount,
       new Date(),
-      'completed',
+      "completed",
     ]);
 
     // update booking status
@@ -265,9 +281,9 @@ const handleRefundIntentSucceeded = async (chargeRefunded) => {
       SET status = ?
       WHERE booking_code = ?
     `;
-    await queryAsync(updateBookingQuery, ['cancelled', bookingCode]);
+    await queryAsync(updateBookingQuery, ["cancelled", bookingCode]);
 
-    // update number of reserved rooms 
+    // update number of reserved rooms
     const bookedRoomsArray = JSON.parse(bookedRooms);
     for (const bookedRoom of bookedRoomsArray) {
       const roomQuery = `
@@ -275,13 +291,17 @@ const handleRefundIntentSucceeded = async (chargeRefunded) => {
         SET total_reserved = total_reserved - ?
         WHERE room_id = ? AND date BETWEEN ? AND ? ;
       `;
-      await queryAsync(roomQuery, [bookedRoom.roomQuantity, bookedRoom.room_id, checkInDate, checkOutDate]);
+      await queryAsync(roomQuery, [
+        bookedRoom.roomQuantity,
+        bookedRoom.room_id,
+        checkInDate,
+        checkOutDate,
+      ]);
     }
-    console.log('query successful:');
+    console.log("query successful:");
   } catch (error) {
-    console.error('Refund failed:', error);
-  } 
-  
+    console.error("Refund failed:", error);
+  }
 };
 
 /******************************************* Sending Emails **********************************************/
@@ -300,7 +320,7 @@ const sendConfirmationEmail = async (paymentIntent) => {
     } = paymentIntent.metadata;
     //TODO: get hotel name, get buyer name
     //...
-    
+
     // Load the email template
     const templatePath = "./email-templates/thankyou.html";
     let emailTemplate = fs.readFileSync(templatePath, "utf8");
@@ -309,11 +329,20 @@ const sendConfirmationEmail = async (paymentIntent) => {
     emailTemplate = emailTemplate
       // .replace('{{buyerName}}', buyerName)
       // .replace('{{hotelName}}', hotelName)
-      .replace('{{bookingCode}}', bookingCode)
-      .replace('{{checkInDate}}', (new Date(checkInDate)).toString().split(' ').splice(0, 4).join(' '))
-      .replace('{{checkOutDate}}', (new Date(checkOutDate)).toString().split(' ').splice(0, 4).join(' '))
-      .replace('{{numberOfGuests}}', numberOfGuests)
-      .replace('{{totalPrice}}', parseInt(paymentIntent.amount).toLocaleString('vi-VN'))
+      .replace("{{bookingCode}}", bookingCode)
+      .replace(
+        "{{checkInDate}}",
+        new Date(checkInDate).toDateString()
+      )
+      .replace(
+        "{{checkOutDate}}",
+        new Date(checkOutDate).toDateString()
+      )
+      .replace("{{numberOfGuests}}", numberOfGuests)
+      .replace(
+        "{{totalPrice}}",
+        parseInt(paymentIntent.amount).toLocaleString("vi-VN")
+      );
 
     // Email options
     const mailOptions = {
@@ -383,7 +412,11 @@ async function sendNewBookingNotification(paymentIntent) {
     senderId: buyerId,
     recieverId: hotelId, // hotel  id
     notificationType: "booking",
-    message: `New booking: ${buyerName} booked ${totalRooms} rooms from ${checkInDate} to ${checkOutDate} for ${numberOfGuests} guests.`,
+    message: `New booking: ${buyerName} booked ${totalRooms} rooms from ${new Date(
+      checkInDate
+    ).toDateString()} to ${new Date(
+      checkOutDate
+    ).toDateString()} for ${numberOfGuests} guests.`,
     isRead: false,
   };
 
@@ -398,6 +431,79 @@ async function sendNewBookingNotification(paymentIntent) {
     senderId: notification.senderId,
   });
 }
+
+const sendCancelBookingNotification = async (chargeRefunded) => {
+  const io = getIO();
+
+  const {
+      buyer_id: buyerId,
+      hotel_id: hotelId,
+      booking_code: bookingCode,
+      booked_rooms: bookedRooms,
+      check_in_date: checkInDate,
+      check_out_date: checkOutDate,
+      number_of_guests: numberOfGuests,
+    } = chargeRefunded.metadata;
+
+  // get buyer name
+  const buyerQuery = `
+    SELECT username FROM users WHERE user_id = ?
+  `;
+  const buyer = await queryAsync(buyerQuery, [buyerId]);
+  const buyerName = buyer[0].username;
+
+  // get total number of rooms
+  let totalRooms = 0;
+  JSON.parse(bookedRooms).forEach((bookedRoom) => {
+    totalRooms += bookedRoom.roomQuantity;
+  });
+
+  // create notification
+  const notification = {
+    senderId: buyerId,
+    recieverId: hotelId, // hotel  id
+    notificationType: "cancel booking",
+    message: `Cancel booking: ${buyerName} has cancelled ${totalRooms} rooms from ${new Date(
+      checkInDate
+    ).toDateString()} to ${new Date(
+      checkOutDate
+    ).toDateString()} for ${numberOfGuests} guests.`,
+    isRead: false,
+  };
+
+  // store notification
+  const notificationId = await storeNotification(notification);
+
+  io.to(`owner_${notification.recieverId}`).emit("newNotification", {
+    notificationId: notificationId,
+    notificationType: notification.notificationType,
+    message: notification.message,
+    isRead: notification.isRead,
+    senderId: notification.senderId,
+  });
+};
+
+const sendPayoutNotification = (payoutIntent, status) => {
+  //TODO: send notification to hotel owner
+
+  // switch (status) {
+  //   case "completed":
+  //     io.to(`owner_${payoutIntent.metadata.hotel_id}`).emit(
+  //       "payout-completed",
+  //       {
+  //         transactionId: payoutIntent.metadata.transaction_id,
+  //       }
+  //     );
+  //     break;
+  //   case "failed":
+  //     io.to(`owner_${payoutIntent.metadata.hotel_id}`).emit("payout-failed", {
+  //       transactionId: payoutIntent.metadata.transaction_id,
+  //     });
+  //     break;
+  //   default:
+  //     break;
+  // }
+};
 /******************************************* Room inventory **********************************************/
 const updateRoomInventory = async (paymentIntent) => {
   const {
@@ -534,35 +640,29 @@ const webhookController = async (req, res) => {
       case "payout.paid":
         const payoutPaid = event.data.object;
         await handlePayoutEvent(payoutPaid, "completed");
-        //TODO: send notification to hotel owner
-        io.to(`owner_${payoutPaid.metadata.hotel_id}`).emit(
-          "payout-completed",
-          {
-            transactionId: payoutPaid.metadata.transaction_id,
-          }
-        );
+        sendPayoutNotification(payoutPaid, "completed");
         break;
 
       case "payout.failed":
         const failedPayout = event.data.object;
         await handlePayoutEvent(failedPayout, "failed");
-        //TODO: send notification to hotel owner
-        io.to(`owner_${failedPayout.metadata.hotel_id}`).emit("payout-failed", {
-          transactionId: failedPayout.metadata.transaction_id,
-        });
+        sendPayoutNotification(failedPayout, "failed");
         break;
-        case 'charge.refunded':
-          const chargeRefunded = event.data.object;
-         // console.log('Charge refunded:', chargeRefunded);
-          await handleRefundIntentSucceeded(chargeRefunded);
 
-          break;
+      // case for cancel booking
+      case "charge.refunded":
+        const chargeRefunded = event.data.object;
+        // console.log('Charge refunded:', chargeRefunded);
+        await handleRefundIntentSucceeded(chargeRefunded);
+        await sendCancelBookingNotification(chargeRefunded);
+        //TODO: send email
+        //...
+        break;
 
       // Add more event types as needed
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
-
 
     res.json({ received: true });
   } catch (error) {
