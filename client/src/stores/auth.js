@@ -10,7 +10,8 @@ export default {
     role: '', // customer, partner 
     isAuthenticated: false,
     otp: '', // for OTP verification when registering
-    otpVerified: false // for OTP verification when registering
+    otpVerified: false, // for OTP verification when registering
+    loginFailure: false,
   },
   mutations: {
     // common (regular user and admin)
@@ -32,7 +33,10 @@ export default {
     },
     setOtpVerified(state, status) {
       state.otpVerified = status
-    }
+    },
+    setLoginFailure(state, status) {
+      state.loginFailure = status
+    },
   },
   actions: {
     // login for regular user
@@ -44,11 +48,12 @@ export default {
           commit('setEmail', payload.email)
           commit('setAuthentication', true)
           commit('setUserRole', payload.userRole)
+          commit('setLoginFailure', false)
           // Check for redirect query and navigate accordingly
           router.push(redirectRoute)
         }
       } catch (error) {
-        this.toast.error('Login or register failed! Pls try again!')
+        commit('setLoginFailure', true)
         router.push('/login')
       }
     },
@@ -91,13 +96,13 @@ export default {
           commit('setEmail', payload.email)
           commit('setAuthentication', true)
           commit('setUserRole', payload.userRole)
-
+          commit('setLoginFailure', false)
           // Check for redirect query and navigate accordingly
           router.replace('/admin/hotels-management')
         }
       } catch (error) {
-        console.log('Login or register failed! Pls try again!', error.response.data.message)
-        this.toast.error('Login or register failed! Pls try again!')
+        console.log('Login or register failed! Pls try again!', error)
+        commit('setLoginFailure', true)
       }
     },
     async sendOtp({ commit }, { phoneNumber }) {
@@ -161,6 +166,9 @@ export default {
     },
     isOtpVerified(state) {
       return state.otpVerified
+    },
+    isLoginFail(state) {
+      return state.loginFailure
     }
   }
 }
