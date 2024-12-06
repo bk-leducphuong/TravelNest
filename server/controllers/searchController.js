@@ -35,9 +35,10 @@ const getSearchResults = async (req, res) => {
             where h.city = ?
             AND r.max_guests >= ?
             AND ri.date BETWEEN ? AND ?
+            AND ri.status = 'open'
             GROUP BY 
                 h.hotel_id, h.name, h.address, h.city, h.overall_rating, h.hotel_class, h.image_urls, 
-                h.latitude, h.longitude, r.room_id, r.price_per_night, r.max_guests, r.room_name
+                h.latitude, h.longitude, r.room_id, ri.price_per_night, r.max_guests, r.room_name
             HAVING COUNT(CASE WHEN ri.total_inventory - ri.total_reserved >= ? THEN 1 END) = ?;
         `
 
@@ -53,8 +54,9 @@ const getSearchResults = async (req, res) => {
 
         // get lowest price for each hotel
         const lowestPriceQuery = `
-            SELECT hotel_id, MIN(price_per_night) AS lowest_price
+            SELECT hotel_id, MIN(ri.price_per_night) AS lowest_price
             FROM rooms
+            JOIN room_inventory ri ON rooms.room_id = ri.room_id
             WHERE hotel_id = ?
             GROUP BY hotel_id;
         `
