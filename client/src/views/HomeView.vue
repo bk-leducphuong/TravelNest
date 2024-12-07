@@ -47,7 +47,7 @@ export default {
         if (!slider) return true // Ensure the ref exists
         // Check if the slider is scrolled all the way to the right
         // console.log(sliderRef, this.sliderPosition.get(sliderRef), slider.scrollWidth, slider.clientWidth)
-        return this.sliderPosition.get(sliderRef) >= (slider.scrollWidth - slider.clientWidth)
+        return this.sliderPosition.get(sliderRef) >= slider.scrollWidth - slider.clientWidth
       }
     }
   },
@@ -140,19 +140,31 @@ export default {
 
     // Load data from localStorage for viewed hotels
     async loadViewedHotels() {
-      let hotels = JSON.parse(localStorage.getItem('viewedHotels')) || []
       if (this.isUserAuthenticated) {
-        const response = await axios.get('http://localhost:3000/api/home/recent-viewed-hotels', {
-          withCredentials: true
-        })
-        // response = [{hotel_id: ...}, ...]
-        // hotels = response.data.data;
-        //...
+        const response = await axios.post(
+          'http://localhost:3000/api/home/get-recent-viewed-hotels',
+          {},
+          {
+            withCredentials: true
+          }
+        )
+
+        this.viewedHotels = response.data.hotels
+      } else {
+        const response = await axios.post(
+          'http://localhost:3000/api/home/get-recent-viewed-hotels',
+          {
+            hotelIdArray: JSON.parse(localStorage.getItem('viewedHotels'))
+          }
+        )
+
+        this.viewedHotels = response.data.hotels
       }
+
       hotels.reverse()
       this.viewedHotels = hotels
 
-      this.noViewedHotelsFound = this.viewedHotels.length === 0 ? true : false
+      // this.noViewedHotelsFound = this.viewedHotels.length === 0 ? true : false
     },
 
     // Static popular places data (replace with API or dynamic data)
@@ -215,8 +227,8 @@ export default {
       const checkInDate = new Date(checkInDateString)
       const checkOutDate = new Date(checkOutDateString)
       const timeDifference = checkOutDate - checkInDate
-      return (timeDifference / (1000 * 60 * 60 * 24)) + 1
-    },
+      return timeDifference / (1000 * 60 * 60 * 24) + 1
+    }
   },
   watch: {
     getUserLocation: {
@@ -244,7 +256,11 @@ export default {
     <div class="recent-search-container container" v-if="recentSearches.length > 0">
       <h2 class="h2">Tìm kiếm gần đây của bạn</h2>
       <div class="slider-container">
-        <div ref="recentSlider" class="search-slider"   @scroll="(event) => handleScroll(event, 'recentSlider')">
+        <div
+          ref="recentSlider"
+          class="search-slider"
+          @scroll="(event) => handleScroll(event, 'recentSlider')"
+        >
           <div
             class="search-card"
             v-for="(search, index) in recentSearches"
@@ -289,7 +305,11 @@ export default {
     <div class="hotel-container container" v-if="viewedHotels.length > 0">
       <h2 class="h2">Bạn có còn quan tâm đến những chỗ nghỉ này?</h2>
       <div class="slider-container">
-        <div ref="viewedSlider" class="hotel-slider"  @scroll="(event) => handleScroll(event, 'viewedSlider')">
+        <div
+          ref="viewedSlider"
+          class="hotel-slider"
+          @scroll="(event) => handleScroll(event, 'viewedSlider')"
+        >
           <div
             class="hotel-card"
             v-for="(hotel, index) in viewedHotels"
@@ -302,11 +322,11 @@ export default {
             </div>
             <div class="hotel-content">
               <h2 class="hotel-name">{{ hotel.name }}</h2>
-              <p class="hotel-location">{{ hotel.address.slice(0, 71) }}</p>
+              <p class="hotel-location">{{ hotel.address.slice(0, 35) }} ...</p>
               <div class="hotel-rating">
                 <span class="rating-badge">{{ hotel.overall_rating }}</span>
                 <span class="rating-text">{{ hotel.reviewSummary }}</span>
-                <span class="review-count">{{ hotel.reviewCount }} đánh giá</span>
+                <span class="review-count">{{ hotel.reviewCount }}điểm đánh giá</span>
               </div>
             </div>
           </div>
@@ -340,7 +360,11 @@ export default {
         :is-full-page="false"
       />
       <div class="slider-container">
-        <div ref="nearbySlider" class="hotel-slider"   @scroll="(event) => handleScroll(event, 'nearbySlider')">
+        <div
+          ref="nearbySlider"
+          class="hotel-slider"
+          @scroll="(event) => handleScroll(event, 'nearbySlider')"
+        >
           <div
             class="hotel-card"
             v-for="(hotel, index) in nearbyHotels"
@@ -353,11 +377,11 @@ export default {
             </div>
             <div class="hotel-content">
               <h2 class="hotel-name">{{ hotel.name }}</h2>
-              <p class="hotel-location">{{ hotel.address.slice(0, 71) }}</p>
+              <p class="hotel-location">{{ hotel.address.slice(0, 35) }} ...</p>
               <div class="hotel-rating">
                 <span class="rating-badge">{{ hotel.overall_rating }}</span>
                 <span class="rating-text">{{ hotel.reviewSummary }}</span>
-                <span class="review-count">{{ hotel.reviewCount }} đánh giá</span>
+                <span class="review-count">{{ hotel.reviewCount}}điểm đánh giá</span>
               </div>
             </div>
           </div>
