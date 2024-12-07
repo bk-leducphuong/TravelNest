@@ -96,12 +96,14 @@ const bookingsRoutes = require('./routes/admin/bookingsRoutes.js');
 const hotelsManagementRoutes = require('./routes/admin/hotelsManagementRoutes.js');
 const roomRoutes = require('./routes/admin/roomRoutes.js');
 const adminReviewRoutes = require('./routes/admin/reviewRoutes.js');
+const adminCancelRoutes = require('./routes/admin/cancelRoutes.js');
 
 app.use('/api/admin/hotels-management', hotelsManagementRoutes);
 app.use('/api/admin/payout', adminPayoutRoutes);
 app.use('/api/admin/bookings', bookingsRoutes);
 app.use('/api/admin/room', roomRoutes);
 app.use('/api/admin/review', adminReviewRoutes);
+app.use('/api/admin/cancel-booking', adminCancelRoutes);
 
 // Common routes
 const notificationRoutes = require('./routes/notificationRoutes');

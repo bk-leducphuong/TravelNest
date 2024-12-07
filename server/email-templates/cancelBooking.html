@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thank You for Your Booking</title>
+    <title>Cancel Booking</title>
     <style>
         * {
             margin: 0;
@@ -166,33 +166,32 @@
 
         <div class="email-content">
             <div class="thank-you-message">
-                <h1>Thank You for Your Booking!</h1>
-                <p>We're excited to welcome you to our hotel</p>
+                <h1>Your Reservation Has Been Cancelled</h1>
             </div>
 
-            <p>Dear [Guest Name],</p>
-            <p>Thank you for choosing our hotel for your upcoming stay. We are delighted to confirm your reservation and look forward to providing you with an exceptional experience.</p>
-
+            <p>Dear {{username}},</p>
+            <p>We're sorry to inform you that your reservation has been cancelled because this room is expreiencing a sudden problem so it can not serve customers. We are very sorry for the inconvenience.</p>
+            <p>Dont worry we will refund your money within 24 hours. if you don't recieve the refund, please contact us to support.</p>
             <div class="booking-details">
                 <div class="detail-row">
                     <span class="detail-label">Booking Code:</span>
-                    <span>{{ bookingCode}}</span>
+                    <span>{{bookingCode}}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Hotel:</span>
-                    <span>{{ hotelName}}</span>
+                    <span>{{hotelName}}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Room Type:</span>
-                    <span>Deluxe Ocean View</span>
+                    <span>{{bookedRooms}}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Check-in:</span>
-                    <span>{{ checkInDate}}</span>
+                    <span>{{checkInDate}}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Check-out:</span>
-                    <span>{{ checkOutDate}}</span>
+                    <span>{{checkOutDate}}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Guests:</span>
@@ -200,34 +199,13 @@
                 </div>
             </div>
 
-            <div class="price-summary">
-                <h3 class="info-title">Price Summary</h3>
-                <div class="price-row total-row">
-                    <span>Total Amount</span>
-                    <span>{{ totalPrice }}</span>
-                </div>
+            <p>If you need to book another rooms or hotels, dont worry we have found for you similar choices to this. Click to this below button to view details</p>
+             <div class="cta-button">
+                <a href="#" style="color: #fff;" class="button">View Details</a>
             </div>
 
-            <div class="cta-button">
-                <a href="#" class="button" style="color: #fff;">View Booking Details</a>
-            </div>
-
-            <div class="additional-info">
-                <h3 class="info-title">Important Information</h3>
-                <ul>
-                    <li>Check-in time starts at 14:00</li>
-                    <li>Check-out time is 12:00</li>
-                    <li>Please present your ID and booking confirmation at check-in</li>
-                    <li>Free WiFi is available in all rooms</li>
-                    <li>Breakfast is included in your rate</li>
-                </ul>
-            </div>
-
-            <p>If you have any questions or special requests, please don't hesitate to contact us. We're here to help make your stay memorable.</p>
-            
+            <p>And if you have any questions or special requests, please don't hesitate to contact us. We're here to help make your stay memorable.</p>
             <p>Best regards,<br>The Hotel Team</p>
-        </div>
-
         <div class="email-footer">
             <div class="social-links">
                 <a href="#">Facebook</a>

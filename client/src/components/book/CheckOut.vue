@@ -101,7 +101,7 @@ export default {
             card: this.card,
             billing_details: {
               email: this.userInfor.email,
-              name: this.userInfor.lastName + this.userInfor.firstName,
+              name: this.userInfor.fullName,
               phone: this.userInfor.phoneNumber
             }
           })

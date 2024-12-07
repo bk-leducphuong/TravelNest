@@ -288,7 +288,7 @@ const handleRefundIntentSucceeded = async (chargeRefunded) => {
     const updateInvoiceQuery = `
       DELETE FROM invoices where transaction_id = ?
     `;
-    await queryAsync(updateInvoiceQuery, [transactionId]);
+    await queryAsync(updateInvoiceQuery, [transaction[0].transaction_id]);
 
     // update number of reserved rooms
     const bookedRoomsArray = JSON.parse(bookedRooms);
