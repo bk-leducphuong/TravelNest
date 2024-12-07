@@ -39,7 +39,13 @@ export default {
         />
         <div class="content">
           <div class="reservation-details">
-            <h2 style="margin-bottom: 12px">Reservation Details</h2>
+            <h2 style="margin-bottom: 12px">Reservation Details 
+              <span style="font-size: 25px;"> (
+                <span v-if="getBookingInformation.status == 'cancelled'"><i class="fa fa-times" aria-hidden="true" style="color: red"></i></span>
+                <span v-if="getBookingInformation.status == 'confirmed'"><i class="fa fa-check" aria-hidden="true" style="color: green;"></i></span>
+                {{ getBookingInformation.status }})
+              </span>
+            </h2>
             <div class="reservation-info">
               <div class="info-item">
                 <label>Check-in</label>

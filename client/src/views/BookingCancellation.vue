@@ -18,7 +18,8 @@ export default {
       startTitle: 'Canceling your booking, please wait!',
       endTitle: 'Booking cancelled successfully!',
       redirectUrl: '/bookings',
-      fail: false
+      fail: false,
+      disableCancelBtn: false
     }
   },
   computed: {
@@ -34,6 +35,8 @@ export default {
     async cancelBooking() {
       try {
         this.isLoading = true
+        this.disableCancelBtn = true
+
         const response = await axios.post('http://localhost:3000/api/cancel-bookings', {
           bookingCode: this.getBookingInformation.booking_code,
         }, {
@@ -76,7 +79,7 @@ export default {
         </select>
         <div class="buttons">
           <button type="submit" class="btn-primary" @click="nextStep">Continue</button>
-          <a href="#" class="btn-link">I want to keep this booking</a>
+          <a @click="this.$router.push('/bookings')" class="btn-link">I want to keep this booking</a>
         </div>
       </form>
     </div>
@@ -91,10 +94,10 @@ export default {
         <a href="#" class="btn-link">contact us directly</a>.
       </p>
       <div class="buttons">
-        <button class="cancel-btn" @click="cancelBooking" :disabled="isLoading">
+        <button class="cancel-btn" @click="cancelBooking" :disabled="disableCancelBtn">
             <span>Cancel Booking</span>
         </button>
-        <a href="#" class="btn-link">I want to keep this booking</a>
+        <a @click="this.$router.push('/bookings')" class="btn-link">I want to keep this booking</a>
       </div>
     </div>
 

@@ -98,6 +98,9 @@ export default {
   <div class="account-settings">
     <loading v-model:active="isLoading" :color="`#003b95`" :is-full-page="false" />
     <br />
+    <div v-if="bookings.length == 0" class="no-bookings-found">
+      <div>Bạn chưa có đặt phòng nào</div>
+    </div>
     <div class="booking-container" v-for="booking in bookings" :key="booking.booking_id">
       <h3 style="margin-bottom: 5px; font-weight: 700">{{ booking.hotel.city }}</h3>
       <p>
@@ -305,5 +308,15 @@ button {
   position: relative;
   height: 100%;
   width: 100%;
+}
+
+.no-bookings-found {
+  text-align: center;
+  margin: 40px;
+}
+
+.no-bookings-found div{
+  font-size: 26px;
+  font-weight: 700;
 }
 </style>

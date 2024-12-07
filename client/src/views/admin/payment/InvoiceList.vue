@@ -151,9 +151,9 @@ export default {
                   <tr v-for="invoice in invoices" :key="invoice.invoice_id">
                     <td class="payment-id">#{{ invoice.invoice_id }}</td>
                     <td class="time">
-                      <p>{{ invoice.updated_at }}</p>
+                      <p>{{ new Date(invoice.updated_at).toDateString() }}</p>
                     </td>
-                    <td class="usd">{{ invoice.amount }} VND</td>
+                    <td class="usd">{{ parseInt(invoice.amount).toLocaleString('vi-VN') }} VND</td>
                     <td class="status">
                       <ul>
                         <li
@@ -322,7 +322,7 @@ tbody tr td {
   padding: 20px 20px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  box-shadow: 1px 2px 3px 1px #ddd;
+  /* box-shadow: 1px 2px 3px 1px #ddd; */
 }
 
 .table-title {
@@ -361,7 +361,7 @@ table .setting {
   top: 60%;
   background-color: #fff;
   border-radius: 5px;
-  box-shadow: 1px 2px 3px 1px #ddd;
+  /* box-shadow: 1px 2px 3px 1px #ddd; */
 }
 
 i {
