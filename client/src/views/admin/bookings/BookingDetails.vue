@@ -23,7 +23,7 @@ export default {
       startTitle: 'Canceling booking, please wait!',
       endTitle: 'Booking cancelled successfully!',
       fail: false,
-      redirectUrl: `/admin/${this.getCurrentManagingHotelId}/bookings/all`
+      redirectUrl: `/admin/${this.$route.params.hotelId}/bookings/all`
     }
   },
   computed: {
