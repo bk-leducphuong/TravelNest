@@ -1,6 +1,6 @@
 const express = require('express');
 const {isUserAuthenticated} = require('../middlewares/sessionAuth');
-const { getUserInformation, getBookingInformation, editName, editDisplayName, editEmail, editPhoneNumber, editDateOfBirth, editAddress, editNationality, editCountry, editGender, editAvatar, getFavoriteHotels, setFavoriteHotels, deleteFavoriteHotel, checkFavoriteHotel } = require( '../controllers/userController.js');
+const { getUserInformation, editName, editDisplayName, editEmail, editPhoneNumber, editDateOfBirth, editAddress, editNationality, editCountry, editGender, editAvatar, getFavoriteHotels, setFavoriteHotels, deleteFavoriteHotel, checkFavoriteHotel } = require( '../controllers/userController.js');
 const upload = require('../config/multer');
 const router = express.Router();
 
@@ -21,12 +21,9 @@ router.post('/edit-gender', editGender);
 router.post('/edit-avatar', upload.single('avatar'), editAvatar);
 
 // Route to get or set favorite hotels
-router.post('/favorite-hotels/get-favorite-hotels', getFavoriteHotels);
+router.get('/favorite-hotels/get-favorite-hotels', getFavoriteHotels);
 router.post('/favorite-hotels/set-favorite-hotel', setFavoriteHotels);
 router.post('/favorite-hotels/delete-favorite-hotel', deleteFavoriteHotel);
 router.post('/favorite-hotels/check-favorite-hotel', checkFavoriteHotel);
-
-// Route to get booking information of user
-router.post('/booking/get-booking-information', getBookingInformation);
 
 module.exports = router;

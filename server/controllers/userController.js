@@ -19,21 +19,6 @@ const getUserInformation = async (req, res) => {
   }
 };
 
-const getBookingInformation = async (req, res) => {
-  try {
-    const { bookingCode } = req.body;
-    const bookingInformation = await queryAsync(
-      "SELECT * FROM bookings WHERE booking_code = ?",
-      [bookingCode]
-    );
-    res
-      .status(200)
-      .json({ success: true, bookingInformation: bookingInformation[0] });
-  } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
-
 // edit user information controllers
 const editName = async (req, res) => {
   try {
@@ -181,7 +166,14 @@ const getFavoriteHotels = async (req, res) => {
     const userId = req.session.user.user_id;
     const query = 'SELECT hotel_id FROM saved_hotels WHERE user_id = ?';
     const favoriteHotels = await queryAsync(query, [userId]);
-    res.status(200).json(favoriteHotels);
+
+    for (let hotel of favoriteHotels) {
+      const hotelId = hotel.hotel_id;
+      const query2 = 'SELECT name, overall_rating, address, hotel_class, image_urls FROM hotels WHERE hotel_id = ?';
+      const hotelInformation = await queryAsync(query2, [hotelId]);
+      hotel.hotelInformation = hotelInformation[0];
+    }
+    res.status(200).json({hotels: favoriteHotels});
   } catch (error) {
     console.log("Error getting favorite hotels:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -243,7 +235,6 @@ const checkFavoriteHotel = async (req, res) => {
 
 module.exports = {
   getUserInformation,
-  getBookingInformation,
   // Edit user information controllers
   editName,
   editDisplayName,

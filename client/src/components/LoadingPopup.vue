@@ -12,7 +12,7 @@
       >
       </loading>
       <i class="fa fa-check-circle" aria-hidden="true" style="color: #00ff4c; font-size: 60px; margin-top: 50px;" v-if="isLoaded && !fail"></i>
-      <i class="fa fa-times-circle" aria-hidden="true" style="color: #00ff4c; font-size: 60px; margin-top: 50px;" v-if="fail"></i>
+      <i class="fa fa-times-circle" aria-hidden="true" style="color: red; font-size: 60px; margin-top: 50px;" v-if="fail"></i>
       <div class="title" v-if="isLoading && !fail">{{ startTitle }}</div>
       <div class="title" v-if="isLoaded && !fail">{{ endTitle }}</div>
       <div class="title" v-if="fail">Process failed! Please try again later.</div>
@@ -79,7 +79,7 @@ export default {
       if (newValue == true) {
         setTimeout(() => {
           this.openLoadingPopup = false
-          this.$router.push(this.redirectUrl)
+          this.$router.go() // reload page
         }, 2000)
         // this.openLoadingPopup = false
       }
@@ -94,8 +94,8 @@ export default {
   z-index: 99999999;
   left: 0;
   top: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.4);
   display: flex;

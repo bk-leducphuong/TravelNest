@@ -5,6 +5,10 @@ import { mapActions, mapGetters, mapState } from 'vuex'
 import { useToast } from 'vue-toastification'
 
 export default {
+  components: {
+    CheckOut,
+    TheHeader,
+  },
   setup() {
     // Get toast interface
     const toast = useToast()
@@ -16,15 +20,15 @@ export default {
       currentStep: 2,
       steps: [1, 2, 3],
       // form data
-      email: null,
       firstName: null,
       lastName: null,
-      phoneNumber: null
+      phoneNumber: null,
     }
   },
   computed: {
     ...mapGetters('book', ['getBookingInfor']),
     ...mapGetters('search', ['getSearchData']),
+    ...mapGetters('user', ['getUserInformation']),
 
     progress() {
       return ((this.currentStep - 1) / (this.steps.length - 1)) * 100
@@ -33,7 +37,7 @@ export default {
   methods: {
     ...mapActions('book', ['checkRoomAvailability']),
     checkFormFulfillment() {
-      if (this.email && this.firstName && this.lastName && this.phoneNumber) {
+      if (this.firstName && this.lastName && this.phoneNumber) {
         return true
       } else {
         return false
@@ -63,16 +67,12 @@ export default {
       }
     }
   },
-  components: {
-    CheckOut,
-    TheHeader
-  }
+  
 }
 </script>
 <template>
   <TheHeader :isSearchOpen="false" />
   <!-- progress bar -->
-
   <div class="stepper-wrapper">
     <div class="stepper">
       <div class="progress-line"></div>
@@ -204,13 +204,13 @@ export default {
       <!--account loged in-->
       <div class="hotel-info">
         <div style="display: flex; flex-direction: row">
-          <div class="signin-content">
+          <div class="signin-content" v-if="getUserInformation">
             <div class="profile-image">
-              <img src="" alt="Profile" />
+              <img :src="getUserInformation.profile_picture_url" alt="Profile" />
             </div>
             <div class="text-container">
               <p class="status-text">You are signed in</p>
-              <p class="email-text">oingucoolname@gmail.com</p>
+              <p class="email-text">{{ getUserInformation.email }}</p>
             </div>
           </div>
         </div>
@@ -239,7 +239,7 @@ export default {
 
           <div class="form-group">
             <label>Email address <span class="required">*</span></label>
-            <input v-model="email" type="email" style="width: 96%" required />
+            <input  disabled :placeholder="getUserInformation.email" type="email" style="width: 96%" />
             <div class="helper-text">Confirmation email goes to this address</div>
           </div>
 

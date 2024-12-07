@@ -147,7 +147,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('auth', ['isUserAuthenticated', 'getOtp']),
+    ...mapGetters('auth', ['isUserAuthenticated', 'getOtp', 'isLoginFail']),
     passwordMismatch() {
       return this.isNewUser && this.password !== this.confirmPassword
     }
@@ -211,6 +211,11 @@ export default {
         apiUrl: apiUrl,
         payload: payload
       })
+      // if login fail
+      if (this.isLoginFail) {
+        this.password = ''
+        this.toast.error("Mật khẩu sai!")
+      }
     },
     async runOtpVerification() {
       try {

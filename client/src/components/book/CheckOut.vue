@@ -1,4 +1,5 @@
 <template>
+  <LoadingPopup :isLoading="isLoading" :startTitle="startTitle" :endTitle="endTitle" :isLoaded="isLoaded" :redirectUrl="redirectUrl" :fail="fail"/>
   <div class="payment-form">
     <form @submit.prevent="handleSubmit">
       <div id="card-element"></div>
@@ -21,8 +22,12 @@ import { loadStripe } from '@stripe/stripe-js'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
 import { mapActions, mapGetters } from 'vuex'
+import LoadingPopup from '../LoadingPopup.vue'
 
 export default {
+  components: {
+    LoadingPopup
+  },
   props: {
     bookingInfor: {
       type: Object,
@@ -42,7 +47,13 @@ export default {
       stripe: null,
       card: null,
       processing: false,
-      paymentStatus: null
+      paymentStatus: null,
+      isLoading: false,
+      isLoaded: false,
+      startTitle: 'Thanh toán của bạn đang được xử lí...',
+      endTitle: 'Thanh toán thành công!',
+      redirectUrl: '',
+      fail: false,
     }
   },
   computed: {
@@ -79,6 +90,7 @@ export default {
           this.$router.place({ path: '/hotels', params: { hotel_id: this.getBookingInfor.hotel.hotel_id } })
           return
         } else {
+          this.isLoading = true
           // if available, book the room
           this.processing = true
           this.paymentStatus = null
@@ -122,6 +134,7 @@ export default {
           const result = await response.data
 
           if (result.error) {
+            this.fail = true
             throw new Error(result.error)
           }
 
@@ -133,14 +146,12 @@ export default {
             )
 
             if (confirmError) {
+              this.fail = true
               throw new Error(confirmError.message)
             }
 
-            // Payment successful
-            this.paymentStatus = {
-              type: 'success',
-              message: 'Payment successful! Check your email for confirmation.'
-            }
+            this.isLoaded = true
+            this.isLoading = false
 
             setTimeout(() => {
               this.$router.replace({ path: '/book/complete', query: { bookingCode: bookingCode } })
@@ -156,6 +167,7 @@ export default {
           type: 'error',
           message: err.message
         }
+        this.fail = true
       } finally {
         this.processing = false
       }

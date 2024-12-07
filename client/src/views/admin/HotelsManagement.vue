@@ -88,7 +88,7 @@ export default {
       <!-- Hotel Card 1 -->
 
       <div class="hotel-card" v-for="hotel in getManagingHotels" :key="hotel.hotel_id">
-        <img src="" alt="Luxury Hotel" class="hotel-image" />
+        <img :src="JSON.parse(hotel.image_urls)[0]" alt="hotel-image" class="hotel-image" />
         <div class="hotel-info">
           <h2 class="hotel-name">{{ hotel.name }}</h2>
           <div class="hotel-location">
@@ -292,6 +292,7 @@ export default {
 }
 
 .hotel-image {
+
   width: 100%;
   height: 200px;
   object-fit: cover;

@@ -65,14 +65,14 @@ export default {
 
       // Convert Map to an array
       return Array.from(groupedBookings.values())
-    }, 
-    seeDetails(bookingCode) { 
-      this.bookings.forEach(booking => {
+    },
+    seeDetails(bookingCode) {
+      this.bookings.forEach((booking) => {
         if (booking.booking_code === bookingCode) {
-           this.setBookingInformation(booking)
+          this.setBookingInformation(booking)
         }
       })
-     
+
       router.push({ name: 'BookingDetails', params: { bookingCode: bookingCode } })
     }
   },
@@ -83,10 +83,24 @@ export default {
 </script>
 <template>
   <Header :isSearchOpen="false" />
+  <div class="header-container">
+    <div class="header-title">Bookings & Trips</div>
+    <div class="header">
+      <div class="header-left">
+        <select class="dropdown" id="trip-list">
+          <option value="my-next-trip">Hôm nay</option>
+          <option value="summer-trip">Trong vòng 1 tuần</option>
+          <option value="weekend-getaway" selected>Tất cả</option>
+        </select>
+      </div>
+    </div>
+  </div>
   <div class="account-settings">
     <loading v-model:active="isLoading" :color="`#003b95`" :is-full-page="false" />
-    <h2 style="font-weight: 700;">Bookings & Trips</h2>
     <br />
+    <div v-if="bookings.length == 0" class="no-bookings-found">
+      <div>Bạn chưa có đặt phòng nào</div>
+    </div>
     <div class="booking-container" v-for="booking in bookings" :key="booking.booking_id">
       <h3 style="margin-bottom: 5px; font-weight: 700">{{ booking.hotel.city }}</h3>
       <p>
@@ -125,18 +139,81 @@ export default {
   <Footer />
 </template>
 <style scoped>
+/* header */
+.header-container {
+  /* max-width: 1200px; */
+  margin: 0 auto;
+  padding: 20px 40px;
+  border-bottom: 1px solid #ddd;
+  background-color: #f9f9f9;
+}
+
+.header-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* padding: 15px 20px; */
+}
+
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dropdown {
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.btn {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.primary-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.secondary-btn {
+  background-color: white;
+  color: #007bff;
+  border: 1px solid #007bff;
+}
+
+.map-btn {
+  background-color: #007bff;
+  color: white;
+  padding: 8px 16px;
+}
+/* end header */
+
 .account-settings {
   position: relative;
   /* max-width: 800px; */
   margin: 0 auto;
   padding: 40px;
+  padding-top: 0px !important;
   font-family: Arial, sans-serif;
 }
 .booking-content-container {
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); */
   cursor: pointer;
   border-radius: 10px;
   margin-bottom: 30px;
@@ -231,5 +308,15 @@ button {
   position: relative;
   height: 100%;
   width: 100%;
+}
+
+.no-bookings-found {
+  text-align: center;
+  margin: 40px;
+}
+
+.no-bookings-found div{
+  font-size: 26px;
+  font-weight: 700;
 }
 </style>

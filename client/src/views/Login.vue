@@ -92,7 +92,7 @@
 
 <script>
 import axios from 'axios' // Import Axios
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 import { useToast } from "vue-toastification";
 
 export default {
@@ -112,6 +112,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters('auth', ['isLoginFail']),
     passwordMismatch() {
       return this.isNewUser && this.password !== this.confirmPassword
     }
@@ -158,6 +159,10 @@ export default {
         : { email: this.email, password: this.password, userRole: 'customer' }
 
       await this.login({ apiUrl: apiUrl, payload: payload, redirectRoute: this.$route.query.redirect || '/'})
+      if (this.isLoginFail) {
+        this.toast.error('Mật khẩu sai!')
+        this.password = ''
+      }
     },
     async socialLogin(provider) {
       // Ensure `provider` is one of the allowed providers

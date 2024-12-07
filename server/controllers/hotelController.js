@@ -35,7 +35,7 @@ const getHotelDetails = async (req, res) => {
         `;
 
     const reviewsQuery = `
-          SELECT rv.review_id, rv.user_id, rv.rating, rv.comment, rv.created_at, users.username
+          SELECT rv.review_id, rv.user_id, rv.rating, rv.comment, rv.created_at, rv.booking_code, users.username, users.profile_picture_url, users.country
           FROM reviews rv 
           JOIN users ON users.user_id = rv.user_id
           WHERE rv.hotel_id = ?;
@@ -59,6 +59,9 @@ const getHotelDetails = async (req, res) => {
         queryAsync(nearbyPlacesQuery, [hotelId]),
         queryAsync(reviewsBreakdownQuery, [hotelId]),
       ]);
+
+    //TODO: get booking details for each review
+    //...
 
     res.json({
       hotel: hotel[0], // chỉ trả về bản ghi đầu tiên vì thông tin khách sạn là duy nhất

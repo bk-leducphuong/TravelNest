@@ -46,7 +46,8 @@ export default {
         const slider = this.$refs[sliderRef]
         if (!slider) return true // Ensure the ref exists
         // Check if the slider is scrolled all the way to the right
-        return this.sliderPosition.get(sliderRef) >= slider.scrollWidth - slider.clientWidth
+        // console.log(sliderRef, this.sliderPosition.get(sliderRef), slider.scrollWidth, slider.clientWidth)
+        return this.sliderPosition.get(sliderRef) >= (slider.scrollWidth - slider.clientWidth)
       }
     }
   },
@@ -60,13 +61,7 @@ export default {
       'updateRooms'
     ]),
     redirectToSearchResults(search) {
-      // update vuex store
-      this.updateLocation(search.location)
-      this.updateCheckInDate(search.checkInDate)
-      this.updateCheckOutDate(search.checkOutDate)
-      this.updateAdults(search.adults)
-      this.updateChildren(search.children)
-      this.updateRooms(search.rooms)
+      const numberOfDays = this.calculateNumberOfDays(search.checkInDate, search.checkOutDate)
       // Redirect user to search results page with query params
       this.$router.push({
         name: 'SearchResults',
@@ -76,7 +71,8 @@ export default {
           checkOutDate: search.checkOutDate,
           adults: search.adults,
           children: search.children,
-          rooms: search.rooms
+          rooms: search.rooms,
+          numberOfDays: numberOfDays
         }
       })
     },
@@ -210,7 +206,17 @@ export default {
       )
 
       slider.scrollTo({ left: this.sliderPosition.get(sliderRef), behavior: 'smooth' })
-    }
+    },
+    handleScroll(event, sliderRef) {
+      const slider = event.target
+      this.sliderPosition.set(sliderRef, slider.scrollLeft)
+    },
+    calculateNumberOfDays(checkInDateString, checkOutDateString) {
+      const checkInDate = new Date(checkInDateString)
+      const checkOutDate = new Date(checkOutDateString)
+      const timeDifference = checkOutDate - checkInDate
+      return (timeDifference / (1000 * 60 * 60 * 24)) + 1
+    },
   },
   watch: {
     getUserLocation: {
@@ -225,7 +231,6 @@ export default {
   mounted() {
     this.loadRecentSearches()
     this.loadViewedHotels()
-    this.loadNearbyHotels()
     this.loadPopularPlaces()
   }
 }
@@ -239,7 +244,7 @@ export default {
     <div class="recent-search-container container" v-if="recentSearches.length > 0">
       <h2 class="h2">Tìm kiếm gần đây của bạn</h2>
       <div class="slider-container">
-        <div ref="recentSlider" class="search-slider">
+        <div ref="recentSlider" class="search-slider"   @scroll="(event) => handleScroll(event, 'recentSlider')">
           <div
             class="search-card"
             v-for="(search, index) in recentSearches"
@@ -261,7 +266,7 @@ export default {
             <button class="close-button" @click="removeSearch(index, $event)">×</button>
           </div>
         </div>
-        <div class="nav-button-container">
+        <div class="nav-button-container" v-if="recentSearches.length > 0">
           <button
             class="nav-button prev"
             :disabled="disableScrollLeft('recentSlider')"
@@ -284,7 +289,7 @@ export default {
     <div class="hotel-container container" v-if="viewedHotels.length > 0">
       <h2 class="h2">Bạn có còn quan tâm đến những chỗ nghỉ này?</h2>
       <div class="slider-container">
-        <div ref="viewedSlider" class="hotel-slider">
+        <div ref="viewedSlider" class="hotel-slider"  @scroll="(event) => handleScroll(event, 'viewedSlider')">
           <div
             class="hotel-card"
             v-for="(hotel, index) in viewedHotels"
@@ -292,7 +297,7 @@ export default {
             @click="redirectToHotelDetails(hotel)"
           >
             <div class="hotel-image">
-              <img :src="hotel.image_urls" :alt="hotel.name" />
+              <img :src="JSON.parse(hotel.image_urls)[0]" :alt="hotel.name" />
               <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
@@ -306,20 +311,22 @@ export default {
             </div>
           </div>
         </div>
-        <button
-          class="nav-button prev"
-          :disabled="disableScrollLeft('viewedSlider')"
-          @click="scrollLeft('viewedSlider')"
-        >
-          ‹
-        </button>
-        <button
-          class="nav-button next"
-          :disabled="disableScrollRight('viewedSlider')"
-          @click="scrollRight('viewedSlider')"
-        >
-          ›
-        </button>
+        <div class="nav-button-container" v-if="viewedHotels.length > 0">
+          <button
+            class="nav-button prev"
+            :disabled="disableScrollLeft('viewedSlider')"
+            @click="scrollLeft('viewedSlider')"
+          >
+            ‹
+          </button>
+          <button
+            class="nav-button next"
+            :disabled="disableScrollRight('viewedSlider')"
+            @click="scrollRight('viewedSlider')"
+          >
+            ›
+          </button>
+        </div>
       </div>
     </div>
 
@@ -333,7 +340,7 @@ export default {
         :is-full-page="false"
       />
       <div class="slider-container">
-        <div ref="nearbySlider" class="hotel-slider">
+        <div ref="nearbySlider" class="hotel-slider"   @scroll="(event) => handleScroll(event, 'nearbySlider')">
           <div
             class="hotel-card"
             v-for="(hotel, index) in nearbyHotels"
@@ -341,7 +348,7 @@ export default {
             @click="redirectToHotelDetails(hotel)"
           >
             <div class="hotel-image">
-              <img :src="hotel.image_urls" :alt="hotel.name" />
+              <img :src="JSON.parse(hotel.image_urls)[0]" :alt="hotel.name" />
               <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
@@ -355,20 +362,22 @@ export default {
             </div>
           </div>
         </div>
-        <button
-          class="nav-button prev"
-          :disabled="disableScrollLeft('nearbySlider')"
-          @click="scrollLeft('nearbySlider')"
-        >
-          ‹
-        </button>
-        <button
-          class="nav-button next"
-          :disabled="disableScrollRight('nearbySlider')"
-          @click="scrollRight('nearbySlider')"
-        >
-          ›
-        </button>
+        <div class="nav-button-container" v-if="nearbyHotels.length > 0">
+          <button
+            class="nav-button prev"
+            :disabled="disableScrollLeft('nearbySlider')"
+            @click="scrollLeft('nearbySlider')"
+          >
+            ‹
+          </button>
+          <button
+            class="nav-button next"
+            :disabled="disableScrollRight('nearbySlider')"
+            @click="scrollRight('nearbySlider')"
+          >
+            ›
+          </button>
+        </div>
       </div>
     </div>
 
@@ -524,10 +533,13 @@ img {
 .search-slider {
   display: flex;
   gap: 20px;
-  overflow-x: hidden;
+  overflow-x: auto;
   scroll-behavior: smooth;
   padding: 10px 0;
   scroll-snap-type: x mandatory;
+}
+.search-slider::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
 }
 
 .search-card {
@@ -592,10 +604,14 @@ h1 {
 .hotel-slider {
   display: flex;
   gap: 20px;
-  overflow-x: hidden;
+  overflow-x: auto;
+  /* width: 100%; */
   scroll-behavior: smooth;
   padding: 10px 0;
   scroll-snap-type: x mandatory;
+}
+.hotel-slider::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
 }
 
 .hotel-card {
