@@ -20,7 +20,7 @@ const getHotelDetails = async (req, res) => {
           SELECT 
           MIN(ri.total_inventory - ri.total_reserved) AS available_rooms,
             r.room_id,
-            r.room_name, r.price_per_night, r.max_guests,
+            r.room_name, ri.price_per_night, r.max_guests,
           r.image_urls AS room_image_urls, r.room_amenities 
           FROM hotels h
           JOIN rooms r 
@@ -30,7 +30,7 @@ const getHotelDetails = async (req, res) => {
           WHERE h.hotel_id = ?
             AND r.max_guests >= ?
             AND ri.date BETWEEN ? AND ?
-          GROUP BY r.room_id
+          GROUP BY r.room_id, ri.price_per_night
         HAVING COUNT(CASE WHEN ri.total_inventory - ri.total_reserved >= ? THEN 1 END) = ?;
         `;
 
@@ -86,7 +86,7 @@ const searchRoom = async (req, res) => {
             SELECT 
           MIN(ri.total_inventory - ri.total_reserved) AS available_rooms,
             r.room_id,
-            r.room_name, r.price_per_night, r.max_guests,
+            r.room_name, ri.price_per_night, r.max_guests,
           r.image_urls AS room_image_urls, r.room_amenities 
         FROM hotels h
         JOIN rooms r 
@@ -168,6 +168,7 @@ const checkRoomAvailability = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({
+
       message: "Internal Server Error",
     });
   }
