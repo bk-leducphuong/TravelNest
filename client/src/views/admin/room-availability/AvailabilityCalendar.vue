@@ -732,7 +732,7 @@ export default {
   position: absolute;
 }
 .room-price {
-  width: 150%;
+  /* width: 150%; */
   font-size: 13px;
   bottom: 5px;
   position: absolute;
