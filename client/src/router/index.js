@@ -33,6 +33,8 @@ import book from '@/stores/book'
 import AvailabilityCalendar from '@/views/admin/room-availability/AvailabilityCalendar.vue'
 import BookingCancellation from '@/views/BookingCancellation.vue'
 import SavedHotels from '@/views/SavedHotels.vue'
+// room 
+import RoomDetails from '@/views/admin/room/RoomDetails.vue'
 
 const routes = [
   // route for customer
@@ -197,6 +199,12 @@ const routes = [
     path: '/admin/:hotelId/room-availability/availability-calendar',
     name: 'AvailabilityCalendar',
     component: AvailabilityCalendar,
+    meta: {requiresAuth: true}
+  },
+  {
+    path: '/admin/:hotelId/room/room-details',
+    name: 'RoomDetails',
+    component: RoomDetails,
     meta: {requiresAuth: true}
   },
   // Catch-all route (for 404s)

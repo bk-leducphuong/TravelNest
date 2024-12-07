@@ -396,11 +396,6 @@ td {
   font-size: 20px;
 }
 
-.no-bookings-found {
-  
-}
-
-
 .vl-parent {
   position: relative;
   height: 100%;

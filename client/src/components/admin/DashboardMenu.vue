@@ -9,6 +9,7 @@ export default {
           isPaymentSelected: false,
           isBookingsSelected: false,
           isRoomAvailabilitySelected: false,
+          isRoomSelected: false,
           selected: false
         }
     },
@@ -64,13 +65,17 @@ export default {
           </div>
           <!-- Property -->
           <div class="nav-item-container">
-            <div class="title-nav-item  ">
-              <li class="nav-item" @click="this.$router.push('/admin/home')"><i class="fa fa-pencil" aria-hidden="true"></i>Property</li>
-              <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;" v-if="!this.selected"></i>
-              <i class="fa fa-angle-down" aria-hidden="true" style="margin-right: 10px;" v-if="this.selected"></i>
+            <div class="title-nav-item" @click="this.isRoomSelected = !this.isRoomSelected">
+              <li class="nav-item" ><i class="fa fa-pencil" aria-hidden="true"></i>Property</li>
+              <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;" v-if="!this.isRoomSelected"></i>
+              <i class="fa fa-angle-down" aria-hidden="true" style="margin-right: 10px;" v-if="this.isRoomSelected"></i>
             </div>
-            <div class="child-item-container">
-              <li class="child-item"></li>
+            <div class="child-item-container" v-if="this.isRoomSelected">
+              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/room/room-details`)">Room details</li>
+              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/room/room-details`)">Room photos</li>
+              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/room/room-details`)">Room amenities</li>
+              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/room/room-details`)">Policies</li>
+              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/room/room-details`)">Room services</li>
             </div>
           </div>
           <!-- Payment -->

@@ -1,0 +1,287 @@
+<script>
+import DashboardMenu from '@/components/admin/DashboardMenu.vue'
+import AdminHeader from '@/components/admin/AdminHeader.vue'
+import Loading from 'vue-loading-overlay'
+import RoomInformation from '@/components/admin/room/RoomInformation.vue'
+import 'vue-loading-overlay/dist/css/index.css'
+import axios from 'axios'
+import { mapActions, mapGetters } from 'vuex'
+
+export default {
+  components: {
+    DashboardMenu,
+    AdminHeader,
+    Loading,
+    RoomInformation
+  },
+  data() {
+    return {
+      rooms: [],
+      isLoading: false,
+      editRoomMode: false,
+      createNewRoomMode: false,
+      roomInformation: null
+    }
+  },
+  computed: {
+    ...mapGetters('manageHotels', ['getCurrentManagingHotelId'])
+  },
+  methods: {
+    async getAllRooms() {
+      try {
+        this.isLoading = true
+        const response = await axios.post(
+          'http://localhost:3000/api/admin/room/get-all-rooms',
+          {
+            hotelId: this.getCurrentManagingHotelId
+          },
+          {
+            withCredentials: true
+          }
+        )
+        this.rooms = response.data
+      } catch (error) {
+        console.log(error)
+      } finally {
+        this.isLoading = false
+      }
+    },
+    async editRoomInformation(roomInformation) {
+      this.roomInformation = roomInformation
+      this.editRoomMode = true
+    },
+    async createNewRoom() {
+      this.roomInformation = null
+      this.createNewRoomMode = true
+    }
+  },
+  async mounted() {
+    await this.getAllRooms()
+  }
+}
+</script>
+<template>
+  <div class="all-bookings-container">
+    <DashboardMenu />
+    <div class="main-wrapper">
+      <!-- top header -->
+      <AdminHeader />
+      <!-- main content -->
+      <div class="main-content">
+        <loading
+          v-model:active="isLoading"
+          :can-cancel="true"
+          :on-cancel="onCancel"
+          :color="`#003b95`"
+          :is-full-page="false"
+        />
+
+        <RoomInformation
+          v-if="editRoomMode || createNewRoomMode"
+          :roomInformation="roomInformation"
+          :mode="editRoomMode ? 'edit' : 'create'"
+        />
+
+        <div class="room-details-container" v-if="!editRoomMode && !createNewRoomMode">
+          <div class="title">
+            <h2>
+              <strong>Room detail</strong>
+            </h2>
+
+            <div class="warning">
+              <strong> What's Missing</strong>
+              <ul>
+                <li>
+                  Bathroom-info
+                  <ul>
+                    <li><a href="">One-Bedroom Apartment</a></li>
+                    <li><a href="">Two-Bedroom Apartment</a></li>
+                    <li><a href="">Three-Bedroom Apartment</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="room__photos">
+            <div class="room__total">
+              <div class="row">
+                <div class="col-12 col-md-4" v-for="room in rooms" :key="room.room_id">
+                  <div class="room__photo--element">
+                    <div class="room__image">
+                      <img
+                        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-S5vsbf6ADl2Y-_RMSf-uP2ORFZJJ8s7tEg&s"
+                        alt="phong"
+                      />
+                      <p>{{ room.room_name }}</p>
+                    </div>
+                    <div class="room__info">
+                      <p>
+                        Occupancy: <strong>max {{ room.max_guests }} guests</strong>
+                      </p>
+                      <p>Number of this type: <strong>1</strong></p>
+                      <div class="button-container">
+                        <button class="edit1" @click="editRoomInformation(room)">Edit</button>
+                        <button class="delete1">Delete</button>
+                        <button class="upload__photo">
+                          <i class="fa-solid fa-camera"></i> Upload Photo
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-4" style="display: flex; justify-content: center">
+                  <div class="room__photo--element">
+                    <div class="add__room" @click="createNewRoom">
+                      <h4>Create a new apartment</h4>
+                      <i class="fa-solid fa-plus" style="font-size: 30px"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+<style scoped>
+.all-bookings-container {
+  display: flex;
+}
+/* Main Content Styles */
+.main-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  padding: 24px;
+  position: relative;
+}
+
+.room-details-container {
+  max-width: 1200px;
+}
+
+.warning {
+  margin-top: 20px;
+  padding: 20px 60px;
+  background-color: rgba(233, 209, 166, 0.405);
+  border-radius: 5px;
+}
+
+.warning ul {
+  padding-left: 40px;
+}
+
+.warning ul ul {
+  padding-left: 20px;
+}
+
+.title {
+  flex: 1;
+  margin-left: 20px;
+}
+
+.room__photos {
+  margin-top: 20px;
+  margin-left: 20px;
+}
+
+.room__photo--element {
+  /* padding: 10px; */
+  /* overflow: hidden; */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.room__image img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+}
+
+.room__image {
+  position: relative;
+}
+
+.room__image p {
+  position: absolute;
+  bottom: 0px;
+  background-color: #2d3748ae;
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  color: white;
+}
+
+.room__info {
+  padding: 10px;
+}
+
+.room__info p {
+  /* font-size: 20px; */
+  margin-bottom: 15px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.button-container button {
+  padding: 5px 10px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #4a5568;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.button-container button:hover {
+  color: #003b95;
+  background-color: white;
+  border: 1px solid #003b95;
+}
+
+.button-container .upload__photo {
+  background-color: #003b95;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.button-container .upload__photo:hover {
+  background-color: #003b95;
+  color: white;
+  border: none;
+}
+
+.add__room {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
+  cursor: pointer;
+}
+
+.add__room:hover {
+  background-color: #e2e8f0;
+}
+
+.vl-parent {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+</style>
