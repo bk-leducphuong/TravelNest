@@ -424,7 +424,7 @@ async function sendNewBookingNotification(paymentIntent) {
     ).toDateString()} to ${new Date(
       checkOutDate
     ).toDateString()} for ${numberOfGuests} guests.`,
-    isRead: false,
+    isRead: 0,
   };
 
   // store notification
@@ -475,7 +475,7 @@ const sendCancelBookingNotification = async (chargeRefunded) => {
     ).toDateString()} to ${new Date(
       checkOutDate
     ).toDateString()} for ${numberOfGuests} guests.`,
-    isRead: false,
+    isRead: 0,
   };
 
   // store notification

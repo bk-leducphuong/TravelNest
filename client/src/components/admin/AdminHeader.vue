@@ -1,14 +1,18 @@
 <script>
 import socket from '@/services/socket'
 import axios from 'axios'
-import join from '@/stores/join'
 import { mapGetters } from 'vuex'
+import { useToast } from 'vue-toastification'
 export default {
+  setup() {
+    const toast = useToast()
+    return { toast }
+  },
   data() {
     return {
-      haveNewNotification: false,
-      openNotificationPopup: false,
-      notifications: []
+      isNotificationPopupVisible: false,
+      notifications: [],
+      numberOfNewNotifications: 0
     }
   },
   computed: {
@@ -16,6 +20,11 @@ export default {
       'getCurrentManagingHotelInformation',
       'getCurrentManagingHotelId'
     ])
+  },
+  watch: {
+    notifications(newValue) {
+      this.calculateNumerOfNewNotifications()
+    }
   },
   methods: {
     showNotificationIcon() {},
@@ -26,7 +35,7 @@ export default {
         // Nhận thông báo mới
         socket.on('newNotification', (data) => {
           this.notifications.unshift(data)
-          this.haveNewNotification = true
+          this.numberOfNewNotifications++
         })
       } else {
         console.log('User not logged in')
@@ -34,7 +43,7 @@ export default {
     },
     async getNotifiactions() {
       const response = await axios.post(
-        'http://localhost:3000/api/notifications',
+        'http://localhost:3000/api/admin/notifications',
         {
           hotelId: this.getCurrentManagingHotelId
         },
@@ -43,6 +52,35 @@ export default {
         }
       )
       this.notifications = response.data.notifications
+    },
+    async markAllRead() {
+      try {
+        this.notifications.forEach((notification) => {
+          notification.is_read = 1
+        })
+        this.numberOfNewNotifications = 0
+
+        await axios.get('http://localhost:3000/api/admin/notifications/mark-all-as-read', {
+          withCredentials: true
+        })
+      } catch (error) {
+        this.toast.error('Error marking notifications as read')
+        console.error(error)
+      }
+    },
+    calculateNumerOfNewNotifications() {
+      this.numberOfNewNotifications = 0
+      this.notifications.forEach((notification) => {
+        if (notification.is_read == 0) {
+          this.numberOfNewNotifications++
+        }
+      })
+    },
+    hideNotficationPopup() {
+      this.isNotificationPopupVisible = false
+    },
+    openNotificationPopup() {
+      this.isNotificationPopupVisible = !this.isNotificationPopupVisible
     }
   },
   mounted() {
@@ -58,36 +96,40 @@ export default {
       <div class="header-right">
         <div class="user-profile">
           <div class="avatar">
-            <img :src="JSON.parse(getCurrentManagingHotelInformation.image_urls)[0]" alt="avatar" style="width: 45px; height: 45px; border-radius: 10px; object-fit: cover;"/>
+            <img
+              :src="JSON.parse(getCurrentManagingHotelInformation.image_urls)[0]"
+              alt="avatar"
+              style="width: 45px; height: 45px; border-radius: 10px; object-fit: cover"
+            />
           </div>
           <div class="hotel-infor">
             <span v-if="getCurrentManagingHotelInformation" style="font-weight: 600">{{
               getCurrentManagingHotelInformation.name
             }}</span>
-            <span><i class="fa fa-map-marker" aria-hidden="true"></i>{{ getCurrentManagingHotelInformation.address.slice(0, 35) }}</span>
+            <span>
+              <i class="fa-solid fa-location-dot"></i
+              >{{ getCurrentManagingHotelInformation.address.slice(0, 35) }}</span
+            >
           </div>
 
           <!-- <span v-else>Hotel</span> -->
         </div>
       </div>
       <!-- notification popup -->
-      <div class="notification-container">
-        <div class="notification-icon" @click="openNotificationPopup = !openNotificationPopup">
-          <i class="fa fa-bell" aria-hidden="true"></i>
-          <i
-            v-if="haveNewNotification"
-            class="fa fa-circle"
-            aria-hidden="true"
-            style="color: red; font-size: 10px; float: right"
-          ></i>
+      <div class="notification-container" v-click-outside="hideNotficationPopup">
+        <div class="notification-icon" @click="openNotificationPopup">
+          <span class="notification-badge" v-if="numberOfNewNotifications > 0">{{
+            numberOfNewNotifications
+          }}</span>
+          <i class="fa-regular fa-bell"></i>
         </div>
-        <div class="notification-popup" v-if="openNotificationPopup">
+        <div class="notification-popup" v-if="isNotificationPopupVisible">
           <div class="notification-header">
             <div class="notification-title">
               <span>Notifications</span>
             </div>
             <div class="mark-all-read-btn">
-              <span>Mark all as read</span>
+              <span @click="markAllRead()">Mark all as read</span>
             </div>
           </div>
           <div class="notification-content">
@@ -186,6 +228,18 @@ export default {
 .notification-icon {
   cursor: pointer;
 }
+
+.notification-badge {
+  padding: 0px 5px;
+  position: absolute;
+  font-size: 15px;
+  background-color: red;
+  border-radius: 5px;
+  color: #fff;
+  top: -5px;
+  right: -5px;
+}
+
 .notification-popup {
   position: fixed;
   top: 80px;
@@ -234,8 +288,9 @@ export default {
 
 .notification-icon {
   margin-right: 12px;
-  font-size: 20px;
-  color: #00b894;
+  font-size: 24px;
+  position: relative;
+  /* color: #00b894; */
 }
 
 .notification-text h4 {
