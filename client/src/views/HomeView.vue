@@ -149,7 +149,7 @@ export default {
           }
         )
 
-        this.viewedHotels = response.data.hotels
+        this.viewedHotels = response.data.hotels.reverse()
       } else {
         const response = await axios.post(
           'http://localhost:3000/api/home/get-recent-viewed-hotels',
@@ -158,13 +158,8 @@ export default {
           }
         )
 
-        this.viewedHotels = response.data.hotels
+        this.viewedHotels = response.data.hotels.reverse()
       }
-
-      hotels.reverse()
-      this.viewedHotels = hotels
-
-      // this.noViewedHotelsFound = this.viewedHotels.length === 0 ? true : false
     },
 
     // Static popular places data (replace with API or dynamic data)
