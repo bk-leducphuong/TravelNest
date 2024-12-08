@@ -78,34 +78,38 @@ export default {
     },
     // redirect user to hotel details page
     async redirectToHotelDetails(hotel) {
-      // store viewed hotels into localStorage
-      let viewedHotels = JSON.parse(localStorage.getItem('viewedHotels')) || []
+      try {
+        const hotel_id = hotel.hotel_id
+        // save viewed hotel
+        let viewedHotels = localStorage.getItem('viewedHotels')
+          ? JSON.parse(localStorage.getItem('viewedHotels'))
+          : []
 
-      // Check if the hotel has already been viewed
-      const index = viewedHotels.findIndex((viewedHotel) => viewedHotel.hotel_id === hotel.hotel_id)
+        // Check if the hotel has already been viewed
+        const index = viewedHotels.findIndex((hotelId) => hotelId === hotel_id)
 
-      if (index !== -1) {
-        // If already viewed, move the hotel to the end of the array (most recent)
-        viewedHotels.splice(index, 1) // Remove existing entry
+        if (index !== -1) {
+          // If already viewed, move the hotel to the end of the array (most recent)
+          viewedHotels.splice(index, 1) // Remove existing entry
+        }
+        viewedHotels.push(hotel_id)
+        localStorage.setItem('viewedHotels', JSON.stringify(viewedHotels))
+
+        if (this.isUserAuthenticated) {
+          await axios.post(
+            'http://localhost:3000/api/home/post-recent-viewed-hotels',
+            {
+              hotelId: hotel_id
+            },
+            { withCredentials: true }
+          )
+        }
+
+        this.$router.push({ name: 'HotelDetails', params: { hotel_id: hotel_id } })
+      } catch (error) {
+        console.error(error)
+        console.log('Error saving viewed hotel')
       }
-
-      // Add the hotel to the end of the array
-      viewedHotels.push(hotel)
-
-      // Save updated array to localStorage
-      localStorage.setItem('viewedHotels', JSON.stringify(viewedHotels))
-
-      if (this.isUserAuthenticated) {
-        await axios.post(
-          'http://localhost:3000/api/home/recent-viewed-hotels',
-          {
-            hotel_id: hotel.hotel_id
-          },
-          { withCredentials: true }
-        )
-      }
-      // redirect
-      this.$router.push({ name: 'HotelDetails', params: { hotel_id: hotel.hotel_id } })
     },
     // load hotels which close to user
     async loadNearbyHotels() {
@@ -376,7 +380,7 @@ export default {
               <div class="hotel-rating">
                 <span class="rating-badge">{{ hotel.overall_rating }}</span>
                 <span class="rating-text">{{ hotel.reviewSummary }}</span>
-                <span class="review-count">{{ hotel.reviewCount}}điểm đánh giá</span>
+                <span class="review-count">{{ hotel.reviewCount }}điểm đánh giá</span>
               </div>
             </div>
           </div>
