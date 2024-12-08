@@ -168,10 +168,6 @@ export default {
       // Trigger reactivity by updating the computed property
       // Sorting is handled automatically in the computed property `sortedHotels`
     },
-    calculateHotelPrice(hotelLowestPrice) {
-      const totalPrice = parseInt(this.$route.query.numberOfDays) * Number(hotelLowestPrice)
-      return totalPrice
-    },
     filterHotels() {
       // Filter hotels based on the search query
       const query = this.searchQuery.toLowerCase()
@@ -459,7 +455,7 @@ export default {
                       <br />
                       <span class="newPrice"
                         >VND
-                        {{ calculateHotelPrice(hotel.lowestPrice).toLocaleString('vi-VN') }}</span
+                        {{ parseInt(hotel.lowestPrice).toLocaleString('vi-VN') }}</span
                       >
                       <br />
                       <span class="desc">Đã bao gồm thuế và phí</span>
