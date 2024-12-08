@@ -7,10 +7,10 @@ const queryAsync = promisify(connection.query).bind(connection);
 
 const postRecentViewedHotels = async (req, res) => {
   try {
-    const user_id = req.session.user.userid;
-    //const user_id = 1;
-    const { hotel_id } = req.body;
-    if (!hotel_id) {
+    const userId = req.session.user.user_id;
+    const { hotelId } = req.body;
+
+    if (!hotelId) {
       return res
         .status(400)
         .json({ success: false, message: "Missing hotel_id" });
@@ -21,27 +21,30 @@ const postRecentViewedHotels = async (req, res) => {
         WHERE user_id = ? AND hotel_id = ?;
     `;
 
-    await queryAsync(deleteQuery, [user_id, hotel_id]);
+    await queryAsync(deleteQuery, [userId, hotelId]);
     // giới hạn
     const countQuery = `
-    SELECT COUNT(*) AS count FROM search_logs;
+    SELECT COUNT(*) AS count FROM viewed_hotels WHERE user_id = ?;
 `;
-    const result = await queryAsync(countQuery);
+    const result = await queryAsync(countQuery, [userId]);
     const count = result[0].count;
 
     // Nếu tổng số bản ghi lớn hơn hoặc bằng 10, xóa bản ghi cũ nhất
     if (count >= 10) {
       const deleteOldestQuery = `
-        DELETE FROM search_logs
-        ORDER BY search_time ASC
+        DELETE FROM viewed_hotels
+        WHERE user_id = ?
+        ORDER BY viewed_at ASC
         LIMIT 1;
     `;
-      await queryAsync(deleteOldestQuery);
+      await queryAsync(deleteOldestQuery, [userId]);
     }
+
+    // Thêm vào bản ghi
     const query = `
             INSERT INTO viewed_hotels (user_id, hotel_id, viewed_at)
             VALUES (?, ?, NOW());`;
-    await queryAsync(query, [user_id, hotel_id]);
+    await queryAsync(query, [userId, hotelId]);
 
     res
       .status(201)
@@ -52,23 +55,58 @@ const postRecentViewedHotels = async (req, res) => {
   }
 };
 
+const getRecentViewedHotelInformation = async (hotelIdArray) => {
+  let hotels = [];
+
+  for (const hotelId of hotelIdArray) {
+    // get hotel information: hotel_id, name, overall_rating, address, image_urls
+    const hotelQuery = `
+            SELECT hotel_id, name, overall_rating, address, image_urls
+            FROM hotels
+            WHERE hotel_id = ?;
+        `;
+
+    const hotel = await queryAsync(hotelQuery, [hotelId]);
+    hotels.push(hotel[0]);
+  }
+
+  return hotels;
+};
+
 // get recent viewed hotels
 const getRecentViewedHotels = async (req, res) => {
-  const user_id = req.session.user.user_id;
-  //const user_id = 1;
-  const query = `
+  let hotels = [];
+  if (req.session.user) {
+    const userId = req.session.user.user_id;
+
+    const query = `
         SELECT hotel_id
         FROM viewed_hotels
         WHERE user_id = ?
         LIMIT 10; `;
 
-  const results = await queryAsync(query, [user_id]);
-  if (results.length == 0) {
-    return res
-      .status(200)
-      .json({ success: false, message: "No recent viewed hotels" });
+    const results = await queryAsync(query, [userId]);
+
+    if (results.length == 0) {
+      return res
+        .status(200)
+        .json({ success: false, message: "No recent viewed hotels" });
+    }
+
+    let hotelIdArray = [];
+
+    for (const result of results) {
+      const { hotel_id: hotelId } = result;
+      hotelIdArray.push(hotelId);
+    }
+
+    hotels = await getRecentViewedHotelInformation(hotelIdArray);
+  } else {
+    const { hotelIdArray } = req.body;
+    hotels = await getRecentViewedHotelInformation(hotelIdArray);
   }
-  res.status(200).json(results);
+
+  res.status(200).json({ success: true, hotels: hotels });
 };
 
 const getRecentSearchs = async (req, res) => {
@@ -95,7 +133,7 @@ const getPopularPlaces = async (req, res) => {
 
     if (cachedPopularPlaces) {
       // Return cached data if it exists
-      return res.json({popular_places: JSON.parse(cachedPopularPlaces)});
+      return res.json({ popular_places: JSON.parse(cachedPopularPlaces) });
     }
 
     // If cache miss, query the database
@@ -111,9 +149,11 @@ const getPopularPlaces = async (req, res) => {
     const results = await queryAsync(query);
 
     if (results.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, popular_places: [], message: "No popular places found" });
+      return res.status(404).json({
+        success: false,
+        popular_places: [],
+        message: "No popular places found",
+      });
     }
 
     // Store results in Redis with TTL (1 hour)
@@ -122,7 +162,7 @@ const getPopularPlaces = async (req, res) => {
     });
 
     // Return the results
-    res.json({popular_places: results});
+    res.json({ popular_places: results });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -167,9 +207,11 @@ const getNearByHotels = async (req, res) => {
     const results = await queryAsync(query, queryParams);
 
     if (results.length === 0) {
-      return res
-        .status(200)
-        .json({ success: false, hotels: [], message: "No nearby hotels found." });
+      return res.status(200).json({
+        success: false,
+        hotels: [],
+        message: "No nearby hotels found.",
+      });
     }
 
     // Return the list of nearby hotels

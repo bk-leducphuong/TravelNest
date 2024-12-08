@@ -5,7 +5,7 @@ const { isUserAuthenticated } = require('../middlewares/sessionAuth');
 const router = express.Router();
 
 // root route: /api/cancel-bookings
-router.use(isUserAuthenticated);
+//router.use(isUserAuthenticated);
 // Route to handle refund
 router.post('/', handleCancel);
 

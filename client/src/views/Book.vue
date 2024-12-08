@@ -19,10 +19,6 @@ export default {
     return {
       currentStep: 2,
       steps: [1, 2, 3],
-      // form data
-      firstName: null,
-      lastName: null,
-      phoneNumber: null,
     }
   },
   computed: {
@@ -37,7 +33,7 @@ export default {
   methods: {
     ...mapActions('book', ['checkRoomAvailability']),
     checkFormFulfillment() {
-      if (this.firstName && this.lastName && this.phoneNumber) {
+      if (this.getUserInformation.full_name && this.getUserInformation.email && this.getUserInformation.phone_number) {
         return true
       } else {
         return false
@@ -62,7 +58,7 @@ export default {
             window.scrollTo(0, 0)
           }
         } else {
-          this.toast.error('Please fullfill the form!')
+          this.toast.error('Bạn chưa cung cấp đầy đủ thông tin!')
         }
       }
     }
@@ -217,29 +213,24 @@ export default {
       </div>
       <!--enter details-->
       <div class="hotel-info">
-        <h1>Enter your details</h1>
+        <h1>Check your details</h1>
 
         <div class="info-banner">
           <span class="info-icon">ℹ️</span>
-          Almost done! Just fill in the <span class="required">*</span> required info
+          You can change your details in<router-link style="color: #006aff;" :to="{path: '/account-settings/personal-information'}">settings</router-link>!
         </div>
 
         <form>
           <div class="two-columns">
             <div class="form-group">
-              <label>First name <span class="required">*</span></label>
-              <input v-model="firstName" type="text" style="width: 95%" required />
-            </div>
-
-            <div class="form-group">
-              <label>Last name <span class="required">*</span></label>
-              <input v-model="lastName" type="text" style="width: 92%" required />
+              <label>Full name<span class="required">*</span></label>
+              <input :disabled="getUserInformation.full_name != null" :placeholder="getUserInformation.full_name"  type="text" style="width: 95%" required />
             </div>
           </div>
 
           <div class="form-group">
             <label>Email address <span class="required">*</span></label>
-            <input  disabled :placeholder="getUserInformation.email" type="email" style="width: 96%" />
+            <input disabled :placeholder="getUserInformation.email"  type="email" style="width: 96%" />
             <div class="helper-text">Confirmation email goes to this address</div>
           </div>
 
@@ -256,7 +247,7 @@ export default {
               <select class="phone-code">
                 <option selected>VN +84</option>
               </select>
-              <input v-model="phoneNumber" type="text" class="phone-number" required />
+              <input disabled :placeholder="getUserInformation.phone_number" type="text" class="phone-number" required />
             </div>
             <div class="helper-text">Needed by the property to validate your booking</div>
           </div>
@@ -439,10 +430,9 @@ export default {
           :bookingInfor="getBookingInfor"
           :searchData="getSearchData"
           :userInfor="{
-            firstName: firstName,
-            lastName: lastName,
-            email: email,
-            phoneNumber: phoneNumber
+            fullName: getUserInformation.full_name,
+            email: getUserInformation.email,
+            phoneNumber: getUserInformation.phone_number
           }"
         />
       </div>

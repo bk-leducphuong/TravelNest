@@ -5,9 +5,9 @@ const {isAdminAuthenticated, isUserAuthenticated} = require('../middlewares/sess
 
 // root route: /api/home
 // Route to fetch all recently viewed hotels
-router.get('/recent-viewed-hotels', isUserAuthenticated, getRecentViewedHotels);
+router.post('/get-recent-viewed-hotels', getRecentViewedHotels);
 // Route to save all recently viewed hotels
-router.post('/recent-viewed-hotels', isUserAuthenticated, postRecentViewedHotels);
+router.post('/post-recent-viewed-hotels', isUserAuthenticated, postRecentViewedHotels);
 // Route to fetch all recently searchs
 router.get('/recent-searchs', isUserAuthenticated, getRecentSearchs);
 // Route to fetch all top most searched places (popular places)

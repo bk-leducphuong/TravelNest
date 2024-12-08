@@ -283,6 +283,13 @@ const handleRefundIntentSucceeded = async (chargeRefunded) => {
     `;
     await queryAsync(updateBookingQuery, ["cancelled", bookingCode]);
 
+
+    // delete invoice
+    const updateInvoiceQuery = `
+      DELETE FROM invoices where transaction_id = ?
+    `;
+    await queryAsync(updateInvoiceQuery, [transaction[0].transaction_id]);
+
     // update number of reserved rooms
     const bookedRoomsArray = JSON.parse(bookedRooms);
     for (const bookedRoom of bookedRoomsArray) {
@@ -417,7 +424,7 @@ async function sendNewBookingNotification(paymentIntent) {
     ).toDateString()} to ${new Date(
       checkOutDate
     ).toDateString()} for ${numberOfGuests} guests.`,
-    isRead: false,
+    isRead: 0,
   };
 
   // store notification
@@ -468,7 +475,7 @@ const sendCancelBookingNotification = async (chargeRefunded) => {
     ).toDateString()} to ${new Date(
       checkOutDate
     ).toDateString()} for ${numberOfGuests} guests.`,
-    isRead: false,
+    isRead: 0,
   };
 
   // store notification

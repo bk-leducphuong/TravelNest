@@ -11,8 +11,18 @@
         v-if="!fail"
       >
       </loading>
-      <i class="fa fa-check-circle" aria-hidden="true" style="color: #00ff4c; font-size: 60px; margin-top: 50px;" v-if="isLoaded && !fail"></i>
-      <i class="fa fa-times-circle" aria-hidden="true" style="color: red; font-size: 60px; margin-top: 50px;" v-if="fail"></i>
+      <i
+        class="fa fa-check-circle"
+        aria-hidden="true"
+        style="color: #00ff4c; font-size: 60px; margin-top: 50px"
+        v-if="isLoaded && !fail"
+      ></i>
+      <i
+        class="fa fa-times-circle"
+        aria-hidden="true"
+        style="color: red; font-size: 60px; margin-top: 50px"
+        v-if="fail"
+      ></i>
       <div class="title" v-if="isLoading && !fail">{{ startTitle }}</div>
       <div class="title" v-if="isLoaded && !fail">{{ endTitle }}</div>
       <div class="title" v-if="fail">Process failed! Please try again later.</div>
@@ -64,10 +74,12 @@ export default {
       if (newValue == true) {
         setTimeout(() => {
           this.openLoadingPopup = false
-          setTimeout(() => {
-            this.$router.push(this.redirectUrl)
-          }, 2000)
-        }, 1000)
+          if (this.redirectUrl) {
+            setTimeout(() => {
+              this.$router.push(this.redirectUrl)
+            }, 2000)
+          }
+        }, 2000)
       }
     },
     isLoading(newValue) {

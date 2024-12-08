@@ -34,6 +34,11 @@ export default {
     },
     async cancelBooking() {
       try {
+        // check whether the booking is confirmed
+        if (this.getBookingInformation.status !== 'confirmed') {
+          return
+        }
+        
         this.isLoading = true
         this.disableCancelBtn = true
 

@@ -1,6 +1,12 @@
 <script>
 import axios from 'axios'
+import { mapGetters } from 'vuex'
+import { useToast } from 'vue-toastification'
 export default {
+  setup() {
+    const toast = useToast()
+    return {toast}
+  },
   props: {
     hotelId: {
       type: Number,
@@ -12,14 +18,41 @@ export default {
       isFavorite: false
     }
   },
+  computed: {
+    ...mapGetters('auth', ['isUserAuthenticated'])
+  },
   methods: {
     async saveFavoriteHotel() {
       try {
-        if (this.isFavorite) {
-          this.deleteFavoriteHotel()
-        } else {
+        if (this.isUserAuthenticated) {
+          if (this.isFavorite) {
+            this.deleteFavoriteHotel()
+          } else {
+            const response = await axios.post(
+              'http://localhost:3000/api/user/favorite-hotels/set-favorite-hotel',
+              {
+                hotelId: this.hotelId
+              },
+              {
+                withCredentials: true
+              }
+            )
+            if (response.data.success) {
+              this.isFavorite = true
+            }
+          }
+        }else {
+          this.toast.error('Vui lòng đăng nhập để thêm vào danh sách yêu thích')
+        }
+      } catch (error) {
+        console.error(error)
+      }
+    },
+    async checkFavoriteHotel() {
+      if (this.isUserAuthenticated) {
+        try {
           const response = await axios.post(
-            'http://localhost:3000/api/user/favorite-hotels/set-favorite-hotel',
+            'http://localhost:3000/api/user/favorite-hotels/check-favorite-hotel',
             {
               hotelId: this.hotelId
             },
@@ -27,32 +60,14 @@ export default {
               withCredentials: true
             }
           )
-          if (response.data.success) {
+          if (response.data.isFavorite) {
             this.isFavorite = true
+          } else {
+            this.isFavorite = false
           }
+        } catch (error) {
+          console.error(error)
         }
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    async checkFavoriteHotel() {
-      try {
-        const response = await axios.post(
-          'http://localhost:3000/api/user/favorite-hotels/check-favorite-hotel',
-          {
-            hotelId: this.hotelId
-          },
-          {
-            withCredentials: true
-          }
-        )
-        if (response.data.isFavorite) {
-          this.isFavorite = true
-        } else {
-          this.isFavorite = false
-        }
-      } catch (error) {
-        console.error(error)
       }
     },
     async deleteFavoriteHotel() {
@@ -67,7 +82,7 @@ export default {
           }
         )
         if (response.data.success) {
-            this.isFavorite = false
+          this.isFavorite = false
         }
       } catch (error) {
         console.error(error)
@@ -76,12 +91,12 @@ export default {
   },
   mounted() {
     this.checkFavoriteHotel()
-  },
+  }
 }
 </script>
 <template>
   <button class="favorite-button" @click.stop="saveFavoriteHotel()">
-    <i class="fa-solid fa-heart" style="color: #e70d0d;" v-if="isFavorite"></i>
+    <i class="fa-solid fa-heart" style="color: #e70d0d" v-if="isFavorite"></i>
     <i class="fa-regular fa-heart" v-else></i>
   </button>
 </template>
@@ -103,7 +118,7 @@ export default {
   transition:
     background-color 0.3s,
     transform 0.3s;
-    z-index: 99;
+  z-index: 99;
 }
 
 .favorite-button:hover {
@@ -114,5 +129,4 @@ export default {
 .favorite-button.active {
   color: red;
 }
-
 </style>

@@ -14,6 +14,7 @@ export default {
   },
   data() {
     return {
+      arrangedBookings: [],
       bookings: [],
       isLoading: false,
       rooms: []
@@ -72,7 +73,7 @@ export default {
         const bookingCode = booking.booking_code
         const room = {
           roomId: booking.room_id,
-          quantity: booking.quantity,
+          quantity: booking.quantity
         }
 
         if (!groupedBookings.has(bookingCode)) {
@@ -127,18 +128,76 @@ export default {
       console.log('User cancelled the loader.')
     },
     redirectToBookingDetails(bookingCode) {
-      this.bookings.forEach(booking => {
+      this.bookings.forEach((booking) => {
         if (booking.booking_code == bookingCode) {
           this.setBookingInformation(booking)
         }
       })
-      this.$router.push({ path: `/admin/${this.getCurrentManagingHotelId}/bookings/booking-details`, query: { bc: bookingCode } })
+      this.$router.push({
+        path: `/admin/${this.getCurrentManagingHotelId}/bookings/booking-details`,
+        query: { bc: bookingCode }
+      })
+    },
+    arrangeBookings(criteria) {
+      switch (criteria) {
+        case 'all':
+          this.arrangedBookings = this.bookings
+          // Ngày hiện tại
+          const today = new Date()
+
+          // Hàm sắp xếp theo ngày gần nhất so với ngày hiện tại
+          this.arrangedBookings.sort((a, b) => {
+            const dateA = new Date(a.bookedOn)
+            const dateB = new Date(b.bookedOn)
+
+            // Tính khoảng cách ngày so với ngày hiện tại
+            const diffA = Math.abs(dateA - today)
+            const diffB = Math.abs(dateB - today)
+
+            return diffA - diffB // Sắp xếp theo khoảng cách gần nhất
+          })
+
+          break
+        case 'today':
+          this.arrangedBookings = this.bookings
+          this.arrangedBookings = this.arrangedBookings.filter(
+            (booking) => new Date(booking.bookedOn).toDateString() === new Date().toDateString()
+          )
+          break
+        case 'last-week':
+          this.arrangedBookings = this.bookings
+          this.arrangedBookings = this.arrangedBookings.filter(
+            (booking) =>
+              new Date(booking.bookedOn).toDateString().substring(0, 10) ===
+              new Date().toDateString().substring(0, 10)
+          )
+          break
+        case 'last-month':
+          this.arrangedBookings = this.bookings
+          this.arrangedBookings = this.arrangedBookings.filter(
+            (booking) =>
+              new Date(booking.bookedOn).toDateString().substring(0, 7) ===
+              new Date().toDateString().substring(0, 7)
+          )
+          break
+        case 'last-year':
+          this.arrangedBookings = this.bookings
+          this.arrangedBookings = this.arrangedBookings.filter(
+            (booking) =>
+              new Date(booking.bookedOn).toDateString().substring(0, 4) ===
+              new Date().toDateString().substring(0, 4)
+          )
+          break
+        default:
+          this.arrangedBookings = this.bookings
+      }
     }
   },
   async mounted() {
     this.isLoading = true
     await this.getAllRooms()
     await this.getAllBookings()
+    this.arrangeBookings('all')
     this.isLoading = false
   }
 }
@@ -181,10 +240,14 @@ export default {
           </div>
 
           <div class="actions">
-            <select class="bulk-action">
-              <option>Bulk Action</option>
+            <select class="bulk-action" @change="arrangeBookings($event.target.value)">
+              <option value="all">Tất cả</option>
+              <option value="today">Hôm nay</option>
+              <option value="last-week">1 tuần trước</option>
+              <option value="last-month">1 tháng trước</option>
+              <option value="last-year">1 năm trước</option>
             </select>
-            <button class="bulk-action">Apply</button>
+            
           </div>
 
           <table>
@@ -201,9 +264,11 @@ export default {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="booking in bookings" :key="booking.booking_id">
+              <tr v-for="booking in arrangedBookings" :key="booking.booking_id">
                 <td><input type="checkbox" /></td>
-                <td class="booking-code" @click="redirectToBookingDetails(booking.booking_code)">{{ booking.booking_code.slice(0, 5) + '...' }}</td>
+                <td class="booking-code" @click="redirectToBookingDetails(booking.booking_code)">
+                  {{ booking.booking_code.slice(0, 5) + '...' }}
+                </td>
                 <td>
                   <div class="customer-info">
                     <div>
@@ -212,10 +277,27 @@ export default {
                     </div>
                   </div>
                 </td>
-                <td>{{ (new Date(booking.bookedOn)).toString().split(' ').splice(0, 3).join(' ') }}</td>
-                <td><div v-for="room in booking.rooms">{{ room.quantity }} x {{ room.roomInformation.room_name }}</div></td>
-                <td>{{ (new Date(booking.checkInDate)).toString().split(' ').splice(0, 3).join(' ') }}</td>
-                <td><span class="status active">{{ booking.status }}</span></td>
+                <td>
+                  {{ new Date(booking.bookedOn).toString().split(' ').splice(0, 3).join(' ') }}
+                </td>
+                <td>
+                  <div v-for="room in booking.rooms">
+                    {{ room.quantity }} x {{ room.roomInformation.room_name }}
+                  </div>
+                </td>
+                <td>
+                  {{ new Date(booking.checkInDate).toString().split(' ').splice(0, 3).join(' ') }}
+                </td>
+                <td>
+                  <span
+                    class="status"
+                    :class="{
+                      active: booking.status === 'confirmed',
+                      cancel: booking.status === 'cancelled'
+                    }"
+                    >{{ booking.status }}</span
+                  >
+                </td>
                 <td><button class="more-btn">⋮</button></td>
               </tr>
             </tbody>
@@ -386,6 +468,11 @@ td {
 .status.pending {
   background: #fefcbf;
   color: #d69e2e;
+}
+
+.status.cancel {
+  background: #ed9999;
+  color: #ff2c2c;
 }
 
 .more-btn {

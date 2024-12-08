@@ -64,27 +64,6 @@ export default {
       isSearchRoomLoading: false
     }
   },
-  watch: {
-    dateRange(newValue) {
-      const dateRegex = /\b(\d{2}\/\d{2}\/\d{4})\b/g
-      const dates = newValue.match(dateRegex)
-
-      if (dates) {
-        // Convert the date strings to YYYY-MM-DD format
-        for (let i = 0; i < dates.length; i++) {
-          // Split the string into parts: [DD, MM, YYYY]
-          const [day, month, year] = dates[i].split('/')
-
-          // Rearrange into YYYY-MM-DD format
-          dates[i] = `${year}-${month}-${day}`
-        }
-
-        ;[this.checkInDate, this.checkOutDate] = dates
-        // Calculate the number of days between the start and end dates
-        this.calculateNumberOfDays(this.checkInDate, this.checkOutDate)
-      }
-    }
-  },
   computed: {
     ...mapGetters('auth', ['isUserAuthenticated']),
     ...mapGetters('search', ['getSearchData']),
@@ -116,6 +95,25 @@ export default {
       const checkOutDate = new Date(checkOutDateString)
       const timeDifference = checkOutDate - checkInDate
       this.numberOfDays = timeDifference / (1000 * 60 * 60 * 24) + 1
+    },
+    extractDate() {
+      const dateRegex = /\b(\d{2}\/\d{2}\/\d{4})\b/g
+      const dates = this.dateRange.match(dateRegex)
+      if (dates) {
+        // Convert the date strings to YYYY-MM-DD format
+        for (let i = 0; i < dates.length; i++) {
+          // Split the string into parts: [DD, MM, YYYY]
+          const [day, month, year] = dates[i].split('/')
+
+          // Rearrange into YYYY-MM-DD format
+          dates[i] = `${year}-${month}-${day}`
+        }
+
+        this.checkInDate = dates[0]
+        this.checkOutDate = dates[1]
+        // Calculate the number of days between the start and end dates
+        this.calculateNumberOfDays(this.checkInDate, this.checkOutDate)
+      }
     },
     async getHotelDetails() {
       try {
@@ -192,6 +190,8 @@ export default {
     async applyChange() {
       try {
         this.isSearchRoomLoading = true
+
+        this.extractDate(this.dateRange)
         const response = await axios.post('http://localhost:3000/api/hotels/search-room', {
           hotel_id: this.hotel_id,
           checkInDate: this.checkInDate,
@@ -212,10 +212,6 @@ export default {
         this.isSearchRoomLoading = false
       }
     },
-    calculateRoomPrice(price_per_night) {
-      const totalPrice = parseInt(this.getSearchData.numberOfDays) * Number(price_per_night)
-      return totalPrice
-    },
     handleRoomSelection(event, room) {
       const quantity = parseInt(event.target.value)
 
@@ -230,7 +226,7 @@ export default {
           this.selectedRooms.splice(existingSelectionIndex, 1)
         }
       } else {
-        const totalPrice = this.calculateRoomPrice(quantity * room.price_per_night)
+        const totalPrice = parseInt(quantity * room.price_per_night)
 
         const selection = {
           room_id: room.room_id,
@@ -301,6 +297,8 @@ export default {
   },
   async mounted() {
      if (this.getSearchData) {
+      console.log(this.getSearchData);
+      this.checkOutDate = this.getSearchData.checkOutDate
       this.selectedLocation = this.getSearchData.location
       this.dateRange = 'Từ ' + new Date(this.getSearchData.checkInDate).toLocaleDateString('vi-VN') + ' đến ' + new Date(this.getSearchData.checkOutDate).toLocaleDateString('vi-VN')
       this.children = this.getSearchData.children
@@ -308,7 +306,7 @@ export default {
       this.rooms = this.getSearchData.rooms
       this.numberOfDays = this.getSearchData.numberOfDays
       this.checkInDate = this.getSearchData.checkInDate
-      this.checkOutDate = this.getSearchData.checkOutDate
+      // this.checkOutDate = this.getSearchData.checkOutDate
     }
 
     this.hotel_id = this.$route.params.hotel_id
@@ -598,7 +596,7 @@ export default {
             </td>
             <td>
               <div class="price">
-                {{ calculateRoomPrice(room.price_per_night).toLocaleString('vi-VN') }}
+                {{ parseInt(room.price_per_night).toLocaleString('vi-VN') }}
               </div>
               <div class="tax-info">Đã bao gồm thuế và phí</div>
             </td>
@@ -613,7 +611,7 @@ export default {
                 <option value="0" selected>0</option>
                 <option v-for="n in room.available_rooms" :key="n" :value="n">
                   {{ n }} (VND
-                  {{ calculateRoomPrice(n * room.price_per_night).toLocaleString('vi-VN') }})
+                  {{ parseInt(n * room.price_per_night).toLocaleString('vi-VN') }})
                 </option>
               </select>
             </td>

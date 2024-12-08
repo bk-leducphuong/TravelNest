@@ -143,6 +143,7 @@ const createPayout = async (req, res) => {
   try {
     const { amount, transactionId, hotelId } = req.body;
     const userId = req.session.user.user_id;
+   // chuyen sang sgd amount
 
     // get user
     const userQuery = `SELECT * FROM users WHERE user_id = ?`;
@@ -154,7 +155,7 @@ const createPayout = async (req, res) => {
 
     const payout = await stripe.payouts.create({
       amount: Math.round(amount), // Convert to cents
-      currency: "SGD", // TODO: change to user currency
+      currency: "sgd", // TODO: change to user currency
       destination: user.connect_account_id,
       metadata: { transaction_id: transactionId, hotel_id: hotelId },
     });

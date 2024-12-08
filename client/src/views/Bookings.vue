@@ -15,6 +15,7 @@ export default {
   },
   data() {
     return {
+      arrangedBookings: [],
       bookings: [],
       isLoading: false
     }
@@ -74,10 +75,65 @@ export default {
       })
 
       router.push({ name: 'BookingDetails', params: { bookingCode: bookingCode } })
+    },
+    arrangeBookings(criteria) {
+      switch (criteria) {
+        case 'all':
+          this.arrangedBookings = this.bookings
+          // Ngày hiện tại
+          const today = new Date()
+
+          // Hàm sắp xếp theo ngày gần nhất so với ngày hiện tại
+          this.arrangedBookings.sort((a, b) => {
+            const dateA = new Date(a.bookedOn)
+            const dateB = new Date(b.bookedOn)
+
+            // Tính khoảng cách ngày so với ngày hiện tại
+            const diffA = Math.abs(dateA - today)
+            const diffB = Math.abs(dateB - today)
+
+            return diffA - diffB // Sắp xếp theo khoảng cách gần nhất
+          })
+
+          break
+        case 'today':
+          this.arrangedBookings = this.bookings
+          this.arrangedBookings = this.arrangedBookings.filter(
+            (booking) => new Date(booking.bookedOn).toDateString() === new Date().toDateString()
+          )
+          break
+        case 'last-week':
+          this.arrangedBookings = this.bookings
+          this.arrangedBookings = this.arrangedBookings.filter(
+            (booking) =>
+              new Date(booking.bookedOn).toDateString().substring(0, 10) ===
+              new Date().toDateString().substring(0, 10)
+          )
+          break
+        case 'last-month':
+          this.arrangedBookings = this.bookings
+          this.arrangedBookings = this.arrangedBookings.filter(
+            (booking) =>
+              new Date(booking.bookedOn).toDateString().substring(0, 7) ===
+              new Date().toDateString().substring(0, 7)
+          )
+          break
+        case 'last-year':
+          this.arrangedBookings = this.bookings
+          this.arrangedBookings = this.arrangedBookings.filter(
+            (booking) =>
+              new Date(booking.bookedOn).toDateString().substring(0, 4) ===
+              new Date().toDateString().substring(0, 4)
+          )
+          break
+        default:
+          this.arrangedBookings = this.bookings
+      }
     }
   },
   async mounted() {
     await this.getAllBookings()
+    this.arrangeBookings('all')
   }
 }
 </script>
@@ -87,10 +143,12 @@ export default {
     <div class="header-title">Bookings & Trips</div>
     <div class="header">
       <div class="header-left">
-        <select class="dropdown" id="trip-list">
-          <option value="my-next-trip">Hôm nay</option>
-          <option value="summer-trip">Trong vòng 1 tuần</option>
-          <option value="weekend-getaway" selected>Tất cả</option>
+        <select class="dropdown" id="trip-list" @change="arrangeBookings($event.target.value)">
+          <option value="all">Tất cả</option>
+          <option value="today">Hôm nay</option>
+          <option value="last-week">1 tuần trước</option>
+          <option value="last-month">1 tháng trước</option>
+          <option value="last-year">1 năm trước</option>
         </select>
       </div>
     </div>
@@ -101,11 +159,10 @@ export default {
     <div v-if="bookings.length == 0" class="no-bookings-found">
       <div>Bạn chưa có đặt phòng nào</div>
     </div>
-    <div class="booking-container" v-for="booking in bookings" :key="booking.booking_id">
+    <div class="booking-container" v-for="booking in arrangedBookings" :key="booking.booking_id">
       <h3 style="margin-bottom: 5px; font-weight: 700">{{ booking.hotel.city }}</h3>
       <p>
-        {{ new Date(booking.checkInDate).toString().split(' ').slice(0, 4).join(' ') }} -
-        {{ new Date(booking.checkOutDate).toString().split(' ').slice(0, 4).join(' ') }}
+        {{ new Date(booking.bookedOn).toDateString() }}
       </p>
       <div class="booking-content-container">
         <div class="section">
@@ -120,8 +177,14 @@ export default {
                 {{ new Date(booking.checkOutDate).toString().split(' ').slice(0, 4).join(' ') }}
               </p>
               <p>Free cancellation</p>
-              <p style="color: green">{{ booking.status }}</p>
-              <!-- TODO: add completed -->
+              <p
+                :class="{
+                  active: booking.status === 'confirmed',
+                  cancel: booking.status === 'cancelled'
+                }"
+              >
+                {{ booking.status }}
+              </p>
             </div>
             <div class="content price-container">
               <h2>VND {{ parseInt(booking.totalPrice).toLocaleString('vi-VN') }}</h2>
@@ -225,8 +288,9 @@ export default {
 }
 
 .line {
-  width: 100%;
-  height: 2px;
+  width: 95%;
+  margin: 0 auto;
+  height: 1px;
   background-color: #e5e7eb;
 }
 
@@ -315,8 +379,16 @@ button {
   margin: 40px;
 }
 
-.no-bookings-found div{
+.no-bookings-found div {
   font-size: 26px;
   font-weight: 700;
+}
+
+.active {
+  color: #00ff00 !important;
+}
+
+.cancel {
+  color: #ff2c2c !important;
 }
 </style>

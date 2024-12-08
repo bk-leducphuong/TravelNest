@@ -33,11 +33,12 @@ export default {
       sortCriteria: '', // default sort criteria
       searchQuery: '', // User's search input,
       filteredHotels: [], // Matching hotels to display
-      isLoading: false,
+      isLoading: false
     }
   },
   computed: {
     ...mapGetters('search', ['getSearchData']),
+    ...mapGetters('auth', ['isUserAuthenticated']),
     sortedHotels() {
       // Sort hotels based on the selected criteria
       return [...this.hotels].sort((a, b) => {
@@ -132,16 +133,40 @@ export default {
     closeMapPopup() {
       this.openMapPopup = false
     },
-    redirectToHotelDetails(hotel_id) {
-      this.$router.push({ name: 'HotelDetails', params: { hotel_id: hotel_id } })
+    async redirectToHotelDetails(hotel_id) {
+      try {
+        // save viewed hotel
+        let viewedHotels = localStorage.getItem('viewedHotels') ? JSON.parse(localStorage.getItem('viewedHotels')) : []
+
+        // Check if the hotel has already been viewed
+        const index = viewedHotels.findIndex((hotelId) => hotelId === hotel_id)
+
+        if (index !== -1) {
+          // If already viewed, move the hotel to the end of the array (most recent)
+          viewedHotels.splice(index, 1) // Remove existing entry
+        }
+        viewedHotels.push(hotel_id)
+        localStorage.setItem('viewedHotels', JSON.stringify(viewedHotels))
+
+        if (this.isUserAuthenticated) {
+          await axios.post(
+            'http://localhost:3000/api/home/post-recent-viewed-hotels',
+            {
+              hotelId: hotel_id
+            },
+            { withCredentials: true }
+          )
+        }
+
+        this.$router.push({ name: 'HotelDetails', params: { hotel_id: hotel_id } })
+      } catch (error) {
+        console.error(error)
+        console.log('Error saving viewed hotel')
+      }
     },
     handleSort() {
       // Trigger reactivity by updating the computed property
       // Sorting is handled automatically in the computed property `sortedHotels`
-    },
-    calculateHotelPrice(hotelLowestPrice) {
-      const totalPrice = parseInt(this.$route.query.numberOfDays) * Number(hotelLowestPrice)
-      return totalPrice
     },
     filterHotels() {
       // Filter hotels based on the search query
@@ -166,7 +191,12 @@ export default {
   <!-- inforSearch -->
   <div class="inforSearch">
     <div class="container">
-      <Loading v-model:active="isLoading" :can-cancel="true" :color="`#003b95`" :is-full-page="false" />
+      <Loading
+        v-model:active="isLoading"
+        :can-cancel="true"
+        :color="`#003b95`"
+        :is-full-page="false"
+      />
       <div class="inner-wrap">
         <div class="row">
           <div class="col-3">
@@ -365,10 +395,10 @@ export default {
                 @click="redirectToHotelDetails(hotel.hotel_id)"
               >
                 <div class="inner-img">
-                  <SavedHotelIcon :hotelId="hotel.hotel_id"/>
+                  <SavedHotelIcon :hotelId="hotel.hotel_id" />
                   <img
-                    src="https://cf.bstatic.com/xdata/images/hotel/square600/584426827.webp?k=bb9814a06488db8b686ac44963015b0f0a861f5536304a689fc2d00ed60a1679&o="
-                    alt=""
+                    :src="JSON.parse(hotel.image_urls)[0]"
+                    alt="hotel image"
                   />
                 </div>
                 <div class="inner-show">
@@ -425,7 +455,7 @@ export default {
                       <br />
                       <span class="newPrice"
                         >VND
-                        {{ calculateHotelPrice(hotel.lowestPrice).toLocaleString('vi-VN') }}</span
+                        {{ parseInt(hotel.lowestPrice).toLocaleString('vi-VN') }}</span
                       >
                       <br />
                       <span class="desc">Đã bao gồm thuế và phí</span>
@@ -795,12 +825,12 @@ input[type='range']::-moz-range-track {
 .room-infor .inner-img {
   position: relative;
   width: 31%;
-  height: auto;
+  height: 100%;
 }
 
 .room-infor .inner-img img {
   width: 100%;
-  height: auto;
+  height: 100%;
   border-radius: 5px;
 }
 

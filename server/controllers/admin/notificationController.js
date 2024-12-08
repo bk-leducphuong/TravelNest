@@ -1,4 +1,4 @@
-const connection = require("../config/db");
+const connection = require("../../config/db");
 const { promisify } = require("util");
 
 const queryAsync = promisify(connection.query).bind(connection);
@@ -16,4 +16,16 @@ const getNotifications = async (req, res) => {
   }
 };
 
-module.exports = { getNotifications };
+const markAllNotificationAsRead = async (req, res) => {
+  try {
+    const query = "UPDATE notifications SET is_read = 1 WHERE notification_id > 0";
+    await queryAsync(query);
+
+    res.json({ success: true, message: "Notification marked as read." });
+  } catch (error) {
+    console.error("Error marking notification as read:", error);
+    res.status(500).send({ error: "Failed to mark notification as read." });
+  }
+};
+
+module.exports = { getNotifications, markAllNotificationAsRead };
