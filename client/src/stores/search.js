@@ -46,7 +46,7 @@ export default {
     updateCheckOutDate({ commit }, checkOutDate) {
       commit('setCheckOutDate', checkOutDate)
     },
-    updateNumberOfDays({ commit}, numberOfDays) {
+    updateNumberOfDays({ commit }, numberOfDays) {
       commit('setNumberOfDays', numberOfDays)
     },
     updateAdults({ commit }, adults) {
@@ -58,23 +58,39 @@ export default {
     updateRooms({ commit }, rooms) {
       commit('setRooms', rooms)
     },
-    async saveSearchInformation({ commit,state }) {
+    async saveSearchInformation({ commit, state }) {
       try {
-        await axios.post('http://localhost:3000/api/search/save-search-information', {
+         const searchData = {
           location: state.searchData.location,
           checkInDate: state.searchData.checkInDate,
           checkOutDate: state.searchData.checkOutDate,
           adults: state.searchData.adults,
           children: state.searchData.children,
-          rooms: state.searchData.rooms
-        },
-         {
-          withCredentials: true
-        })
+          rooms: state.searchData.rooms,
+          numberOfDays: state.searchData.numberOfDays
+        }
+        // save search information to database
+        await axios.post(
+          'http://localhost:3000/api/search/save-search-information',
+          {
+           searchData: searchData
+          },
+          {
+            withCredentials: true
+          }
+        )
+        // save search information to localStorage
+        let searchHistory = JSON.parse(localStorage.getItem('recentSearches')) || []
+        if (searchHistory.length > 10) {
+          searchHistory.shift()
+        }
+        searchHistory.push(searchData)
+        searchHistory.reverse()
+        localStorage.setItem('recentSearches', JSON.stringify(searchHistory))
       } catch (error) {
         console.error(error)
       }
-    },
+    }
   },
   getters: {
     getSearchData(state) {
