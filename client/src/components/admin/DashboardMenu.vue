@@ -72,7 +72,7 @@ export default {
             </div>
             <div class="child-item-container" v-if="this.isRoomSelected">
               <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/room/room-details`)">Room details</li>
-              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/room/room-details`)">Room photos</li>
+              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/room/room-photos`)">Room photos</li>
               <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/room/room-details`)">Room amenities</li>
               <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/room/room-details`)">Policies</li>
               <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/room/room-details`)">Room services</li>
