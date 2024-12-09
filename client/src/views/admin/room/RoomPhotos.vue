@@ -25,6 +25,8 @@ export default {
       hotelPhotos: [], // main gallery photos
       selectedHotelPhotos: [],
       selectedRoomPhotos: [],
+      uploadedRoomPhotos: [],
+      uploadedHotelPhotos: [],
       isLoading: false
     }
   },
@@ -158,10 +160,84 @@ export default {
             withCredentials: true
           }
         )
-      }catch(error) {
+      } catch (error) {
         console.log(error)
         this.toast.error('Có lỗi xảy ra trong quá trình cập nhật ảnh')
       }
+    },
+    triggerFileUpload(roomId) {
+      if (roomId) {
+        const input = this.$refs[roomId]
+        if (input) {
+          input[0].click()
+        }
+      } else {
+        this.$refs.hotelPhotoInput.click()
+      }
+    },
+    async addRoomPhotos(roomId, event) {
+      const files = [...event.target.files]
+
+      const formData = new FormData()
+      files.forEach((imageFile) => {
+        formData.append('images', imageFile)
+      })
+      formData.append('roomId', roomId)
+      formData.append('hotelId', this.getCurrentManagingHotelId)
+
+      const response = await axios.post(
+        'http://localhost:3000/api/admin/room/add-room-photos',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          withCredentials: true
+        }
+      )
+
+      const uploadedImages = response.data.files
+
+      // update room photos
+      this.rooms.forEach((room) => {
+        if (room.room_id == roomId) {
+          const currentIndex = room.image_urls.length - 1
+          for (let i = 1; i <= uploadedImages.length; i++) {
+            room.image_urls.push({
+              index: currentIndex + i,
+              url: uploadedImages[i - 1].url
+            })
+          }
+        }
+      })
+      await this.updateRoomPhotos(roomId)
+    },
+    async addHotelPhotos(event) {
+      const files = [...event.target.files]
+      const formData = new FormData()
+      files.forEach((image) => {
+        formData.append('images', image)
+      })
+      formData.append('hotelId', this.getCurrentManagingHotelId)
+
+      const response = await axios.post('http://localhost:3000/api/admin/room/add-hotel-photos', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        },
+        withCredentials: true
+      })
+
+      const uploadedImages = response.data.files
+      // update hotel photos
+      const currentIndex = this.hotelPhotos.length - 1
+      for (let i = 1; i <= uploadedImages.length; i++) {
+        this.hotelPhotos.push({
+          index: currentIndex + i,
+          url: uploadedImages[i - 1].url
+        })
+      }
+
+      await this.updateHotelPhotos(this.getCurrentManagingHotelId)
     }
   },
   async mounted() {
@@ -217,9 +293,17 @@ export default {
                   </label>
                 </div>
               </div>
-              <div class="add-photo-box" onclick="openAddPhotoModal()">
+              <div class="add-photo-box" @click="triggerFileUpload(null)">
                 <span>Add photos</span>
               </div>
+              <input
+                type="file"
+                ref="hotelPhotoInput"
+                accept="image/jpeg, image/png"
+                @change="addHotelPhotos"
+                multiple
+                hidden
+              />
             </div>
           </div>
         </div>
@@ -250,9 +334,17 @@ export default {
                   </label>
                 </div>
               </div>
-              <div class="add-photo-box" onclick="openAddPhotoModal()">
+              <div class="add-photo-box" @click="triggerFileUpload(room.room_id)">
                 <span>Add photos</span>
               </div>
+              <input
+                type="file"
+                :ref="room.room_id"
+                accept="image/jpeg, image/png"
+                @change="addRoomPhotos(room.room_id, $event)"
+                multiple
+                hidden
+              />
             </div>
           </div>
         </div>

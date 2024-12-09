@@ -130,7 +130,7 @@ const postPhotos = async (req, res) => {
         return {
           originalName: file.originalname,
           avifName: avifFilename,
-          path: `/uploads/${hotel_id}/${room_id}/${avifFilename}`,
+          path: 'http://localhost:3000' + `/uploads/hotels/${hotel_id}/${room_id}/${avifFilename}`,
         };
       })
     );
