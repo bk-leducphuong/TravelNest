@@ -133,8 +133,9 @@ export default {
         })
         this.recentSearches = response.data
       } else {
-        const searches = JSON.parse(localStorage.getItem('recentSearches')) || []
-        this.recentSearches = searches
+        this.recentSearches = localStorage.getItem('recentSearches')
+          ? JSON.parse(localStorage.getItem('recentSearches'))
+          : []
       }
     },
 
@@ -180,18 +181,15 @@ export default {
     },
 
     // Remove a recent search item
-    async removeSearch(removedSearch) {
+    async removeSearch(removedSearch, searchIndex) {
       try {
-        if (this.isUserAuthenticated) {
-          event.stopPropagation() // Stop the event from bubbling up to the parent
-          
-          // this.recentSearches.splice(index, 1)
-          this.recentSearches.forEach((search, index) => {
-              if (search.search_id === removedSearch.search_id) {
-                this.recentSearches.splice(index, 1)
-              }
-          });
+        event.stopPropagation() // Stop the event from bubbling up to the parent
 
+        // remove from local storage
+        this.recentSearches.splice(searchIndex, 1)
+        localStorage.setItem('recentSearches', JSON.stringify(this.recentSearches))
+
+        if (this.isUserAuthenticated) {
           // remove from database
           await axios.post(
             'http://localhost:3000/api/home/remove-recent-search',
@@ -202,18 +200,6 @@ export default {
               withCredentials: true
             }
           )
-          // remove from localStorage
-          localStorage.setItem('recentSearches', JSON.stringify(this.recentSearches))
-        } else {
-          // this.recentSearches.splice(index, 1)
-          this.recentSearches.forEach((search, index) => {
-              if (search.search_id === removedSearch.search_id) {
-                this.recentSearches.splice(index, 1)
-                console.log(this.recentSearches[index].search_id)
-              }
-          });
-
-          localStorage.setItem('recentSearches', JSON.stringify(this.recentSearches))
         }
       } catch (error) {
         console.error(error)
@@ -302,13 +288,13 @@ export default {
               />
             </div>
             <div class="search-content">
-              <h2 class="search-title">{{ search.location}}</h2>
+              <h2 class="search-title">{{ search.location }}</h2>
               <p class="search-details">
                 From {{ new Date(search.check_in_date).toLocaleDateString('vi-VN') }} to
                 {{ new Date(search.check_out_date).toLocaleDateString('vi-VN') }}
               </p>
             </div>
-            <button class="close-button" @click="removeSearch(search)">×</button>
+            <button class="close-button" @click="removeSearch(search, searchIndex)">×</button>
           </div>
         </div>
         <div class="nav-button-container" v-if="recentSearches.length > 0">

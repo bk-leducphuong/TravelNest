@@ -62,6 +62,7 @@
           required
         />
       </div>
+      <div class="forgot-password" @click="">Forgot password?</div>
 
       <div v-if="isNewUser">
         <label for="confirm password">Xác nhận mật khẩu</label>
@@ -287,5 +288,17 @@ input {
 .footer a {
   color: #0071c2;
   text-decoration: none;
+}
+
+.forgot-password {
+  font-size: 16px;
+  color: #2966e8;
+  margin-bottom: 15px;
+  cursor: pointer;
+  text-align: right;
+}
+
+.forgot-password:hover {
+  color: #004779;
 }
 </style>

@@ -69,6 +69,26 @@ export default {
           rooms: state.searchData.rooms,
           numberOfDays: state.searchData.numberOfDays
         }
+        
+        // save search information to localStorage
+        let searchHistory = localStorage.getItem('recentSearches') ? JSON.parse(localStorage.getItem('recentSearches')) : []
+        if (searchHistory.length > 10) {
+          searchHistory.shift()
+        }
+
+        searchHistory.push({
+          location: searchData.location,
+          check_in_date: searchData.checkInDate,
+          check_out_date: searchData.checkOutDate,
+          adults: searchData.adults,
+          children: searchData.children,
+          rooms: searchData.rooms,
+          number_of_days: searchData.numberOfDays
+        })
+
+        searchHistory.reverse()
+        localStorage.setItem('recentSearches', JSON.stringify(searchHistory))
+
         // save search information to database
         await axios.post(
           'http://localhost:3000/api/search/save-search-information',
@@ -79,14 +99,6 @@ export default {
             withCredentials: true
           }
         )
-        // save search information to localStorage
-        let searchHistory = JSON.parse(localStorage.getItem('recentSearches')) || []
-        if (searchHistory.length > 10) {
-          searchHistory.shift()
-        }
-        searchHistory.push(searchData)
-        searchHistory.reverse()
-        localStorage.setItem('recentSearches', JSON.stringify(searchHistory))
       } catch (error) {
         console.error(error)
       }

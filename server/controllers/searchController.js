@@ -113,7 +113,7 @@ const getSearchResults = async (req, res) => {
 
 const saveSearchInformation = async (req, res) => {
   try {
-    const user_id = req.session ? req.session.user.user_id : null;
+    const user_id = req.session.user ? req.session.user.user_id : null;
 
     const { location, checkInDate, checkOutDate, adults, children, rooms, numberOfDays } =
       req.body.searchData;
