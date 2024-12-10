@@ -109,7 +109,7 @@ export default {
                   <div class="room__photo--element">
                     <div class="room__image">
                       <img
-                        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-S5vsbf6ADl2Y-_RMSf-uP2ORFZJJ8s7tEg&s"
+                        :src="JSON.parse(room.image_urls)[0]"
                         alt="phong"
                       />
                       <p>{{ room.room_name }}</p>

@@ -12,7 +12,8 @@ export default {
     return {
       isNotificationPopupVisible: false,
       notifications: [],
-      numberOfNewNotifications: 0
+      numberOfNewNotifications: 0,
+      haveNewNotifications: false
     }
   },
   computed: {
@@ -36,6 +37,7 @@ export default {
         socket.on('newNotification', (data) => {
           this.notifications.unshift(data)
           this.numberOfNewNotifications++
+          this.haveNewNotifications = true
         })
       } else {
         console.log('User not logged in')
@@ -81,6 +83,31 @@ export default {
     },
     openNotificationPopup() {
       this.isNotificationPopupVisible = !this.isNotificationPopupVisible
+    },
+    async viewDetails(notification) {
+      const notificationType = notification.notification_type
+      const notificationId = notification.notification_id
+
+      let route = `/admin/${this.getCurrentManagingHotelId}`
+
+      switch (notificationType) {
+        case 'booking':
+          route = route + '/bookings/all'
+          this.$router.push(route)
+          break
+        case 'cancel booking':
+          route = route + '/bookings/all'
+          this.$router.push(route)
+          break
+        default:
+          break
+      }
+
+      await axios.post('http://localhost:3000/api/admin/notifications/mark-as-read', {
+        notificationId: notificationId
+      }, {
+        withCredentials: true
+      })
     }
   },
   mounted() {
@@ -123,7 +150,7 @@ export default {
           }}</span>
           <i class="fa-regular fa-bell"></i>
         </div>
-        <div class="notification-popup" v-if="isNotificationPopupVisible">
+        <div class="notification-popup" v-if="isNotificationPopupVisible || haveNewNotifications">
           <div class="notification-header">
             <div class="notification-title">
               <span>Notifications</span>
@@ -146,7 +173,7 @@ export default {
               class="notification-item"
               v-for="notification in notifications"
               :key="notification.notificationId"
-              @click="readNotification(notification.notificationId)"
+              @click="viewDetails(notification)"
             >
               <div class="notification-icon">
                 <i class="fas fa-arrow-up"></i>
