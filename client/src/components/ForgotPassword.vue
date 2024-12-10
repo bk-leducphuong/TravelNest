@@ -3,8 +3,13 @@ import user from '@/stores/user'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import { mapActions, mapGetters } from 'vuex'
+import Loading from 'vue-loading-overlay'
+import 'vue-loading-overlay/dist/css/index.css'
 
 export default {
+  components: {
+    Loading
+  },
   setup() {
     // Get toast interface
     const toast = useToast()
@@ -12,7 +17,7 @@ export default {
     return { toast }
   },
   props: {
-    phoneNumber: {
+    email: {
       type: String,
       required: true
     },
@@ -24,10 +29,14 @@ export default {
   data() {
     return {
       otp: Array(4).fill(''), // Array for storing OTP digits,
-      numberOfAttempts: 0
+      step: 1,
+      newPassword: '',
+      confirmPassword: '',
+      isLoading: false
     }
   },
   methods: {
+    ...mapActions('auth', ['login']),
     async moveToNext(input, index) {
       // Check if the input is a number
       if (!input.match(/^\d+$/)) {
@@ -38,7 +47,7 @@ export default {
 
       // Focus the next input or process OTP if all fields are filled
       if (index === 3 && this.otp.join('').length === 4) {
-        await this.verifySmsOtp()
+        await this.resetPassword()
       } else if (index < 3) {
         // Move focus to the next input
         const nextInput = this.$refs.inputs[index + 1]
@@ -64,63 +73,86 @@ export default {
       })
       this.$refs.inputs[0].focus()
     },
-    async resendOtp() {
+    async sendOtp() {
       try {
-        const response = await axios.post('http://localhost:3000/api/auth/resend-otp', {
-          phoneNumber: this.$route.params.phoneNumber // Pass phone number if available
+        const response = await axios.post('http://localhost:3000/api/auth/forgot-password', {
+          email: this.email, // Pass phone number if available
+          userRole: this.userRole
         })
-
-        if (response.data.success) {
-          console.log('OTP resent successfully!')
-        } else {
-          console.error('Failed to resend OTP')
-        }
       } catch (error) {
         console.error('Error during OTP resend:', error)
       }
     },
-    async sendSmsOtp() {
-      try {
-        await axios.post('http://localhost:3000/api/auth/send-sms-otp', {
-          phoneNumber: this.phoneNumber,
-          userRole: this.userRole
-        })
-      } catch (error) {
-        this.toast.error('Sending OTP failed! Please try again.')
-        console.error('Error during OTP sending:', error)
+    async goSecondStep() {
+      if (this.newPassword != this.confirmPassword) {
+        this.toast.error('Passwords do not match')
+        return
       }
+      this.step = 2
+      await this.$nextTick() // Wait for DOM to update
+      this.$refs.inputs[0].focus()
+      await this.sendOtp()
     },
-    async verifySmsOtp() {
+    async resetPassword() {
       try {
-        const response = await axios.post('http://localhost:3000/api/auth/verify-sms-otp', {
-          phoneNumber: this.phoneNumber,
-          otp: this.otp.join('')
+        this.isLoading = true
+        await axios.post('http://localhost:3000/api/auth/reset-password', {
+          email: this.email,
+          userRole: this.userRole,
+          otp: this.otp.join(''),
+          newPassword: this.newPassword
         })
-        if (response.data.success) {
-          this.toast.success('OTP has been verified!')
-        } else {
-          this.toast.error('Invalid OTP! Please try again.')
-          this.$router.push('/')
-        }
+
+        // login
+        const apiUrl = 'http://localhost:3000/api/auth/login'
+        const payload = { email: this.email, password: this.newPassword, userRole: 'customer' }
+
+        await this.login({
+          apiUrl: apiUrl,
+          payload: payload,
+          redirectRoute: '/'
+        })
+
+        this.isLoading = false
       } catch (error) {
-        this.toast.error('Verify OTP failed!')
-        console.error('Error during OTP verification:', error)
+        console.log(error)
+        this.toast.error('Error during password reset')
       }
     }
   },
-  async mounted() {
-    await this.sendSmsOtp()
-    this.$refs.inputs[0].focus()
-  }
+  async mounted() {}
 }
 </script>
 
 <template>
+  <loading v-model:active="isLoading" :color="`#003b95`" :is-full-page="true" />
   <div class="validation-container">
-    <div class="validation-card">
-      <h1 class="title">Mobile Phone Verification</h1>
+    <div class="password-card" v-if="step === 1">
+      <i
+        class="fa-solid fa-xmark"
+        style="position: absolute; top: 15px; right: 15px; cursor: pointer"
+        @click="this.$emit('close')"
+      ></i>
+      <h1 class="title">Reset Password</h1>
+      <p class="subtitle">Enter your new password and confirm it.</p>
+
+      <form @submit.prevent>
+        <div class="password-container">
+          <input type="password" placeholder="New Password" v-model="newPassword" required />
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            v-model="confirmPassword"
+            required
+          />
+        </div>
+        <button type="submit" class="submit-password-btn" @click="goSecondStep">Submit</button>
+      </form>
+    </div>
+    <div class="validation-card" v-if="step === 2">
+      <h1 class="title">OTP Verification</h1>
       <p class="subtitle">
-        Enter the 4-digit verification code that was sent to your phone number.
+        Enter the 4-digit verification code that was sent to your email if this email is exist.
       </p>
 
       <form @submit.prevent>
@@ -143,7 +175,7 @@ export default {
 
       <p class="resend-text">
         Didn't receive code?
-        <span class="resend-link" @click="resendOtp">Resend</span>
+        <span class="resend-link" @click="sendOtp()">Resend</span>
       </p>
     </div>
   </div>
@@ -157,13 +189,13 @@ export default {
   width: 100vw;
   height: 100vh;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 9999;
+  z-index: 9;
 }
 
 .validation-card {
   background: white;
   padding: 40px;
-  border-radius: 16px;
+  border-radius: 10px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   width: 90%;
   max-width: 480px;
@@ -186,7 +218,7 @@ export default {
 .subtitle {
   color: #666;
   font-size: 16px;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   line-height: 1.5;
 }
 
@@ -236,5 +268,48 @@ export default {
 /* Make inputs move to next automatically */
 .otp-input:not(:placeholder-shown) {
   border-color: #6c63ff;
+}
+
+.password-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  width: 90%;
+  max-width: 480px;
+  text-align: center;
+
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50%;
+}
+
+.password-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* margin-bottom: 20px; */
+  width: 100%;
+}
+
+.password-container input {
+  margin-bottom: 10px;
+  border: 2px solid #ccc;
+  padding: 10px;
+  border-radius: 10px;
+  width: 70%;
+}
+
+.submit-password-btn {
+  padding: 10px;
+  background-color: #0071c2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  width: 70%;
 }
 </style>

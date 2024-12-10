@@ -109,6 +109,7 @@
   <OtpVerification
     v-if="openVerificationPopup"
     :phone-number="phoneNumber"
+    :userRole="userRole"
     @update-is-verified="updateIsVerified"
   />
 </template>
@@ -138,6 +139,7 @@ export default {
       lastName: '',
       firstName: '',
       phoneNumber: '',
+      userRole: 'partner',
       confirmPassword: '',
       isNewUser: false,
 
@@ -215,22 +217,6 @@ export default {
       if (this.isLoginFail) {
         this.password = ''
         this.toast.error("Mật khẩu sai!")
-      }
-    },
-    async runOtpVerification() {
-      try {
-        // send OTP
-        await this.sendOtp({ phoneNumber: this.phoneNumber })
-        if (this.getOtp) {
-          this.toast.success('OTP đã được gửi đến điện thoại của bạn!')
-        } else {
-          this.toast.error('Không thể gửi OTP đến điện thoại của bạn!')
-        }
-
-        // open otp verification popup
-        this.openVerificationPopup = true
-      } catch (error) {
-        console.error('Error during OTP verification:', error)
       }
     },
     submitSecondForm() {

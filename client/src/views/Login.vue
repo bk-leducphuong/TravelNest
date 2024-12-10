@@ -1,5 +1,6 @@
 <!-- src/views/Login.vue -->
 <template>
+  <ForgotPassword :email="email" :userRole="userRole" @close="closeForgotPassword" v-if="isForgotPassword"/>
   <header class="header">
     <div class="logo"><a @click="this.$router.push('/')">Booking.com</a></div>
     <div class="header-right">
@@ -62,7 +63,7 @@
           required
         />
       </div>
-      <div class="forgot-password" @click="">Forgot password?</div>
+      <div class="forgot-password" @click="isForgotPassword = true">Forgot password?</div>
 
       <div v-if="isNewUser">
         <label for="confirm password">Xác nhận mật khẩu</label>
@@ -95,8 +96,13 @@
 import axios from 'axios' // Import Axios
 import { mapActions, mapGetters } from 'vuex'
 import { useToast } from "vue-toastification";
+import ForgotPassword from '@/components/ForgotPassword.vue';
+import user from '@/stores/user';
 
 export default {
+  components: {
+    ForgotPassword
+  },
   setup() {
       // Get toast interface
       const toast = useToast();
@@ -109,7 +115,9 @@ export default {
       email: '',
       password: '',
       confirmPassword: '',
-      isNewUser: false
+      isNewUser: false,
+      isForgotPassword: false,
+      userRole: 'customer'
     }
   },
   computed: {
@@ -126,7 +134,7 @@ export default {
       axios
         .post('http://localhost:3000/api/auth/check-email', {
           email: this.email,
-          userRole: 'customer'
+          userRole: this.userRole
         })
         .then((response) => {
           if (response.data.exists) {
@@ -156,8 +164,8 @@ export default {
         : 'http://localhost:3000/api/auth/login'
 
       const payload = this.isNewUser
-        ? { email: this.email, password: this.password, userRole: 'customer'}
-        : { email: this.email, password: this.password, userRole: 'customer' }
+        ? { email: this.email, password: this.password, userRole: this.userRole}
+        : { email: this.email, password: this.password, userRole: this.userRole }
 
       await this.login({ apiUrl: apiUrl, payload: payload, redirectRoute: this.$route.query.redirect || '/'})
       if (this.isLoginFail) {
@@ -192,6 +200,9 @@ export default {
       } finally {
         this.isLoading = false // Remove loading state
       }
+    },
+    closeForgotPassword() {
+      this.isForgotPassword = false
     }
   }
 }

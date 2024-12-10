@@ -2,11 +2,13 @@ const connection = require("../config/db");
 const bcrypt = require("bcryptjs");
 const { promisify } = require("util");
 const passport = require("passport");
-const crypto = require('crypto');
-const redisClient = require('../config/redis');
-const nodemailer = require('nodemailer'); // Dùng để gửi email
-const transporter = require('../config/nodemailer');
+const crypto = require("crypto");
+const redisClient = require("../config/redis");
+const nodemailer = require("nodemailer"); // Dùng để gửi email
+const transporter = require("../config/nodemailer");
 
+require("dotenv").config();
+const { Infobip, AuthType } = require("@infobip-api/sdk");
 
 const {
   isValidEmailFormat,
@@ -22,10 +24,18 @@ const queryAsync = promisify(connection.query).bind(connection);
 const checkAuth = (req, res) => {
   try {
     if (req.session.user && req.session.user.user_id) {
-      if (req.session.user.userRole === 'customer') {
-        return res.status(200).json({ isAuthenticated: true, userId: req.session.user.user_id, userRole: req.session.user.userRole });
-      } else if (req.session.user.userRole === 'partner') {
-        return res.status(200).json({ isAuthenticated: true, userId: req.session.user.user_id, userRole: req.session.user.userRole });
+      if (req.session.user.userRole === "customer") {
+        return res.status(200).json({
+          isAuthenticated: true,
+          userId: req.session.user.user_id,
+          userRole: req.session.user.userRole,
+        });
+      } else if (req.session.user.userRole === "partner") {
+        return res.status(200).json({
+          isAuthenticated: true,
+          userId: req.session.user.user_id,
+          userRole: req.session.user.userRole,
+        });
       }
     } else {
       return res.status(200).json({ isAuthenticated: false });
@@ -69,9 +79,7 @@ const checkEmail = async (req, res) => {
 
     if (results.length > 0) {
       // Email exists then show login page
-      return res
-        .status(200)
-        .json({ exists: true });
+      return res.status(200).json({ exists: true });
     } else {
       // Email does not exist then show register page
 
@@ -82,9 +90,7 @@ const checkEmail = async (req, res) => {
           .json({ error: true, message: "Email dont exist" });
       }
 
-      return res
-        .status(200)
-        .json({ exists: false });
+      return res.status(200).json({ exists: false });
     }
   } catch (error) {
     console.error("Error checking email:", error);
@@ -131,11 +137,15 @@ const loginUser = async (req, res) => {
     // Create session if password matches
     req.session.user = {
       user_id: user.user_id,
-      userRole: user.user_role
+      userRole: user.user_role,
     };
 
     // Respond with success message
-    res.json({ success: true, userId: user.user_id, message: "Logged in successfully" });
+    res.json({
+      success: true,
+      userId: user.user_id,
+      message: "Logged in successfully",
+    });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
@@ -169,19 +179,21 @@ const registerUser = async (req, res) => {
       email.split("@")[0],
       hashedPassword,
       userRole,
-      'http://localhost:3000/uploads/users/avatars/default_avatar.png' // default avatar
+      "http://localhost:3000/uploads/users/avatars/default_avatar.png", // default avatar
     ]);
 
     // Create session with user ID from the insert result
     req.session.user = {
       user_id: result.insertId, // Get the user ID from the result of the insert query
-      userRole: userRole
+      userRole: userRole,
     };
 
     // Send success response
-    res
-      .status(201)
-      .json({ success: true, userId: result.insertId, message: "User registered successfully" });
+    res.status(201).json({
+      success: true,
+      userId: result.insertId,
+      message: "User registered successfully",
+    });
   } catch (error) {
     console.error("Error during user registration:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
@@ -236,7 +248,7 @@ const googleCallback = async (req, res) => {
         email,
         displayName,
         "customer",
-        'http://localhost:3000/uploads/users/avatars/default_avatar.png' // default avatar
+        "http://localhost:3000/uploads/users/avatars/default_avatar.png", // default avatar
       ]);
       userId = result.insertId;
     }
@@ -293,11 +305,15 @@ const loginAdmin = async (req, res) => {
     // Create session if password matches
     req.session.user = {
       user_id: user.user_id,
-      userRole: user.user_role
+      userRole: user.user_role,
     };
 
     // Respond with success message
-    res.json({ success: true, userId: user.user_id, message: "Logged in successfully" });
+    res.json({
+      success: true,
+      userId: user.user_id,
+      message: "Logged in successfully",
+    });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
@@ -312,7 +328,11 @@ const registerAdmin = async (req, res) => {
     // Check if user already exists
     const existingUserQuery =
       "SELECT * FROM users WHERE email = ? AND user_role = ? AND phone_number = ?";
-    const existingUser = await queryAsync(existingUserQuery, [email, userRole, phoneNumber]);
+    const existingUser = await queryAsync(existingUserQuery, [
+      email,
+      userRole,
+      phoneNumber,
+    ]);
 
     if (existingUser.length > 0) {
       return res
@@ -333,26 +353,101 @@ const registerAdmin = async (req, res) => {
       hashedPassword,
       userRole,
       phoneNumber,
-      'http://localhost:3000/uploads/users/avatars/default_avatar.png' // default avatar
+      "http://localhost:3000/uploads/users/avatars/default_avatar.png", // default avatar
     ]);
 
     // Create session with user ID from the insert result
     req.session.user = {
       user_id: result.insertId, // Get the user ID from the result of the insert query
-      userRole: userRole
+      userRole: userRole,
     };
 
     // Send success response
-    res
-      .status(201)
-      .json({ success: true, userId: result.insertId, message: "User registered successfully" });
+    res.status(201).json({
+      success: true,
+      userId: result.insertId,
+      message: "User registered successfully",
+    });
   } catch (error) {
     console.error("Error during user registration:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
+const sendSmsOtp = async (req, res) => {
+  try {
+    const { phoneNumber, userRole } = req.body;
+    if (!phoneNumber) {
+      res.status(400).json({ success: false, message: "Missing phone number" });
+    }
 
+     // Giới hạn số lần gửi OTP
+    const attemptsKey = `sms-otp-attempts:${phoneNumber}:${userRole}`;
+    const attempts = parseInt(await redisClient.get(attemptsKey)) || 0;
+
+    if (attempts >= 3) {
+      return res.status(429).json({
+        success: false,
+        message: "Bạn đã yêu cầu quá nhiều lần. Hãy thử lại sau 5 phút.",
+      });
+    }
+
+    // Tăng số lần gửi OTP và đặt thời gian hết hạn
+    await redisClient.set(attemptsKey, parseInt(attempts) + 1, "EX", 300);
+
+    let inforbip = new Infobip({
+      apiKey: process.env.INFOBIP_API_KEY,
+      baseUrl: process.env.INFOBIP_BASE_URL,
+      authType: AuthType.ApiKey,
+    });
+
+    const otp = Math.floor(1000 + Math.random() * 9000); // Generate a random 6-digit OTP
+    const message = `Your OTP is ${otp}. It expires in 10 minutes.`;
+
+    const response = await inforbip.channels.sms.send({
+      messages: [
+        {
+          from: "447491163443", // Sender ID (set this in your Infobip account)
+          destinations: [
+            {
+              to: phoneNumber,
+            },
+          ],
+          text: message,
+        },
+      ],
+    });
+
+    // Store the OTP in Redis
+    await redisClient.set(`sms-otp:${phoneNumber}`, otp, `EX`, 600); // Set OTP expiration time to 10 minutes
+    
+    res.status(200).json({ success: true, message: "OTP sent successfully" });
+  } catch (error) {
+    console.error("Error sending SMS:", error.response?.data || error.message);
+    res.status(500).json({ success: false, message: "Error sending SMS" });
+  }
+};
+
+const verifySmsOtp = async (req, res) => {
+  try {
+    const {phoneNumber, otp} = req.body;
+
+    const otpFromRedis = await redisClient.get(`sms-otp:${phoneNumber}`);
+    if (otpFromRedis === otp) {
+      // Remove the OTP from Redis
+      await redisClient.del(`sms-otp:${phoneNumber}`);
+      res.status(200).json({ success: true, message: "OTP verified successfully" });
+    } else {
+      res.status(400).json({ success: false, message: "Invalid OTP" });
+    }
+  } catch (error) {
+    console.error(
+      "Error verifying OTP:",
+      error.response?.data || error.message
+    );
+    res.status(500).json({ success: false, message: "Error verifying OTP" });
+  }
+};
 
 //****************************Forgot Password Functions ******************************
 
@@ -361,9 +456,14 @@ const forgotPassword = async (req, res) => {
 
   try {
     // Kiểm tra email và userRole có tồn tại
-    const [user] = await queryAsync('SELECT user_id FROM users WHERE email = ? AND user_role = ?', [email, userRole]);
+    const [user] = await queryAsync(
+      "SELECT user_id FROM users WHERE email = ? AND user_role = ?",
+      [email, userRole]
+    );
     if (!user) {
-      return res.status(404).json({ message: 'Email hoặc vai trò không hợp lệ' });
+      return res
+        .status(404)
+        .json({ message: "Email hoặc vai trò không hợp lệ" });
     }
 
     // Giới hạn số lần gửi OTP
@@ -372,32 +472,32 @@ const forgotPassword = async (req, res) => {
 
     if (attempts >= 3) {
       return res.status(429).json({
-        message: 'Bạn đã yêu cầu quá nhiều lần. Hãy thử lại sau 5 phút.',
+        message: "Bạn đã yêu cầu quá nhiều lần. Hãy thử lại sau 5 phút.",
       });
     }
 
     // Tăng số lần gửi OTP và đặt thời gian hết hạn
-    await redisClient.set(attemptsKey, parseInt(attempts) + 1, 'EX', 300);
+    await redisClient.set(attemptsKey, parseInt(attempts) + 1, "EX", 300);
 
     // Tạo OTP (6 chữ số)
-    const otp = crypto.randomInt(100000, 999999).toString();
+    const otp = crypto.randomInt(1000, 9999).toString();
 
     // Lưu OTP vào Redis với thời gian hết hạn (5 phút)
     const otpKey = `otp:${email}:${userRole}`;
-    await redisClient.set(otpKey, otp, 'EX', 300);
+    await redisClient.set(otpKey, otp, "EX", 300);
 
     // Gửi OTP qua email
     await transporter.sendMail({
       from: process.env.NODEMAILER_EMAIL,
       to: email,
-      subject: 'Reset mật khẩu của bạn',
+      subject: "Reset mật khẩu của bạn",
       text: `Mã OTP của bạn là: ${otp}`,
     });
 
-    res.status(200).json({ message: 'OTP đã được gửi đến email của bạn' });
+    res.status(200).json({ message: "OTP đã được gửi đến email của bạn" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Lỗi server' });
+    res.status(500).json({ message: "Lỗi server" });
   }
 };
 
@@ -409,31 +509,29 @@ const resetPassword = async (req, res) => {
     const otpKey = `otp:${email}:${userRole}`;
     const storedOtp = await redisClient.get(otpKey);
     if (!storedOtp || storedOtp !== otp) {
-      return res.status(400).json({ message: 'OTP không hợp lệ hoặc đã hết hạn' });
-    }
-
-    // Kiểm tra độ mạnh của mật khẩu mới
-    if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
-      return res.status(400).json({ message: 'Mật khẩu mới không đủ mạnh. Hãy thử lại.' });
+      return res
+        .status(400)
+        .json({ message: "OTP không hợp lệ hoặc đã hết hạn" });
     }
 
     // Mã hóa mật khẩu mới
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Cập nhật mật khẩu mới trong database
-    await queryAsync('UPDATE users SET password_hash = ? WHERE email = ? AND user_role = ?', [hashedPassword, email, userRole]);
+    await queryAsync(
+      "UPDATE users SET password_hash = ? WHERE email = ? AND user_role = ?",
+      [hashedPassword, email, userRole]
+    );
 
     // Xóa OTP khỏi Redis
     await redisClient.del(otpKey);
 
-    res.status(200).json({ message: 'Mật khẩu đã được cập nhật thành công!' });
+    res.status(200).json({ message: "Mật khẩu đã được cập nhật thành công!" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Lỗi server' });
+    res.status(500).json({ message: "Lỗi server" });
   }
 };
-
-
 
 module.exports = {
   checkEmail,
@@ -446,7 +544,8 @@ module.exports = {
 
   loginAdmin,
   registerAdmin,
+  sendSmsOtp,
+  verifySmsOtp,
   forgotPassword,
   resetPassword,
-
 };

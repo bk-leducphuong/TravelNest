@@ -9,8 +9,6 @@ export default {
     userId: null, // customer id or partner id
     role: '', // customer, partner 
     isAuthenticated: false,
-    otp: '', // for OTP verification when registering
-    otpVerified: false, // for OTP verification when registering
     loginFailure: false,
   },
   mutations: {
@@ -26,13 +24,6 @@ export default {
     },
     setUserRole(state, role) {
       state.role = role
-    },
-    // for admin
-    setOtp(state, otp) {
-      state.otp = otp
-    },
-    setOtpVerified(state, status) {
-      state.otpVerified = status
     },
     setLoginFailure(state, status) {
       state.loginFailure = status
@@ -65,7 +56,7 @@ export default {
         // After successful logout, reset authentication state
         commit('setAuthentication', false)
         if (haveRedirect) {
-          router.push('/')
+          window.location.href = '/'
         }
       } catch (error) {
         console.error('Logout failed:', error)
@@ -105,35 +96,6 @@ export default {
         commit('setLoginFailure', true)
       }
     },
-    async sendOtp({ commit }, { phoneNumber }) {
-      try {
-        const response = await axios.post('http://localhost:3000/api/auth/send-otp', {
-          phoneNumber: phoneNumber
-        })
-        if (response.data.success) {
-          commit('setOtp', response.data.otp)
-        } else {
-          console.log('OTP not sent!')
-        }
-      } catch (error) {
-        console.error('Error during OTP sending:', error)
-      }
-    },
-    async verifyOtp({ commit }, { phoneNumber, otp }) {
-      try {
-        const response = await axios.post('http://localhost:3000/api/auth/verify-otp', {
-          phoneNumber: phoneNumber,
-          otp: otp
-        })
-        if (response.data.success) {
-          commit('setOtpVerified', true)
-        } else {
-          commit('setOtpVerified', false)
-        }
-      } catch (error) {
-        console.error('Error during OTP verification:', error)
-      }
-    }
   },
   getters: {
     getUserId(state) {
@@ -157,15 +119,8 @@ export default {
         return false
       }
     },
-
     getUserRole(state) {
       return state.role
-    },
-    getOtp(state) {
-      return state.otp
-    },
-    isOtpVerified(state) {
-      return state.otpVerified
     },
     isLoginFail(state) {
       return state.loginFailure
