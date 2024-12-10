@@ -61,18 +61,17 @@ export default {
       'updateRooms'
     ]),
     redirectToSearchResults(search) {
-      const numberOfDays = this.calculateNumberOfDays(search.checkInDate, search.checkOutDate)
       // Redirect user to search results page with query params
       this.$router.push({
         name: 'SearchResults',
         query: {
           location: search.location,
-          checkInDate: search.checkInDate,
-          checkOutDate: search.checkOutDate,
+          checkInDate: search.check_in_date.split('T')[0],
+          checkOutDate: search.check_out_date.split('T')[0],
           adults: search.adults,
           children: search.children,
           rooms: search.rooms,
-          numberOfDays: numberOfDays
+          numberOfDays: search.number_of_days
         }
       })
     },
@@ -128,18 +127,16 @@ export default {
     },
     // Load data from localStorage for recently searched
     async loadRecentSearches() {
-      const searches = JSON.parse(localStorage.getItem('recentSearches')) || []
-
       if (this.isUserAuthenticated) {
         const response = await axios.get('http://localhost:3000/api/home/recent-searchs', {
           withCredentials: true
         })
+        this.recentSearches = response.data
+      } else {
+        this.recentSearches = localStorage.getItem('recentSearches')
+          ? JSON.parse(localStorage.getItem('recentSearches'))
+          : []
       }
-
-      searches.reverse()
-      this.recentSearches = searches
-
-      this.noRecentSearchesFound = this.recentSearches.length === 0 ? true : false
     },
 
     // Load data from localStorage for viewed hotels
@@ -184,11 +181,29 @@ export default {
     },
 
     // Remove a recent search item
-    removeSearch(index, event) {
-      event.stopPropagation() // Stop the event from bubbling up to the parent
+    async removeSearch(removedSearch, searchIndex) {
+      try {
+        event.stopPropagation() // Stop the event from bubbling up to the parent
 
-      this.recentSearches.splice(index, 1)
-      localStorage.setItem('recentSearches', JSON.stringify(this.recentSearches))
+        // remove from local storage
+        this.recentSearches.splice(searchIndex, 1)
+        localStorage.setItem('recentSearches', JSON.stringify(this.recentSearches))
+
+        if (this.isUserAuthenticated) {
+          // remove from database
+          await axios.post(
+            'http://localhost:3000/api/home/remove-recent-search',
+            {
+              search_id: removedSearch.search_id
+            },
+            {
+              withCredentials: true
+            }
+          )
+        }
+      } catch (error) {
+        console.error(error)
+      }
     },
 
     // Toggle favorite status
@@ -275,10 +290,11 @@ export default {
             <div class="search-content">
               <h2 class="search-title">{{ search.location }}</h2>
               <p class="search-details">
-                From {{ search.checkInDate }} to {{ search.checkOutDate }}
+                From {{ new Date(search.check_in_date).toLocaleDateString('vi-VN') }} to
+                {{ new Date(search.check_out_date).toLocaleDateString('vi-VN') }}
               </p>
             </div>
-            <button class="close-button" @click="removeSearch(index, $event)">×</button>
+            <button class="close-button" @click="removeSearch(search, searchIndex)">×</button>
           </div>
         </div>
         <div class="nav-button-container" v-if="recentSearches.length > 0">

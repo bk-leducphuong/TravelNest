@@ -245,14 +245,7 @@ export default {
         rooms: this.rooms,
         numberOfDays: this.numberOfDays
       }
-      // store search informations
-      let searchHistory = JSON.parse(localStorage.getItem('recentSearches')) || []
-      if (searchHistory.length > 5) {
-        searchHistory.shift()
-      }
-      searchHistory.push(searchData)
-      localStorage.setItem('recentSearches', JSON.stringify(searchHistory))
-
+     
       // Redirect user to search results page with query params
       this.$router.push({
         name: 'SearchResults',
@@ -429,7 +422,7 @@ body {
   top: -30px;
   transform: translateX(-50%);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: 9999;
+  z-index: 9;
 }
 
 .search-input {

@@ -113,9 +113,10 @@ const getRecentSearchs = async (req, res) => {
   const user_id = req.session.user.user_id;
 
   const query = `
-        SELECT location, checkInDate, checkOutDate, adults, children, rooms
+        SELECT search_id,location, check_in_date, check_out_date, adults, children, rooms, search_time, number_of_days
         FROM search_logs
         WHERE user_id = ?
+        ORDER BY search_time DESC
         LIMIT 10; `;
 
   const results = await queryAsync(query, [user_id]);
@@ -123,6 +124,23 @@ const getRecentSearchs = async (req, res) => {
     return res.status(400).json({ success: false });
   }
   res.status(200).json(results);
+};
+
+const removeRecentSearch = async (req, res) => {
+  const { search_id } = req.body;
+
+  if (!search_id) {
+    return res.status(400).json({ success: false, message: "Missing search_id" });
+  }
+
+  const query = `
+        DELETE FROM search_logs
+        WHERE search_id = ?;
+    `;
+
+  await queryAsync(query, [search_id]);
+
+  res.status(200).json({ success: true, message: "Search removed successfully" });
 };
 
 // get top 10 most searched places
@@ -225,6 +243,7 @@ const getNearByHotels = async (req, res) => {
 module.exports = {
   getRecentViewedHotels,
   getRecentSearchs,
+  removeRecentSearch,
   getPopularPlaces,
   getNearByHotels,
   postRecentViewedHotels,

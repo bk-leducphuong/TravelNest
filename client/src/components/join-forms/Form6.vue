@@ -123,7 +123,7 @@ export default {
           }
         )
 
-        response.data.success ? console.log('Upload successfully!') : console.log('Upload failed!')
+        // response.data.success ? console.log('Upload successfully!') : console.log('Upload failed!')
       } catch (error) {
         console.error('Error uploading image:', error)
       }

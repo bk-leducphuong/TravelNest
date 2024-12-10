@@ -80,6 +80,9 @@
           required
         />
       </div>
+      <div class="forgot-password" @click="isForgotPassword = true" v-if="!isNewUser">
+        Forgot password?
+      </div>
 
       <div v-if="isNewUser">
         <label for="confirm password">Xác nhận mật khẩu</label>
@@ -109,6 +112,7 @@
   <OtpVerification
     v-if="openVerificationPopup"
     :phone-number="phoneNumber"
+    :userRole="userRole"
     @update-is-verified="updateIsVerified"
   />
 </template>
@@ -118,6 +122,7 @@ import axios from 'axios' // Import Axios
 import { mapActions, mapGetters } from 'vuex'
 import { useToast } from 'vue-toastification'
 import OtpVerification from '@/components/admin/otp-verification/OtpVerification.vue'
+import checkPasswordStrength from '@/utils/checkPasswordStrength'
 
 export default {
   components: {
@@ -138,12 +143,15 @@ export default {
       lastName: '',
       firstName: '',
       phoneNumber: '',
+      userRole: 'partner',
       confirmPassword: '',
       isNewUser: false,
 
       // for OTP verification
       isVerified: false,
-      openVerificationPopup: false
+      openVerificationPopup: false,
+
+      isForgotPassword: false,
     }
   },
   computed: {
@@ -214,27 +222,20 @@ export default {
       // if login fail
       if (this.isLoginFail) {
         this.password = ''
-        this.toast.error("Mật khẩu sai!")
-      }
-    },
-    async runOtpVerification() {
-      try {
-        // send OTP
-        await this.sendOtp({ phoneNumber: this.phoneNumber })
-        if (this.getOtp) {
-          this.toast.success('OTP đã được gửi đến điện thoại của bạn!')
-        } else {
-          this.toast.error('Không thể gửi OTP đến điện thoại của bạn!')
-        }
-
-        // open otp verification popup
-        this.openVerificationPopup = true
-      } catch (error) {
-        console.error('Error during OTP verification:', error)
+        this.toast.error('Mật khẩu sai!')
       }
     },
     submitSecondForm() {
-      this.isNewUser ? this.runOtpVerification() : this.registerOrLogin()
+      if (this.isNewUser) {
+        const strength = checkPasswordStrength(this.password)
+        if (strength < 4) {
+          this.toast.error('Password is too weak. Please use a stronger password.')
+          return
+        }
+        this.runOtpVerification()
+      } else {
+        this.registerOrLogin()
+      }
     }
   }
 }
@@ -331,5 +332,17 @@ input {
 .footer a {
   color: #0071c2;
   text-decoration: none;
+}
+
+.forgot-password {
+  font-size: 16px;
+  color: #2966e8;
+  margin-bottom: 15px;
+  cursor: pointer;
+  text-align: right;
+}
+
+.forgot-password:hover {
+  color: #004779;
 }
 </style>

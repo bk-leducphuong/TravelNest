@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancel Booking</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+
+        .email-header {
+            background-color: #003580;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .logo {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .email-content {
+            padding: 40px 30px;
+        }
+
+        .thank-you-message {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .thank-you-message h1 {
+            color: #003580;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .cta-button {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .otp {
+            display: inline-block;
+            padding: 12px 30px;
+            color: #003580;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        .additional-info {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .info-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #003580;
+        }
+
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .social-links {
+            margin: 20px 0;
+        }
+
+        .social-links a {
+            margin: 0 10px;
+            color: #003580;
+            text-decoration: none;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .email-content {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <div class="logo">TravelBooking</div>
+        </div>
+
+        <div class="email-content">
+            <div class="thank-you-message">
+                <h1>OTP verification</h1>
+            </div>
+            <p>This is your OTP, don't share it with anyone. It expires in 10 minutes.</p>
+             <div class="cta-button">
+                <span class="otp">{{otp}}</span>
+            </div>
+
+            <p>And if you have any questions or special requests, please don't hesitate to contact us. We're here to help make your stay memorable.</p>
+            <p>Best regards,<br>TravelBooking</p>
+        <div class="email-footer">
+            <div class="social-links">
+                <a href="#">Facebook</a>
+                <a href="#">Twitter</a>
+                <a href="#">Instagram</a>
+            </div>
+            <p>© 2024 TravelBooking. All rights reserved.</p>
+            <p>123 Travel Street, City, Country</p>
+            <p><a href="#">Privacy Policy</a> | <a href="#">Terms & Conditions</a></p>
+        </div>
+    </div>
+</body>
+</html>

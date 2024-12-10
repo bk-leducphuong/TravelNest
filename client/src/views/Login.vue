@@ -1,5 +1,6 @@
 <!-- src/views/Login.vue -->
 <template>
+  <ForgotPassword :email="email" :userRole="userRole" @close="closeForgotPassword" v-if="isForgotPassword"/>
   <header class="header">
     <div class="logo"><a @click="this.$router.push('/')">Booking.com</a></div>
     <div class="header-right">
@@ -45,7 +46,7 @@
       <p>
         {{
           isNewUser
-            ? 'Dùng ít nhất 10 ký tự, trong đó có chữ hoa, chữ thường và số.'
+            ? 'Dùng ít nhất 8 ký tự, trong đó có chữ hoa, chữ thường, số'
             : 'Vui lòng nhập mật khẩu Booking.com của bạn cho'
         }}
       </p>
@@ -62,6 +63,7 @@
           required
         />
       </div>
+      <div class="forgot-password" @click="isForgotPassword = true" v-if="!isNewUser">Forgot password?</div>
 
       <div v-if="isNewUser">
         <label for="confirm password">Xác nhận mật khẩu</label>
@@ -73,7 +75,7 @@
           placeholder="Nhập mật khẩu"
           required
         />
-        <p v-if="passwordMismatch" class="error">Mật khẩu không khớp!</p>
+        <p v-if="passwordMismatch" style="color: red;" class="error">Mật khẩu không khớp!</p>
       </div>
 
       <button type="submit" class="btn">{{ isNewUser ? 'Tạo tài khoản' : 'Đăng nhập' }}</button>
@@ -94,8 +96,14 @@
 import axios from 'axios' // Import Axios
 import { mapActions, mapGetters } from 'vuex'
 import { useToast } from "vue-toastification";
+import ForgotPassword from '@/components/ForgotPassword.vue';
+import user from '@/stores/user';
+import checkPasswordStrength from '@/utils/checkPasswordStrength';
 
 export default {
+  components: {
+    ForgotPassword
+  },
   setup() {
       // Get toast interface
       const toast = useToast();
@@ -108,7 +116,9 @@ export default {
       email: '',
       password: '',
       confirmPassword: '',
-      isNewUser: false
+      isNewUser: false,
+      isForgotPassword: false,
+      userRole: 'customer'
     }
   },
   computed: {
@@ -125,7 +135,7 @@ export default {
       axios
         .post('http://localhost:3000/api/auth/check-email', {
           email: this.email,
-          userRole: 'customer'
+          userRole: this.userRole
         })
         .then((response) => {
           if (response.data.exists) {
@@ -150,13 +160,22 @@ export default {
       if (this.passwordMismatch) {
         return // Prevent proceeding if passwords do not match
       }
+
+      if (this.isNewUser) {
+        const strength = checkPasswordStrength(this.password);
+        if (strength < 4) {
+          this.toast.error('Password is too weak. Please use a stronger password.')
+          return
+        }
+      }
+
       const apiUrl = this.isNewUser
         ? 'http://localhost:3000/api/auth/register'
         : 'http://localhost:3000/api/auth/login'
 
       const payload = this.isNewUser
-        ? { email: this.email, password: this.password, userRole: 'customer'}
-        : { email: this.email, password: this.password, userRole: 'customer' }
+        ? { email: this.email, password: this.password, userRole: this.userRole}
+        : { email: this.email, password: this.password, userRole: this.userRole }
 
       await this.login({ apiUrl: apiUrl, payload: payload, redirectRoute: this.$route.query.redirect || '/'})
       if (this.isLoginFail) {
@@ -191,6 +210,9 @@ export default {
       } finally {
         this.isLoading = false // Remove loading state
       }
+    },
+    closeForgotPassword() {
+      this.isForgotPassword = false
     }
   }
 }
@@ -287,5 +309,17 @@ input {
 .footer a {
   color: #0071c2;
   text-decoration: none;
+}
+
+.forgot-password {
+  font-size: 16px;
+  color: #2966e8;
+  margin-bottom: 15px;
+  cursor: pointer;
+  text-align: right;
+}
+
+.forgot-password:hover {
+  color: #004779;
 }
 </style>

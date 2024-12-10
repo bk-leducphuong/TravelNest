@@ -113,37 +113,27 @@ const getSearchResults = async (req, res) => {
 
 const saveSearchInformation = async (req, res) => {
   try {
-    const user_id = req.session ? req.session.user.user_id : null;
+    const user_id = req.session.user ? req.session.user.user_id : null;
 
-    const { location, checkInDate, checkOutDate, adults, children, rooms } =
-      req.body;
+    const { location, checkInDate, checkOutDate, adults, children, rooms, numberOfDays } =
+      req.body.searchData;
     if (
       !location ||
       !checkInDate ||
       !checkOutDate ||
       !adults ||
       !children ||
-      !rooms
+      !rooms ||
+      !numberOfDays
     ) {
       return res
         .status(400)
         .json({ success: false, message: "Missing search details" });
     }
-    // xóa nếu trùng
-    const deleteQuery = `
-        DELETE FROM search_logs
-        WHERE user_id = ? AND location = ? AND checkInDate =? AND checkOutDate =?;
-    `;
-    await queryAsync(deleteQuery, [
-      user_id,
-      location,
-      checkInDate,
-      checkOutDate,
-    ]);
-
+  
     const query = `
-        INSERT INTO search_logs (location, user_id, search_time, children, adults,rooms, checkInDate, checkOutDate)
-            VALUES (?, ?, NOW(), ?, ?,?,?,?);`;
+        INSERT INTO search_logs (location, user_id, search_time, children, adults,rooms, check_in_date, check_out_date, number_of_days)
+            VALUES (?, ?, NOW(), ?, ?,?,?,?,?);`;
 
     // Thực hiện truy vấn
     await queryAsync(query, [
@@ -154,6 +144,7 @@ const saveSearchInformation = async (req, res) => {
       rooms,
       checkInDate,
       checkOutDate,
+      numberOfDays,
     ]);
 
     // Trả về phản hồi thành công
