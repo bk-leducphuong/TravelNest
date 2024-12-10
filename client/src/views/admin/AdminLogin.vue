@@ -80,6 +80,9 @@
           required
         />
       </div>
+      <div class="forgot-password" @click="isForgotPassword = true" v-if="!isNewUser">
+        Forgot password?
+      </div>
 
       <div v-if="isNewUser">
         <label for="confirm password">Xác nhận mật khẩu</label>
@@ -146,7 +149,9 @@ export default {
 
       // for OTP verification
       isVerified: false,
-      openVerificationPopup: false
+      openVerificationPopup: false,
+
+      isForgotPassword: false,
     }
   },
   computed: {
@@ -228,7 +233,7 @@ export default {
           return
         }
         this.runOtpVerification()
-      }else {
+      } else {
         this.registerOrLogin()
       }
     }
@@ -327,5 +332,17 @@ input {
 .footer a {
   color: #0071c2;
   text-decoration: none;
+}
+
+.forgot-password {
+  font-size: 16px;
+  color: #2966e8;
+  margin-bottom: 15px;
+  cursor: pointer;
+  text-align: right;
+}
+
+.forgot-password:hover {
+  color: #004779;
 }
 </style>

@@ -36,6 +36,7 @@ import SavedHotels from '@/views/SavedHotels.vue'
 // room 
 import RoomDetails from '@/views/admin/room/RoomDetails.vue'
 import RoomPhotos from '@/views/admin/room/RoomPhotos.vue'
+import RoomAmenities from '@/views/admin/room/RoomAmenities.vue'
 
 const routes = [
   // route for customer
@@ -212,6 +213,12 @@ const routes = [
     path: '/admin/:hotelId/room/room-photos',
     name: 'RoomPhotos',
     component: RoomPhotos,
+    meta: {requiresAuth: true}
+  },
+  {
+    path: '/admin/:hotelId/room/room-amenities',
+    name: 'RoomAmenities',
+    component: RoomAmenities,
     meta: {requiresAuth: true}
   },
   // Catch-all route (for 404s)
