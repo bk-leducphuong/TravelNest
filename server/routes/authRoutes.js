@@ -10,6 +10,8 @@ const {
   checkAuth,
   loginAdmin,
   registerAdmin,
+  forgotPassword,
+  resetPassword,
 } = require("../controllers/authController");
 const passport = require("passport");
 
@@ -67,5 +69,12 @@ router.post("/verify-otp", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
+
+/********************** Forgot & Reset Password *******************/
+// Forgot password route
+router.post("/forgot-password", forgotPassword);
+
+// Reset password route
+router.post("/reset-password", resetPassword);
 
 module.exports = router;

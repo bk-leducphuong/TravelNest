@@ -2,6 +2,11 @@ const connection = require("../config/db");
 const bcrypt = require("bcryptjs");
 const { promisify } = require("util");
 const passport = require("passport");
+const crypto = require('crypto');
+const redisClient = require('../config/redis');
+const nodemailer = require('nodemailer'); // Dùng để gửi email
+const transporter = require('../config/nodemailer');
+
 
 const {
   isValidEmailFormat,
@@ -347,6 +352,89 @@ const registerAdmin = async (req, res) => {
   }
 };
 
+
+
+//****************************Forgot Password Functions ******************************
+
+const forgotPassword = async (req, res) => {
+  const { email, userRole } = req.body;
+
+  try {
+    // Kiểm tra email và userRole có tồn tại
+    const [user] = await queryAsync('SELECT user_id FROM users WHERE email = ? AND user_role = ?', [email, userRole]);
+    if (!user) {
+      return res.status(404).json({ message: 'Email hoặc vai trò không hợp lệ' });
+    }
+
+    // Giới hạn số lần gửi OTP
+    const attemptsKey = `otp_attempts:${email}:${userRole}`;
+    const attempts = parseInt(await redisClient.get(attemptsKey)) || 0;
+
+    if (attempts >= 3) {
+      return res.status(429).json({
+        message: 'Bạn đã yêu cầu quá nhiều lần. Hãy thử lại sau 5 phút.',
+      });
+    }
+
+    // Tăng số lần gửi OTP và đặt thời gian hết hạn
+    await redisClient.set(attemptsKey, parseInt(attempts) + 1, 'EX', 300);
+
+    // Tạo OTP (6 chữ số)
+    const otp = crypto.randomInt(100000, 999999).toString();
+
+    // Lưu OTP vào Redis với thời gian hết hạn (5 phút)
+    const otpKey = `otp:${email}:${userRole}`;
+    await redisClient.set(otpKey, otp, 'EX', 300);
+
+    // Gửi OTP qua email
+    await transporter.sendMail({
+      from: process.env.NODEMAILER_EMAIL,
+      to: email,
+      subject: 'Reset mật khẩu của bạn',
+      text: `Mã OTP của bạn là: ${otp}`,
+    });
+
+    res.status(200).json({ message: 'OTP đã được gửi đến email của bạn' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  const { email, userRole, otp, newPassword } = req.body;
+
+  try {
+    // Lấy OTP từ Redis
+    const otpKey = `otp:${email}:${userRole}`;
+    const storedOtp = await redisClient.get(otpKey);
+    if (!storedOtp || storedOtp !== otp) {
+      return res.status(400).json({ message: 'OTP không hợp lệ hoặc đã hết hạn' });
+    }
+
+    // Kiểm tra độ mạnh của mật khẩu mới
+    if (newPassword.length < 8 || !/[A-Z]/.test(newPassword) || !/[a-z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
+      return res.status(400).json({ message: 'Mật khẩu mới không đủ mạnh. Hãy thử lại.' });
+    }
+
+    // Mã hóa mật khẩu mới
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Cập nhật mật khẩu mới trong database
+    await queryAsync('UPDATE users SET password_hash = ? WHERE email = ? AND user_role = ?', [hashedPassword, email, userRole]);
+
+    // Xóa OTP khỏi Redis
+    await redisClient.del(otpKey);
+
+    res.status(200).json({ message: 'Mật khẩu đã được cập nhật thành công!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+};
+
+
+
 module.exports = {
   checkEmail,
   loginUser,
@@ -358,4 +446,7 @@ module.exports = {
 
   loginAdmin,
   registerAdmin,
+  forgotPassword,
+  resetPassword,
+
 };

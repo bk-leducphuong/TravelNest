@@ -4,6 +4,7 @@ const { promisify } = require("util");
 const sharp = require("sharp");
 const path = require("path");
 const fs = require("fs");
+const bcrypt = require('bcryptjs');
 
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
@@ -233,6 +234,52 @@ const checkFavoriteHotel = async (req, res) => {
   }
 };
 
+// Đổi mật khẩu
+const resetPassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword, confirmNewPassword } = req.body;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!oldPassword || !newPassword || !confirmNewPassword) {
+      return res.status(400).json({ message: "Please provide all required fields." });
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      return res.status(400).json({ message: "Passwords do not match." });
+    }
+
+    const userId = req.session.user.user_id;
+    //const userId = 25;
+
+    // Lấy mật khẩu mã hóa từ cơ sở dữ liệu
+    const query = `SELECT password_hash FROM users WHERE user_id = ?`;
+    const result = await queryAsync(query, [userId]);
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const currentHashedPassword = result[0].password_hash;
+
+    // So sánh mật khẩu cũ với mật khẩu trong cơ sở dữ liệu
+    const isMatch = await bcrypt.compare(oldPassword, currentHashedPassword);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Old password is incorrect." });
+    }
+
+    // Mã hóa mật khẩu mới
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Cập nhật mật khẩu mới vào cơ sở dữ liệu
+    const updateQuery = `UPDATE users SET password_hash = ? WHERE user_id = ?`;
+    await queryAsync(updateQuery, [hashedPassword, userId]);
+
+    res.status(200).json({ success: true, message: "Password updated successfully." });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 module.exports = {
   getUserInformation,
   // Edit user information controllers
@@ -250,5 +297,6 @@ module.exports = {
   getFavoriteHotels,
   setFavoriteHotels,
   deleteFavoriteHotel,
-  checkFavoriteHotel
+  checkFavoriteHotel,
+  resetPassword,
 };
