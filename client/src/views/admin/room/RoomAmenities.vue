@@ -17,21 +17,60 @@ export default {
       unitArea: 'squareMeter',
       rooms: [],
       recommendRoomAmenities: [
-        'Free breakfast',
-        'Toiletries',
-        'Welcome snacks & drinks',
-        'Free Wi-Fi',
-        'Bathrobes, towels, and slippers',
-        'TV & telephone',
-        'Air conditioning',
-        'Wall outlets',
-        'Lockers',
-        'Free parking space',
-        'Laundry & ironing services',
-        'Coffee Kit',
-        'Free parking',
-        'Gym or fitness center'
+        {
+          amenity: 'Free breakfast',
+          room: []
+        },
+        {
+          amenity: 'Toiletries',
+          room: []
+        },
+        {
+          amenity: 'Welcome snacks & drinks',
+          room: []
+        },
+        {
+          amenity: 'Free Wi-Fi',
+          room: []
+        },
+        {
+          amenity: 'Bathrobes, towels, and slippers',
+          room: []
+        },
+        {
+          amenity: 'TV & telephone',
+          room: []
+        },
+        {
+          amenity: 'Wall outlets',
+          room: []
+        },
+        {
+          amenity: 'Lockers',
+          room: []
+        },
+        {
+          amenity: 'Free parking space',
+          room: []
+        },
+        {
+          amenity: 'Laundry & ironing services',
+          room: []
+        },
+        {
+          amenity: 'Coffee Kit',
+          room: []
+        },
+        {
+          amenity: 'Free parking',
+          room: []
+        },
+        {
+          amenity: 'Gym or fitness center',
+          room: []
+        }
       ],
+
       topAmenities: [
         {
           amenity: 'Air conditioning',
@@ -109,6 +148,36 @@ export default {
         this.isLoading = false
       }
     },
+    addAll(amenity) {
+      this.topAmenities.forEach((amenityObj) => {
+        if (amenityObj.amenity == amenity) {
+          this.rooms.forEach((room) => {
+            amenityObj.room.push(room.room_id)
+          })
+        }
+      })
+
+      this.recommendRoomAmenities.forEach((amenityObj) => {
+        if (amenityObj.amenity == amenity) {
+          this.rooms.forEach((room) => {
+            amenityObj.room.push(room.room_id)
+          })
+        }
+      })
+    },
+    deleteAll(amenity) {
+      this.topAmenities.forEach((amenityObj) => {
+        if (amenityObj.amenity == amenity) {
+          amenityObj.room = []
+        }
+      })
+
+      this.recommendRoomAmenities.forEach((amenityObj) => {
+        if (amenityObj.amenity == amenity) {
+          amenityObj.room = []
+        }
+      })
+    }
   },
   async mounted() {
     this.isLoading = true
@@ -201,9 +270,22 @@ export default {
               "
             >
               <div class="switch-toggle switch-3 switch-candy" id="1">
-                <span :class="{ active: amenity.room.length == this.rooms.length }" @click="">All apartments</span>
-                <span :class="{ active: amenity.room.length > 0 && amenity.room.length < this.rooms.length }">Some apartments</span>
-                <span :class="{ active: amenity.room.length == 0 }">None</span>
+                <span
+                  :class="{ active: amenity.room.length == this.rooms.length }"
+                  @click="addAll(amenity.amenity)"
+                  >All apartments</span
+                >
+                <span
+                  :class="{
+                    active: amenity.room.length > 0 && amenity.room.length < this.rooms.length
+                  }"
+                  >Some apartments</span
+                >
+                <span
+                  :class="{ active: amenity.room.length == 0 }"
+                  @click="deleteAll(amenity.amenity)"
+                  >None</span
+                >
               </div>
               <br />
               <div style="display: flex; flex-direction: column">
@@ -211,7 +293,7 @@ export default {
 
                 <label class="container1" v-for="room in rooms" :key="room.room_id"
                   >{{ room.room_name }}
-                  <input type="checkbox" />
+                  <input type="checkbox" v-model="amenity.room" :value="room.room_id" />
                   <span class="checkmark"></span>
                 </label>
               </div>
@@ -219,6 +301,8 @@ export default {
           </div>
         </div>
         <!-- Room Amenities -->
+
+        <!-- Top Amenities -->
         <div class="container">
           <loading
             v-model:active="isLoading"
@@ -235,10 +319,10 @@ export default {
           <div
             style="display: flex; border-bottom: 1px solid #8a8a8a"
             v-for="amenity in recommendRoomAmenities"
-            :key="amenity"
+            :key="amenity.amenity"
           >
             <div style="width: 50%">
-              <h2>{{ amenity }}</h2>
+              <h2>{{ amenity.amenity }}</h2>
             </div>
             <div
               style="
@@ -250,9 +334,22 @@ export default {
               "
             >
               <div class="switch-toggle switch-3 switch-candy" id="1">
-                <span>All apartments</span>
-                <span>Some apartments</span>
-                <span>None</span>
+                <span
+                  :class="{ active: amenity.room.length == this.rooms.length }"
+                  @click="addAll(amenity.amenity)"
+                  >All apartments</span
+                >
+                <span
+                  :class="{
+                    active: amenity.room.length > 0 && amenity.room.length < this.rooms.length
+                  }"
+                  >Some apartments</span
+                >
+                <span
+                  :class="{ active: amenity.room.length == 0 }"
+                  @click="deleteAll(amenity.amenity)"
+                  >None</span
+                >
               </div>
               <br />
               <div style="display: flex; flex-direction: column">
@@ -260,117 +357,7 @@ export default {
 
                 <label class="container1" v-for="room in rooms" :key="room.room_id"
                   >{{ room.room_name }}
-                  <input type="checkbox" />
-                  <span class="checkmark"></span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div style="display: flex; border-bottom: 1px solid #8a8a8a">
-            <div style="width: 50%">
-              <h2>Kitchenette</h2>
-            </div>
-            <div
-              style="
-                align-content: center;
-                padding-top: 20px;
-                padding-bottom: 20px;
-                display: flex;
-                flex-direction: column;
-              "
-            >
-              <div class="switch-toggle switch-3 switch-candy" id="1">
-                <span>All apartments</span>
-                <span>Some apartments</span>
-                <span>None</span>
-              </div>
-              <br />
-              <div style="display: flex; flex-direction: column">
-                <h2>Select where this amenity is available</h2>
-
-                <label class="container1"
-                  >Deluxe Two-Bedroom Suite
-                  <input type="checkbox" checked="checked" />
-                  <span class="checkmark"></span>
-                </label>
-
-                <label class="container1"
-                  >Superior One-Bedroom Suite
-                  <input type="checkbox" />
-                  <span class="checkmark"></span>
-                </label>
-
-                <label class="container1"
-                  >Deluxe One-Bedroom Suite
-                  <input type="checkbox" />
-                  <span class="checkmark"></span>
-                </label>
-
-                <label class="container1"
-                  >Deluxe Three-Bedroom Suite
-                  <input type="checkbox" />
-                  <span class="checkmark"></span>
-                </label>
-
-                <label class="container1"
-                  >Deluxe Family Suite
-                  <input type="checkbox" />
-                  <span class="checkmark"></span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div style="display: flex; border-bottom: 1px solid #8a8a8a">
-            <div style="width: 50%">
-              <h2>Kitchen</h2>
-            </div>
-            <div
-              style="
-                align-content: center;
-                padding-top: 20px;
-                padding-bottom: 20px;
-                display: flex;
-                flex-direction: column;
-              "
-            >
-              <div class="switch-toggle switch-3 switch-candy" id="1">
-                <span>All apartments</span>
-                <span>Some apartments</span>
-                <span>None</span>
-              </div>
-              <br />
-              <div style="display: flex; flex-direction: column">
-                <h2>Select where this amenity is available</h2>
-
-                <label class="container1"
-                  >Deluxe Two-Bedroom Suite
-                  <input type="checkbox" checked="checked" />
-                  <span class="checkmark"></span>
-                </label>
-
-                <label class="container1"
-                  >Superior One-Bedroom Suite
-                  <input type="checkbox" />
-                  <span class="checkmark"></span>
-                </label>
-
-                <label class="container1"
-                  >Deluxe One-Bedroom Suite
-                  <input type="checkbox" />
-                  <span class="checkmark"></span>
-                </label>
-
-                <label class="container1"
-                  >Deluxe Three-Bedroom Suite
-                  <input type="checkbox" />
-                  <span class="checkmark"></span>
-                </label>
-
-                <label class="container1"
-                  >Deluxe Family Suite
-                  <input type="checkbox" />
+                  <input type="checkbox" v-model="amenity.room" :value="room.room_id" />
                   <span class="checkmark"></span>
                 </label>
               </div>
@@ -474,6 +461,11 @@ h2 {
   position: relative;
 }
 
+.switch-3 {
+  display: flex;
+  /* justify-content: space-between; */
+}
+
 .switch-toggle span {
   display: block;
   /* width: 50%; */
@@ -481,7 +473,7 @@ h2 {
   text-align: center;
   cursor: pointer;
   color: #4285f4;
-  padding: 10px;
+  padding: 10px 15px;
   border-left: #2196f3 solid 2px;
 }
 
