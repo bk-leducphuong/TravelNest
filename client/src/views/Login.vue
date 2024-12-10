@@ -46,7 +46,7 @@
       <p>
         {{
           isNewUser
-            ? 'Dùng ít nhất 10 ký tự, trong đó có chữ hoa, chữ thường và số.'
+            ? 'Dùng ít nhất 8 ký tự, trong đó có chữ hoa, chữ thường, số'
             : 'Vui lòng nhập mật khẩu Booking.com của bạn cho'
         }}
       </p>
@@ -63,7 +63,7 @@
           required
         />
       </div>
-      <div class="forgot-password" @click="isForgotPassword = true">Forgot password?</div>
+      <div class="forgot-password" @click="isForgotPassword = true" v-if="!isNewUser">Forgot password?</div>
 
       <div v-if="isNewUser">
         <label for="confirm password">Xác nhận mật khẩu</label>
@@ -75,7 +75,7 @@
           placeholder="Nhập mật khẩu"
           required
         />
-        <p v-if="passwordMismatch" class="error">Mật khẩu không khớp!</p>
+        <p v-if="passwordMismatch" style="color: red;" class="error">Mật khẩu không khớp!</p>
       </div>
 
       <button type="submit" class="btn">{{ isNewUser ? 'Tạo tài khoản' : 'Đăng nhập' }}</button>
@@ -98,6 +98,7 @@ import { mapActions, mapGetters } from 'vuex'
 import { useToast } from "vue-toastification";
 import ForgotPassword from '@/components/ForgotPassword.vue';
 import user from '@/stores/user';
+import checkPasswordStrength from '@/utils/checkPasswordStrength';
 
 export default {
   components: {
@@ -159,6 +160,15 @@ export default {
       if (this.passwordMismatch) {
         return // Prevent proceeding if passwords do not match
       }
+
+      if (this.isNewUser) {
+        const strength = checkPasswordStrength(this.password);
+        if (strength < 4) {
+          this.toast.error('Password is too weak. Please use a stronger password.')
+          return
+        }
+      }
+
       const apiUrl = this.isNewUser
         ? 'http://localhost:3000/api/auth/register'
         : 'http://localhost:3000/api/auth/login'

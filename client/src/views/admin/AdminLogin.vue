@@ -119,6 +119,7 @@ import axios from 'axios' // Import Axios
 import { mapActions, mapGetters } from 'vuex'
 import { useToast } from 'vue-toastification'
 import OtpVerification from '@/components/admin/otp-verification/OtpVerification.vue'
+import checkPasswordStrength from '@/utils/checkPasswordStrength'
 
 export default {
   components: {
@@ -216,11 +217,20 @@ export default {
       // if login fail
       if (this.isLoginFail) {
         this.password = ''
-        this.toast.error("Mật khẩu sai!")
+        this.toast.error('Mật khẩu sai!')
       }
     },
     submitSecondForm() {
-      this.isNewUser ? this.runOtpVerification() : this.registerOrLogin()
+      if (this.isNewUser) {
+        const strength = checkPasswordStrength(this.password)
+        if (strength < 4) {
+          this.toast.error('Password is too weak. Please use a stronger password.')
+          return
+        }
+        this.runOtpVerification()
+      }else {
+        this.registerOrLogin()
+      }
     }
   }
 }
