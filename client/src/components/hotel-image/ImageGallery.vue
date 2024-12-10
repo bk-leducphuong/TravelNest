@@ -84,7 +84,7 @@ export default {
           :class="{ selected: currentSelectedRoomId === 0 }"
           @click="selectRoom(0)"
         >
-          <img src=" " alt="Overview" class="room-image" />
+          <img :src="hotelImages[0]" alt="Overview" class="room-image" />
           <div class="room-info">
             <div class="room-type">Tổng quan</div>
           </div>
@@ -144,8 +144,6 @@ export default {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  /* max-width: 1200px; */
-  max-height: 553px;
 }
 
 .hotel-header {
@@ -201,11 +199,13 @@ export default {
 }
 
 .room-card {
-  min-width: 200px;
-  border: 1px solid #eee;
+  width: 200px;
+  height: 150px;
+  border: 2px solid #ccc;
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
+  position: relative;
 }
 
 .selected {
@@ -214,7 +214,7 @@ export default {
 
 .room-image {
   width: 100%;
-  height: 150px;
+  height: 100%;
   background-color: #eee;
   object-fit: cover;
 }
