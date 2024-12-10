@@ -95,7 +95,7 @@ export default {
           route = route + '/bookings/all'
           this.$router.push(route)
           break
-        case 'cancel booking':
+        case 'cancel booking':  
           route = route + '/bookings/all'
           this.$router.push(route)
           break

@@ -6,6 +6,7 @@ const crypto = require("crypto");
 const redisClient = require("../config/redis");
 const nodemailer = require("nodemailer"); // Dùng để gửi email
 const transporter = require("../config/nodemailer");
+const fs = require('fs')
 
 require("dotenv").config();
 const { Infobip, AuthType } = require("@infobip-api/sdk");
@@ -486,13 +487,24 @@ const forgotPassword = async (req, res) => {
     const otpKey = `otp:${email}:${userRole}`;
     await redisClient.set(otpKey, otp, "EX", 300);
 
-    // Gửi OTP qua email
-    await transporter.sendMail({
+     // Load the email template
+    const templatePath = "./email-templates/otpVerification.html";
+    let emailTemplate = fs.readFileSync(templatePath, "utf8");
+
+    // Replace placeholders with actual booking details
+    emailTemplate = emailTemplate
+      .replace("{{otp}}", otp)
+
+    // Email options
+    const mailOptions = {
       from: process.env.NODEMAILER_EMAIL,
-      to: email,
-      subject: "Reset mật khẩu của bạn",
-      text: `Mã OTP của bạn là: ${otp}`,
-    });
+      to: email, // Recipient's email address
+      subject: "OTP verification",
+      html: emailTemplate, // HTML content
+    };
+
+    // Send email
+    await transporter.sendMail(mailOptions);
 
     res.status(200).json({ message: "OTP đã được gửi đến email của bạn" });
   } catch (error) {
