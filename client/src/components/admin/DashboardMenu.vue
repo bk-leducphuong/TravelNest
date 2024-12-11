@@ -9,6 +9,7 @@ export default {
           isPaymentSelected: false,
           isBookingsSelected: false,
           isRoomAvailabilitySelected: false,
+          isReviewSelected: false,
           isRoomSelected: false,
           selected: false
         }
@@ -93,10 +94,13 @@ export default {
           <!-- Guest reviews -->
           <div class="nav-item-container">
             <div class="title-nav-item">
-              <li class="nav-item" @click="this.$router.push('/admin/home')"><i class="fa fa-comments" aria-hidden="true"></i>Guest reviews</li>
+              <li class="nav-item" @click="this.isReviewSelected = !this.isReviewSelected"><i class="fa fa-comments" aria-hidden="true"></i>Guest reviews</li>
+              <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;" v-if="!this.isReviewSelected"></i>
+              <i class="fa fa-angle-down" aria-hidden="true" style="margin-right: 10px;" v-if="this.isReviewSelected"></i>
             </div>
-            <div class="child-item-container">
-              <li class="child-item"></li>
+            <div class="child-item-container" v-if="this.isReviewSelected">
+              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/review/guest-reviews`)">Guest reviews</li>
+              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/review/guest-experiences`)">Guest experiences</li>
             </div>
           </div>
           <!-- Analytics -->
