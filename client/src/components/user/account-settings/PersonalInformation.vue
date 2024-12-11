@@ -339,7 +339,7 @@ export default {
             </div>
           </div>
           <div class="display-container" v-if="!isDateOfBirthEdit">
-            <div class="value">{{ dateOfBirth || "Enter your date of birth" }}</div>
+            <div class="value">{{ new Date(dateOfBirth).toLocaleDateString('vi-VN') || "Enter your date of birth" }}</div>
             <button class="edit-button" @click="isDateOfBirthEdit = true">Edit</button>
           </div>
         </div>

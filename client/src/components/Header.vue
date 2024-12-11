@@ -1,4 +1,5 @@
 <template>
+  <LanguageSwitch @close-language-popup="closeLanguagePopup" v-if="showLanguagePopup" />
   <div class="header">
     <div class="container">
       <div class="inner-wrap">
@@ -8,7 +9,7 @@
         <div class="inner-login">
           <ul>
             <li><strong>VND</strong></li>
-            <li><img src="../assets/header/Vn@3x.png" alt="Vietnam" /></li>
+            <li @click="openLanguagePopup()"><img :src="`https://flagcdn.com/w40/${getUserLanguage.split('-')[1].toLowerCase()}.png`" style="width: 20px; height: 20px; " alt="Vietnam" /></li>
             <li><i class="fa-regular fa-circle-question"></i></li>
             <li><i class="fa-regular fa-bell fa-lg"></i></li>
             <li>
@@ -34,9 +35,9 @@
   <div class="slide" v-if="isSearchOpen">
     <div class="container">
       <div class="inner-wrap" v-if="this.$route.name === 'Home'">
-        <strong>Tìm chỗ nghỉ tiếp theo</strong>
+        <strong>{{ $t('titleHeader') }}</strong>
         <br />
-        <p>Tìm ưu đãi khách sạn, chỗ nghỉ dạng nhà và nhiều hơn nữa...</p>
+        <p>{{ $t('subtitleHeader') }}</p>
       </div>
     </div>
   </div>
@@ -138,6 +139,7 @@ import flatpickr from 'flatpickr'
 import 'flatpickr/dist/flatpickr.css'
 import { mapActions, mapState, mapGetters } from 'vuex'
 import AccountMenu from './user/AccountMenu.vue'
+import LanguageSwitch from './LanguageSwitch.vue'
 
 export default {
   props: {
@@ -147,7 +149,8 @@ export default {
     }
   },
   components: {
-    AccountMenu
+    AccountMenu,
+    LanguageSwitch
   },
   data() {
     return {
@@ -159,6 +162,7 @@ export default {
         { name: 'Đà Nẵng', country: 'Việt Nam' }
       ],
       showLocationPopup: false,
+      showLanguagePopup: false,
       showGuestSelector: false,
       selectedLocation: null,
       dateRange: null,
@@ -167,7 +171,7 @@ export default {
       rooms: 1,
       checkInDate: null,
       checkOutDate: null,
-      numberOfDays: null
+      numberOfDays: null,
     }
   },
   watch: {
@@ -194,6 +198,7 @@ export default {
   computed: {
     ...mapGetters('auth', ['isUserAuthenticated', 'getUserRole']),
     ...mapGetters('search', ['getSearchData']),
+    ...mapGetters('user', ['getUserLanguage']),
     guestDetails() {
       return `${this.adults} người lớn · ${this.children} trẻ em · ${this.rooms} phòng`
     }
@@ -233,6 +238,13 @@ export default {
     },
     hideGuestSelector() {
       this.showGuestSelector = false
+    },
+
+    openLanguagePopup() {
+      this.showLanguagePopup = !this.showLanguagePopup
+    },
+    closeLanguagePopup() {
+      this.showLanguagePopup = false
     },
 
     async submitSearch() {

@@ -10,11 +10,10 @@ export default {
   data() {
     return {
       hotels: [],
-      userLanguage: navigator.language || navigator.userLanguage
     }
   },
   methods: {
-    ...mapActions('user', ['updateUserLocation']), // Access the user module action
+    ...mapActions('user', ['updateUserLocation', 'updateUserLanguage']),
     ...mapActions('auth', ['checkAuth']),
     handleConsent(accepted) {
       if (accepted) {
@@ -55,17 +54,11 @@ export default {
         return Promise.reject('Geolocation not supported')
       }
     },
-    updateLanguage() {
-      if (this.userLanguage !== 'en-US' && this.userLanguage !== 'vi-VN') {
-        this.$i18n.locale = 'en-US'
-      } else {
-        this.$i18n.locale = this.userLanguage
-      }
-      localStorage.setItem('language', this.$i18n.locale) // Save language to localStorage
-    }
   },
-  created() {
-    this.updateLanguage()
+  mounted() {
+    let language = localStorage.getItem('language') ? localStorage.getItem('language') : navigator.language || navigator.userLanguage
+    this.updateUserLanguage(language)
+    this.$i18n.locale = language.split('-')[0]
 
     // Fetch user location and update Vuex store
     this.getUserLocation()
