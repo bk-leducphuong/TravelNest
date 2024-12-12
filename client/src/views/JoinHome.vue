@@ -1,26 +1,15 @@
-<script></script>
+<script>
+import LoginHeader from '@/components/LoginHeader.vue'
+export default {
+  components: {
+    LoginHeader
+  }
+}
+</script>
 
 <template>
   <div class="join-container">
-    <div class="header">
-      <div class="container">
-        <div class="inner-wrap">
-          <div class="inner-logo">
-            <strong><a @click="this.$router.push('/')">Booking.com</a></strong>
-          </div>
-          <div class="inner-login">
-            <ul>
-              <li><strong>VND</strong></li>
-              <li><img src="" alt="" /></li>
-              <li><i class="fa-regular fa-circle-question"></i></li>
-              <li><span>Đã là đối tác ?</span></li>
-              <li class="login" v-on:click="this.$router.push('/admin/login')">Đăng nhập</li>
-              <li class="guides">Trợ giúp</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+    <LoginHeader :isAdminLogin="true" />
     <div class="main-container">
       <div class="left-main-container">
         <h1 class="main-title">
@@ -59,76 +48,6 @@
   background-color: #003b95;
   padding-bottom: 100px;
 }
-/* header  */
-
-.header .inner-wrap {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  align-items: center;
-}
-
-.header .inner-logo strong {
-  font-size: 24px;
-  color: #fff;
-}
-
-.header .inner-login ul {
-  display: flex;
-  color: #fff;
-  list-style-type: none;
-  align-items: center;
-  margin-bottom: 0;
-}
-
-.header .inner-login ul li {
-  padding: 10px;
-  margin-left: 15px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-}
-
-.header .inner-login ul li img {
-  border-radius: 50%;
-  height: 18px;
-  overflow: hidden;
-  width: auto;
-}
-.header .inner-login ul li span {
-  font-weight: 600;
-}
-
-.header .inner-login ul .login {
-  padding: 5px 10px;
-  color: #1d5fc2;
-  font-weight: 500;
-  background-color: #fff;
-  border-radius: 5px;
-}
-.login {
-  cursor: pointer;
-}
-.guides {
-  cursor: pointer;
-}
-
-.header .inner-login ul .guides {
-  padding: 5px 10px;
-  color: #1d5fc2;
-  font-weight: 500;
-  background-color: #fff;
-  border-radius: 5px;
-}
-
-.header .inner-login ul .login:hover {
-  background-color: #f0f6fde8;
-}
-.header .inner-login ul .guides:hover {
-  background-color: #f0f6fde8;
-}
-/* end header  */
 
 /* main container */
 .main-container {

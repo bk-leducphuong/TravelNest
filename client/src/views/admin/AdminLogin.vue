@@ -1,12 +1,6 @@
 <!-- src/views/Login.vue -->
 <template>
-  <header class="header">
-    <div class="logo"><a @click="this.$router.push('/')">Booking.com</a></div>
-    <div class="header-right">
-      <div class="flag"></div>
-      <span>?</span>
-    </div>
-  </header>
+  <LoginHeader :isAdminLogin="true" />
 
   <div class="container" v-if="step === 1">
     <h4>{{ $t('loginHeader') }}</h4>
@@ -123,10 +117,12 @@ import { mapActions, mapGetters } from 'vuex'
 import { useToast } from 'vue-toastification'
 import OtpVerification from '@/components/admin/otp-verification/OtpVerification.vue'
 import checkPasswordStrength from '@/utils/checkPasswordStrength'
+import LoginHeader from '@/components/LoginHeader.vue'
 
 export default {
   components: {
-    OtpVerification
+    OtpVerification,
+    LoginHeader
   },
   setup() {
     // Get toast interface

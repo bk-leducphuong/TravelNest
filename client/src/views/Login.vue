@@ -1,14 +1,7 @@
 <!-- src/views/Login.vue -->
 <template>
   <ForgotPassword :email="email" :userRole="userRole" @close="closeForgotPassword" v-if="isForgotPassword"/>
-  <header class="header">
-    <div class="logo"><a @click="this.$router.push('/')">Booking.com</a></div>
-    <div class="header-right">
-      <div class="flag"></div>
-      <span>?</span>
-    </div>
-  </header>
-
+  <LoginHeader :isAdminLogin="false" />
   <div class="container" v-if="step === 1">
     <h1>{{ $t('loginHeader') }}</h1>
     <p>
@@ -99,10 +92,12 @@ import { useToast } from "vue-toastification";
 import ForgotPassword from '@/components/ForgotPassword.vue';
 import user from '@/stores/user';
 import checkPasswordStrength from '@/utils/checkPasswordStrength';
+import LoginHeader from '@/components/LoginHeader.vue'
 
 export default {
   components: {
-    ForgotPassword
+    ForgotPassword,
+    LoginHeader
   },
   setup() {
       // Get toast interface
@@ -219,36 +214,6 @@ export default {
 </script>
 
 <style scoped>
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: white;
-}
-.header {
-  background-color: #003580;
-  color: white;
-  padding: 15px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.logo {
-  font-weight: bold;
-  font-size: 24px;
-}
-.header-right {
-  display: flex;
-  align-items: center;
-}
-.flag {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: #ff0000;
-  display: inline-block;
-  margin-right: 10px;
-}
 .container {
   max-width: 400px;
   margin: 40px auto;
