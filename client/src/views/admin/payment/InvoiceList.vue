@@ -10,14 +10,13 @@ import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
 
 export default {
-
   components: {
     AdminHeader,
     DashboardMenu,
     WithdrawConfirmation,
     Loading
   },
-   setup() {
+  setup() {
     const toast = useToast()
     return { toast }
   },
@@ -50,12 +49,15 @@ export default {
       } catch (error) {
         this.toast.error(error.message)
         console.log(error)
-      }finally {
+      } finally {
         this.isLoading = false
       }
     },
     seeInvoiceDetails(invoiceId) {
-      this.$router.push({ path: `/admin/${this.getCurrentManagingHotelId}/payment/invoice-details`, query: { invoiceId: invoiceId } })
+      this.$router.push({
+        path: `/admin/${this.getCurrentManagingHotelId}/payment/invoice-details`,
+        query: { invoiceId: invoiceId }
+      })
     },
     openWithdrawConfirmationPopup(amount, transaction_id) {
       this.withdrawAmount = amount
@@ -66,7 +68,11 @@ export default {
       this.isWithdrawConfirmationPopupOpen = false
     },
     isButtonDisabled(invoice) {
-      if (invoice.status == 'unavailable' || invoice.status == 'done' || invoice.status == 'pending') {
+      if (
+        invoice.status == 'unavailable' ||
+        invoice.status == 'done' ||
+        invoice.status == 'pending'
+      ) {
         return true
       } else {
         return false
@@ -77,7 +83,7 @@ export default {
     socket.on('payout-completed', async (data) => {
       this.toast.success('Payout successful!')
 
-      this.invoices.forEach(invoice => {
+      this.invoices.forEach((invoice) => {
         if (invoice.transaction_id == data.transactionId) {
           invoice.status = 'done'
         }
@@ -104,90 +110,92 @@ export default {
     <div class="main-wrapper">
       <AdminHeader />
 
-       <loading
+      <div class="main-content">
+        <loading
           v-model:active="isLoading"
           :can-cancel="true"
           :on-cancel="onCancel"
           :color="`#003b95`"
           :is-full-page="false"
         />
-      <!--Title-->
-      <div class="title">
-        <div class="container">
-          <div class="title-total">
-            <div class="title-method">
-              <h2>Invoices</h2>
-              <p>You have total {{ invoices.length }} invoices.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!--End Title-->
-
-      <!--Table-->
-      <div class="table">
-        <div class="container">
-          <div class="table-total">
-            <div class="table-title">
-              <p>All Invoice</p>
-              <div class="table-icon">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <i class="fa-solid fa-bars"></i>
-                <i class="fa-solid fa-gear"></i>
+        <!--Table-->
+        <div class="table">
+          <div class="container">
+            <div class="table-total">
+              <div class="table-title">
+                <div class="title">
+                  <div class="title-total">
+                    <div class="title-method">
+                      <h3>Invoices</h3>
+                      <p>You have total {{ invoices.length }} invoices.</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="actions">
+                  <select class="bulk-action" @change="arrangeBookings($event.target.value)">
+                    <option value="all">Tất cả</option>
+                    <option value="today">Hôm nay</option>
+                    <option value="last-week">1 tuần trước</option>
+                    <option value="last-month">1 tháng trước</option>
+                    <option value="last-year">1 năm trước</option>
+                  </select>
+                </div>
               </div>
-            </div>
-            <div class="table-content">
-              <table>
-                <thead>
-                  <tr>
-                    <td>PAYMENT ID</td>
-                    <td>DATE</td>
-                    <td>AMOUNT</td>
-                    <td>STATUS</td>
-                    <td></td>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="invoice in invoices" :key="invoice.invoice_id">
-                    <td class="payment-id">#{{ invoice.invoice_id }}</td>
-                    <td class="time">
-                      <p>{{ new Date(invoice.updated_at).toDateString() }}</p>
-                    </td>
-                    <td class="usd">{{ parseInt(invoice.amount).toLocaleString('vi-VN') }} VND</td>
-                    <td class="status">
-                      <ul>
-                        <li
-                          :style="{
-                            color:
-                              invoice.status == 'available' || invoice.status == 'done'
-                                ? 'green'
-                                : 'red'
-                          }"
+              <div class="table-content">
+                <table>
+                  <thead>
+                    <tr>
+                      <td>Payment id</td>
+                      <td>Date</td>
+                      <td>Amount</td>
+                      <td>Status</td>
+                      <td></td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="invoice in invoices" :key="invoice.invoice_id">
+                      <td class="payment-id">#{{ invoice.invoice_id }}</td>
+                      <td class="time">
+                        <p>{{ new Date(invoice.updated_at).toDateString() }}</p>
+                      </td>
+                      <td class="usd">
+                        {{ parseInt(invoice.amount).toLocaleString('vi-VN') }} VND
+                      </td>
+                      <td class="status">
+                        <ul>
+                          <li
+                            :style="{
+                              color:
+                                invoice.status == 'available' || invoice.status == 'done'
+                                  ? 'green'
+                                  : 'red'
+                            }"
+                          >
+                            {{ invoice.status }}
+                          </li>
+                        </ul>
+                      </td>
+                      <td class="icon">
+                        <button class="view" @click="seeInvoiceDetails(invoice.invoice_id)">
+                          View
+                        </button>
+                      </td>
+                      <td class="icon">
+                        <button
+                          class="withdraw-btn"
+                          :class="{ disabled: isButtonDisabled(invoice) }"
+                          :disabled="invoice.status == 'unavailable' || invoice.status == 'done'"
+                          @click="
+                            openWithdrawConfirmationPopup(invoice.amount, invoice.transaction_id)
+                          "
                         >
-                          {{ invoice.status }}
-                        </li>
-                      </ul>
-                    </td>
-                    <td class="icon">
-                      <button class="view" @click="seeInvoiceDetails(invoice.invoice_id)">
-                        View
-                      </button>
-                    </td>
-                    <td class="icon">
-                      <button
-                        class="withdraw-btn"
-                        :class="{'disabled': isButtonDisabled(invoice)}"
-                        :disabled="invoice.status == 'unavailable' || invoice.status == 'done'"
-                        @click="
-                          openWithdrawConfirmationPopup(invoice.amount, invoice.transaction_id)
-                        "
-                      >
-                        Withdraw
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                          Withdraw
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -198,6 +206,7 @@ export default {
 </template>
 <style scoped>
 .invoice-list-container {
+  height: 100%;
   display: flex;
 }
 .main-wrapper {
@@ -206,17 +215,19 @@ export default {
   flex-direction: column;
   position: relative;
 }
-/* Main content styles updated */
+.main-content {
+  padding: 24px;
+  position: relative;
+}
 /* Title*/
 .title-total {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 40px;
 }
 .title-method p {
   color: #777;
-  font-weight: 600;
+  /* font-weight: 600; */
 }
 
 .title-add button {
@@ -273,16 +284,19 @@ export default {
   top: 20%;
 }
 
-.over-lay {
-  display: none;
-  width: 100vw;
-  height: 100vh;
-  background-color: #000000;
-  position: fixed;
-  top: 0;
-  left: 0;
-  opacity: 0.4;
-  z-index: 3;
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.bulk-action {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: white;
+  color: #718096;
+  cursor: pointer;
 }
 
 .title-form p {
@@ -333,9 +347,8 @@ tbody tr td {
 }
 
 .table-title p {
-  font-size: 24px;
+  font-size: 16px;
   margin: 0;
-  margin-left: 10px;
 }
 
 .table-icon i {

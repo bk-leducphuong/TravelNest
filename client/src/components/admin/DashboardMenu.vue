@@ -29,7 +29,8 @@ export default {
 }
 </script>
 <template>
-     <nav class="dashboard">
+     <div class="dashboard-container">
+      <nav class="dashboard">
         <div class="logo" @click="this.$router.push('/admin/hotels-management')">Booking.com</div>
 
         <ul class="nav-menu">
@@ -131,15 +132,27 @@ export default {
           </div>
         </ul>
     </nav>
+ </div>
 </template>
 <style scoped>  
 /* Dashboard Sidebar Styles */
-.dashboard {
+.dashboard-container {
   width: 220px;
-  background-color: #003b95;
-  color: #ffffff;
   padding: 0px 20px;
   flex-shrink: 0;
+  background-color: #003b95;
+  color: #ffffff;
+  
+}
+.dashboard {
+  position: fixed;
+  height: 100vh;
+  overflow-y: scroll;
+  /* height: 100%; */
+}
+
+.dashboard::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
 }
 
 .logo {
