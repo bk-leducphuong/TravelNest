@@ -98,8 +98,10 @@ const roomRoutes = require('./routes/admin/roomRoutes.js');
 const adminReviewRoutes = require('./routes/admin/reviewRoutes.js');
 const adminCancelRoutes = require('./routes/admin/cancelRoutes.js');
 const notificationRoutes = require('./routes/admin/notificationRoutes.js');
+const adminHomeRoutes = require('./routes/admin/homeRoutes.js');
 
 
+app.use('/api/admin/home', adminHomeRoutes);
 app.use('/api/admin/notifications', notificationRoutes);
 app.use('/api/admin/hotels-management', hotelsManagementRoutes);
 app.use('/api/admin/payout', adminPayoutRoutes);

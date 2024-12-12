@@ -1,4 +1,6 @@
 <script>
+import axios from 'axios'
+import {mapGetters} from 'vuex'
 import DashboardMenu from '@/components/admin/DashboardMenu.vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
 import RoomBookingChart from '@/components/admin/chart/RoomBookingChart.vue'
@@ -10,6 +12,43 @@ export default {
     AdminHeader,
     RoomBookingChart,
     SalesRevenue
+  }, 
+  data() {
+    return {
+      totalBookings: 0,
+      timeSettings: 30, // one month
+    }
+  },
+  computed: {
+    ...mapGetters('manageHotels', ['getCurrentManagingHotelId']),
+  },
+  watch: {
+    timeSettings() {
+      this.getTotalBookings()
+    }
+  },
+  methods: {
+    async getTotalBookings() {
+      const end = new Date()
+      const start = new Date()
+      start.setDate(end.getDate() - this.timeSettings)
+
+      const response = await axios.post('http://localhost:3000/api/admin/home/get-total-bookings', {
+        hotelId: this.getCurrentManagingHotelId,
+        period: {
+          start: start.toISOString().slice(0, 10),
+          end: end.toISOString().slice(0, 10)
+        }
+      }, {
+        withCredentials: true
+      })
+
+      this.totalBookings = response.data.totalBookings
+
+    }
+  },
+  async mounted() {
+    await this.getTotalBookings()
   }
 }
 </script>
@@ -25,8 +64,11 @@ export default {
         <div class="header">
           <h1>Dashboard Overview</h1>
           <div class="header-controls">
-            <select>
-              <option>Last 30 Days</option>
+            <select v-model="timeSettings">
+              <option value="7">Last 7 Days</option>
+              <option value="30">Last 30 Days</option>
+              <option value="60">Last 60 Days</option>
+              <option value="90">Last 90 Days</option>
             </select>
           </div>
         </div>
@@ -35,7 +77,7 @@ export default {
           <div class="card">
             <h3 class="card-title">Total Booking</h3>
             <div class="booking-num">
-              <span class="booking-value">11,230</span>
+              <span class="booking-value">{{ totalBookings }}</span>
             </div>
             <div class="room-stats">
               <span>This month : 1913</span>
