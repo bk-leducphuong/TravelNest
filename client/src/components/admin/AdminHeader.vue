@@ -3,7 +3,11 @@ import socket from '@/services/socket'
 import axios from 'axios'
 import { mapGetters } from 'vuex'
 import { useToast } from 'vue-toastification'
+import LanguageSwitch from '@/components/LanguageSwitch.vue'
 export default {
+  components: {
+    LanguageSwitch
+  },
   setup() {
     const toast = useToast()
     return { toast }
@@ -13,14 +17,16 @@ export default {
       isNotificationPopupVisible: false,
       notifications: [],
       numberOfNewNotifications: 0,
-      haveNewNotifications: false
+      haveNewNotifications: false,
+      showLanguagePopup: false
     }
   },
   computed: {
     ...mapGetters('manageHotels', [
       'getCurrentManagingHotelInformation',
       'getCurrentManagingHotelId'
-    ])
+    ]),
+    ...mapGetters('user', ['getUserLanguage'])
   },
   watch: {
     notifications(newValue) {
@@ -95,7 +101,7 @@ export default {
           route = route + '/bookings/all'
           this.$router.push(route)
           break
-        case 'cancel booking':  
+        case 'cancel booking':
           route = route + '/bookings/all'
           this.$router.push(route)
           break
@@ -103,11 +109,21 @@ export default {
           break
       }
 
-      await axios.post('http://localhost:3000/api/admin/notifications/mark-as-read', {
-        notificationId: notificationId
-      }, {
-        withCredentials: true
-      })
+      await axios.post(
+        'http://localhost:3000/api/admin/notifications/mark-as-read',
+        {
+          notificationId: notificationId
+        },
+        {
+          withCredentials: true
+        }
+      )
+    },
+    openLanguagePopup() {
+      this.showLanguagePopup = !this.showLanguagePopup
+    },
+    closeLanguagePopup() {
+      this.showLanguagePopup = false
     }
   },
   mounted() {
@@ -117,6 +133,7 @@ export default {
 }
 </script>
 <template>
+  <LanguageSwitch @close-language-popup="closeLanguagePopup" v-if="showLanguagePopup" />
   <header class="top-header">
     <div class="header-container">
       <!-- account  -->
@@ -142,59 +159,71 @@ export default {
           <!-- <span v-else>Hotel</span> -->
         </div>
       </div>
-      <!-- notification popup -->
-      <div class="notification-container" v-click-outside="hideNotficationPopup">
-        <div class="notification-icon" @click="openNotificationPopup">
-          <span class="notification-badge" v-if="numberOfNewNotifications > 0">{{
-            numberOfNewNotifications
-          }}</span>
-          <i class="fa-regular fa-bell"></i>
+      <div class="function-button">
+        <div @click="openLanguagePopup()" class="language-btn">
+          <img
+            :src="`https://flagcdn.com/w40/${getUserLanguage.split('-')[1].toLowerCase()}.png`"
+            alt="Vietnam"
+          />
         </div>
-        <div class="notification-popup" v-if="isNotificationPopupVisible || haveNewNotifications">
-          <div class="notification-header">
-            <div class="notification-title">
-              <span>Notifications</span>
-            </div>
-            <div class="mark-all-read-btn">
-              <span @click="markAllRead()">Mark all as read</span>
+
+        <div>
+          <i class="fa-regular fa-circle-question" style="font-size: 23px;"></i>
+        </div>
+        <!-- notification popup -->
+        <div class="notification-container" v-click-outside="hideNotficationPopup">
+          <div class="notification-icon" @click="openNotificationPopup">
+            <span class="notification-badge" v-if="numberOfNewNotifications > 0">{{
+              numberOfNewNotifications
+            }}</span>
+            <i class="fa-regular fa-bell"></i>
+          </div>
+        </div>
+      </div>
+      <div class="notification-popup" v-if="isNotificationPopupVisible || haveNewNotifications">
+        <div class="notification-header">
+          <div class="notification-title">
+            <span>Notifications</span>
+          </div>
+          <div class="mark-all-read-btn">
+            <span @click="markAllRead()">Mark all as read</span>
+          </div>
+        </div>
+        <div class="notification-content">
+          <div
+            class="notification-item"
+            v-if="notifications.length == 0"
+            style="justify-content: space-around"
+          >
+            <div class="notification-text">
+              <h4>You have no notifications</h4>
             </div>
           </div>
-          <div class="notification-content">
-            <div
-              class="notification-item"
-              v-if="notifications.length == 0"
-              style="justify-content: space-around"
-            >
-              <div class="notification-text">
-                <h4>You have no notifications</h4>
-              </div>
+          <div
+            class="notification-item"
+            v-for="notification in notifications"
+            :key="notification.notificationId"
+            @click="viewDetails(notification)"
+          >
+            <div class="notification-icon">
+              <i class="fas fa-arrow-up"></i>
             </div>
-            <div
-              class="notification-item"
-              v-for="notification in notifications"
-              :key="notification.notificationId"
-              @click="viewDetails(notification)"
-            >
-              <div class="notification-icon">
-                <i class="fas fa-arrow-up"></i>
-              </div>
-              <div class="notification-text">
-                <h4>
-                  <i
-                    class="fa fa-circle"
-                    aria-hidden="true"
-                    style="color: red; font-size: 10px"
-                    v-if="notification.is_read == 0"
-                  ></i>
-                  {{ notification.message }}
-                </h4>
-                <p>2 hrs ago</p>
-              </div>
+            <div class="notification-text">
+              <h4>
+                <i
+                  class="fa fa-circle"
+                  aria-hidden="true"
+                  style="color: red; font-size: 10px"
+                  v-if="notification.is_read == 0"
+                ></i>
+                {{ notification.message }}
+              </h4>
+              <p>2 hrs ago</p>
             </div>
           </div>
-          <div class="notification-footer">
-            <span class="see-all-button">See all</span>
-          </div>
+        </div>
+        <div class="notification-footer">
+          <span class="see-all-button">See all</span>
         </div>
       </div>
     </div>
@@ -212,9 +241,11 @@ export default {
 }
 
 .header-container {
-  position: absolute;
+  /* position: absolute; */
   right: 15px;
   display: flex;
+  width: 100%;
+  justify-content: space-between;
   align-items: center;
   gap: 20px;
 }
@@ -250,6 +281,33 @@ export default {
   flex-direction: column;
   /* align-items: center; */
   gap: 5px;
+}
+.function-button {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.function-button div {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  text-align: center;
+  display: flex;
+  align-items: center;
+}
+.language-btn {
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.language-btn img {
+  width: inherit;
+  height: inherit;
+  object-fit: cover;
+  border-radius: 50%;
 }
 /* notification */
 .notification-icon {

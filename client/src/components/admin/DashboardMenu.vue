@@ -138,7 +138,7 @@ export default {
   width: 220px;
   background-color: #003b95;
   color: #ffffff;
-  padding: 20px;
+  padding: 0px 20px;
   flex-shrink: 0;
 }
 
@@ -146,7 +146,6 @@ export default {
   font-size: 25px;
   font-weight: 700;
   padding: 12px 0;
-  margin-bottom: 24px;
   text-align: center;
   cursor: pointer;
 }
