@@ -12,6 +12,8 @@ import SettingDetails from '@/views/account-settings/SettingDetails.vue'
 import BookingConfirmation from '@/views/BookingConfirmation.vue'
 import Bookings from '@/views/Bookings.vue'
 import BookingDetails from '@/views/BookingDetails.vue'
+import Reviews from '@/views/Reviews.vue'
+import ReviewDetails from '@/views/ReviewDetails.vue'
 
 import stores from '@/stores/index.js'
 
@@ -131,6 +133,21 @@ const routes = [
     name: 'SavedHotels',
     component: SavedHotels,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/reviews',
+    name: 'Reviews',
+    component: Reviews,
+    meta: { requiresAuth: true}
+  },
+  {
+    path: '/reviews/review-details',
+    name: 'ReviewDetails',
+    component: ReviewDetails,
+    props: (route) => ({
+      bc: route.query.bc // booking code
+    }),
+    meta: { requiresAuth: true}
   },
   // route for partner/admin
   {

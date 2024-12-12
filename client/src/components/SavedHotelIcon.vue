@@ -118,7 +118,7 @@ export default {
   transition:
     background-color 0.3s,
     transform 0.3s;
-  z-index: 99;
+  z-index: 2;
 }
 
 .favorite-button:hover {
