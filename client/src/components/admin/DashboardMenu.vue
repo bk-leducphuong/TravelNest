@@ -89,6 +89,8 @@ export default {
             </div>
             <div class="child-item-container" v-if="this.isPaymentSelected">
               <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/payment`)">Payment methods</li>
+              <!-- <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/payment/stripe-connect-account-management`)">Stripe management</li> -->
+               <li class="child-item"><a href="https://connect.stripe.com/express_login" target="_blank">Stripe management</a></li>
               <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/payment/invoices`)">Invoices</li>
             </div>
           </div>
@@ -137,6 +139,7 @@ export default {
 <style scoped>  
 /* Dashboard Sidebar Styles */
 .dashboard-container {
+  /* height: 100vh; */
   width: 220px;
   padding: 0px 20px;
   flex-shrink: 0;
@@ -148,6 +151,7 @@ export default {
   position: fixed;
   height: 100vh;
   overflow-y: scroll;
+  background-color: #003b95;
   /* height: 100%; */
 }
 

@@ -206,7 +206,6 @@ export default {
 </template>
 <style scoped>
 .invoice-list-container {
-  height: 100%;
   display: flex;
 }
 .main-wrapper {

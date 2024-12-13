@@ -25,6 +25,7 @@ import AdminHome from '@/views/admin/AdminHome.vue'
 import AdminPayment from '@/views/admin/payment/AdminPayment.vue'
 import InvoiceList from '@/views/admin/payment/InvoiceList.vue'
 import InvoiceDetails from '@/views/admin/payment/InvoiceDetails.vue'
+import StripeManagement from '@/views/admin/payment/StripeManagement.vue'
 import Return from '@/views/admin/Return.vue'
 import Refresh from '@/views/admin/Refresh.vue'
 // admin bookings
@@ -187,6 +188,12 @@ const routes = [
       invoiceId: route.query.invoiceId
     }),
 
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/:hotelId/payment/stripe-connect-account-management',
+    name: 'StripeManagement',
+    component: StripeManagement,
     meta: { requiresAuth: true }
   },
   // admin bookings
