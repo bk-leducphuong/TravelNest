@@ -38,7 +38,7 @@ export default {
     joinRoom() {
       if (this.getCurrentManagingHotelId) {
         // Tham gia vào room của admin
-        socket.emit('joinRoom', this.getCurrentManagingHotelId)
+        socket.emit('joinAdminRoom', this.getCurrentManagingHotelId)
         // Nhận thông báo mới
         socket.on('newNotification', (data) => {
           this.notifications.unshift(data)
@@ -68,9 +68,15 @@ export default {
         })
         this.numberOfNewNotifications = 0
 
-        await axios.get('http://localhost:3000/api/admin/notifications/mark-all-as-read', {
-          withCredentials: true
-        })
+        await axios.post(
+          'http://localhost:3000/api/admin/notifications/mark-all-as-read',
+          {
+            hotelId: this.getCurrentManagingHotelId
+          },
+          {
+            withCredentials: true
+          }
+        )
       } catch (error) {
         this.toast.error('Error marking notifications as read')
         console.error(error)
@@ -86,6 +92,9 @@ export default {
     },
     hideNotficationPopup() {
       this.isNotificationPopupVisible = false
+      if (this.haveNewNotifications) {
+        this.haveNewNotifications = false
+      }
     },
     openNotificationPopup() {
       this.isNotificationPopupVisible = !this.isNotificationPopupVisible
@@ -168,7 +177,7 @@ export default {
         </div>
 
         <div>
-          <i class="fa-regular fa-circle-question" style="font-size: 23px;"></i>
+          <i class="fa-regular fa-circle-question" style="font-size: 23px"></i>
         </div>
         <!-- notification popup -->
         <div class="notification-container" v-click-outside="hideNotficationPopup">

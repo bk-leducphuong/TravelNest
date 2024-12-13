@@ -28,7 +28,7 @@ export default {
   },
   computed: {
     ...mapGetters('booking', ['getBookingInformation']),
-    ...mapGetters('manageHotels', ['getCurrentManagingHotelId'])
+    ...mapGetters('manageHotels', ['getCurrentManagingHotelId', 'getCurrentManagingHotelInformation'])
   },
   methods: {
     async cancelBooking() {
@@ -42,7 +42,8 @@ export default {
         const response = await axios.post(
           'http://localhost:3000/api/admin/cancel-booking',
           {
-            bookingInformation: this.getBookingInformation
+            bookingInformation: this.getBookingInformation,
+            hotelInformation: this.getCurrentManagingHotelInformation
           },
           {
             withCredentials: true
@@ -58,6 +59,7 @@ export default {
 
         this.doCancel = false
       } catch (error) {
+        this.fail = true
         console.log(error)
       }
     }
