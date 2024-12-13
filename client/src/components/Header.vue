@@ -1,4 +1,5 @@
 <template>
+  <LanguageSwitch @close-language-popup="closeLanguagePopup" v-if="showLanguagePopup" />
   <div class="header">
     <div class="container">
       <div class="inner-wrap">
@@ -8,9 +9,20 @@
         <div class="inner-login">
           <ul>
             <li><strong>VND</strong></li>
-            <li><img src="../assets/header/Vn@3x.png" alt="Vietnam" /></li>
+            <li @click="openLanguagePopup()">
+              <img
+                :src="`https://flagcdn.com/w40/${getUserLanguage.split('-')[1].toLowerCase()}.png`"
+                style="width: 20px; height: 20px"
+                alt="Vietnam"
+              />
+            </li>
             <li><i class="fa-regular fa-circle-question"></i></li>
-            <li><i class="fa-regular fa-bell fa-lg"></i></li>
+            <li style="position: relative" @click="openNotificationPopup()" v-click-outside="hideNotficationPopup">
+              <span class="notification-badge" v-if="numberOfNewNotifications > 0">{{
+                numberOfNewNotifications
+              }}</span>
+              <i class="fa-regular fa-bell"></i>
+            </li>
             <li>
               <span><a @click="this.$router.push('/join')">Đăng chỗ nghỉ của Quý vị</a></span>
             </li>
@@ -31,12 +43,59 @@
     </div>
   </div>
 
+  <div class="notification-popup" v-if="isNotificationPopupVisible || haveNewNotifications">
+    <div class="notification-header">
+      <div class="notification-title">
+        <span>Notifications</span>
+      </div>
+      <div class="mark-all-read-btn">
+        <span @click="markAllRead()">Mark all as read</span>
+      </div>
+    </div>
+    <div class="notification-content">
+      <div
+        class="notification-item"
+        v-if="notifications.length == 0"
+        style="justify-content: space-around"
+      >
+        <div class="notification-text">
+          <h4>You have no notifications</h4>
+        </div>
+      </div>
+      <div
+        class="notification-item"
+        v-for="notification in notifications"
+        :key="notification.notificationId"
+        @click="viewDetails(notification)"
+      >
+        <div class="notification-icon">
+          <i class="fas fa-arrow-up"></i>
+        </div>
+        <div class="notification-text">
+          <h4>
+            <i
+              class="fa fa-circle"
+              aria-hidden="true"
+              style="color: red; font-size: 10px"
+              v-if="notification.is_read == 0"
+            ></i>
+            {{ notification.message }}
+          </h4>
+          <p>2 hrs ago</p>
+        </div>
+      </div>
+    </div>
+    <div class="notification-footer">
+      <span class="see-all-button">See all</span>
+    </div>
+  </div>
+
   <div class="slide" v-if="isSearchOpen">
     <div class="container">
       <div class="inner-wrap" v-if="this.$route.name === 'Home'">
-        <strong>Tìm chỗ nghỉ tiếp theo</strong>
+        <strong>{{ $t('titleHeader') }}</strong>
         <br />
-        <p>Tìm ưu đãi khách sạn, chỗ nghỉ dạng nhà và nhiều hơn nữa...</p>
+        <p>{{ $t('subtitleHeader') }}</p>
       </div>
     </div>
   </div>
@@ -138,6 +197,8 @@ import flatpickr from 'flatpickr'
 import 'flatpickr/dist/flatpickr.css'
 import { mapActions, mapState, mapGetters } from 'vuex'
 import AccountMenu from './user/AccountMenu.vue'
+import LanguageSwitch from './LanguageSwitch.vue'
+import socket from '@/services/socket'
 
 export default {
   props: {
@@ -147,7 +208,8 @@ export default {
     }
   },
   components: {
-    AccountMenu
+    AccountMenu,
+    LanguageSwitch
   },
   data() {
     return {
@@ -159,6 +221,7 @@ export default {
         { name: 'Đà Nẵng', country: 'Việt Nam' }
       ],
       showLocationPopup: false,
+      showLanguagePopup: false,
       showGuestSelector: false,
       selectedLocation: null,
       dateRange: null,
@@ -167,7 +230,12 @@ export default {
       rooms: 1,
       checkInDate: null,
       checkOutDate: null,
-      numberOfDays: null
+      numberOfDays: null,
+      // notification
+      isNotificationPopupVisible: false,
+      notifications: [],
+      numberOfNewNotifications: 0,
+      haveNewNotifications: false
     }
   },
   watch: {
@@ -189,13 +257,19 @@ export default {
         // Calculate the number of days between the start and end dates
         this.calculateNumberOfDays(this.checkInDate, this.checkOutDate)
       }
-    },
+    }
   },
   computed: {
-    ...mapGetters('auth', ['isUserAuthenticated', 'getUserRole']),
+    ...mapGetters('auth', ['isUserAuthenticated', 'getUserRole', 'getUserId']),
     ...mapGetters('search', ['getSearchData']),
+    ...mapGetters('user', ['getUserLanguage']),
     guestDetails() {
       return `${this.adults} người lớn · ${this.children} trẻ em · ${this.rooms} phòng`
+    }
+  },
+  watch: {
+    notifications(newValue) {
+      this.calculateNumerOfNewNotifications()
     }
   },
   methods: {
@@ -235,6 +309,13 @@ export default {
       this.showGuestSelector = false
     },
 
+    openLanguagePopup() {
+      this.showLanguagePopup = !this.showLanguagePopup
+    },
+    closeLanguagePopup() {
+      this.showLanguagePopup = false
+    },
+
     async submitSearch() {
       const searchData = {
         location: this.selectedLocation,
@@ -245,7 +326,7 @@ export default {
         rooms: this.rooms,
         numberOfDays: this.numberOfDays
       }
-     
+
       // Redirect user to search results page with query params
       this.$router.push({
         name: 'SearchResults',
@@ -259,12 +340,76 @@ export default {
           rooms: this.rooms
         }
       })
-    }
+    },
+    joinRoom() {
+      if (this.isUserAuthenticated) {
+        // Tham gia vào room của admin
+        socket.emit('joinUserRoom', this.getUserId)
+        // Nhận thông báo mới
+        socket.on('newNotification', (data) => {
+          this.notifications.unshift(data)
+          this.numberOfNewNotifications++
+          this.haveNewNotifications = true
+        })
+      } else {
+        console.log('User not logged in')
+      }
+    },
+    async getNotifiactions() {
+      const response = await axios.get('http://localhost:3000/api/notifications', {
+        withCredentials: true
+      })
+      this.notifications = response.data.notifications
+    },
+    calculateNumerOfNewNotifications() {
+      this.numberOfNewNotifications = 0
+      this.notifications.forEach((notification) => {
+        if (notification.is_read == 0) {
+          this.numberOfNewNotifications++
+        }
+      })
+    },
+    async markAllRead() {
+      try {
+        this.notifications.forEach((notification) => {
+          notification.is_read = 1
+        })
+        this.numberOfNewNotifications = 0
+
+        await axios.get(
+          'http://localhost:3000/api/notifications/mark-all-as-read',
+          {
+            withCredentials: true
+          }
+        )
+      } catch (error) {
+        this.toast.error('Error marking notifications as read')
+        console.error(error)
+      }
+    },
+     hideNotficationPopup() {
+      this.isNotificationPopupVisible = false
+      if (this.haveNewNotifications) {
+        this.haveNewNotifications = false
+      }
+    },
+    openNotificationPopup() {
+      this.isNotificationPopupVisible = !this.isNotificationPopupVisible
+    },
   },
-  mounted() {
+  async mounted() {
+    if (this.isUserAuthenticated) {
+      await this.getNotifiactions()
+      this.joinRoom()
+    }
+
     if (this.getSearchData) {
       this.selectedLocation = this.getSearchData.location
-      this.dateRange = 'Từ ' + new Date(this.getSearchData.checkInDate).toLocaleDateString('vi-VN') + ' đến ' + new Date(this.getSearchData.checkOutDate).toLocaleDateString('vi-VN')
+      this.dateRange =
+        'Từ ' +
+        new Date(this.getSearchData.checkInDate).toLocaleDateString('vi-VN') +
+        ' đến ' +
+        new Date(this.getSearchData.checkOutDate).toLocaleDateString('vi-VN')
       this.children = this.getSearchData.children
       this.adults = this.getSearchData.adults
       this.rooms = this.getSearchData.rooms
@@ -353,6 +498,10 @@ body {
 
 .header .inner-login ul li span {
   font-weight: 600;
+}
+
+.header .inner-login ul li i {
+  font-size: 21px;
 }
 
 .header .inner-login ul .login {
@@ -585,4 +734,104 @@ body {
 }
 
 /* end search  */
+
+.notification-badge {
+  padding: 0px 5px;
+  position: absolute;
+  font-size: 15px;
+  background-color: red;
+  border-radius: 5px;
+  color: #fff;
+  top: -5px;
+  right: -5px;
+}
+
+/* notification header */
+
+.notification-popup {
+  position: fixed;
+  top: 80px;
+  left: 55%;
+  /* transform: translateX(10%); */
+  width: 350px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.notification-title {
+  font-size: 17px;
+  color: #7f8c8d;
+  padding: 10px;
+}
+.mark-all-read-btn {
+  color: #3498db;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.notification-content {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.notification-item:hover {
+  background-color: #f2f2f2;
+}
+
+.notification-icon {
+  margin-right: 12px;
+  font-size: 24px;
+  position: relative;
+  /* color: #00b894; */
+}
+
+.notification-text h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.notification-text p {
+  margin: 0;
+  font-size: 12px;
+  color: #7f8c8d;
+}
+
+.notification-footer {
+  padding: 12px;
+  text-align: center;
+  border-top: 1px solid #f2f2f2;
+}
+
+.see-all-button {
+  color: #3498db;
+  cursor: pointer;
+}
+
+.btn {
+  display: inline-block;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
 </style>

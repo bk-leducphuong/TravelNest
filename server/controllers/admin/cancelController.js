@@ -10,7 +10,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const queryAsync = promisify(connection.query).bind(connection);
 
 // send email to who booked the reservation
-const sendCancelEmail = async (bookingInformation) => {
+const sendCancelEmail = async (bookingInformation, hotelInformation) => {
   try {
     const {
         booking_code: bookingCode,
@@ -57,11 +57,71 @@ const sendCancelEmail = async (bookingInformation) => {
   }
 };
 
+const sendCancelBookingNotification = async (bookingInformation, hotelInformation) => {
+  const io = getIO();
+
+  const {
+        booking_code: bookingCode,
+        buyer_id: buyerId,
+        rooms,
+        checkInDate,
+        checkOutDate,
+        numberOfGuests,
+        bookedOn,
+        totalPrice,
+        bookerInformation,
+    } = bookingInformation;
+
+  const {
+    hotel_id: hotelId,
+    name: hotelName,
+  } = hotelInformation
+
+  // create notification
+  const notification = {
+    senderId: hotelId,
+    recieverId: buyerId, 
+    notificationType: "cancel booking",
+    message: `Cancel booking: ${hotelName} has cancelled your booking with booking code is ${bookingCode}.`,
+    isRead: 0,
+  };
+
+  // store notification
+  const notificationQuery = `
+      INSERT INTO user_notifications (sender_id, reciever_id, notification_type, message, is_read)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    const { insertId: notificationId } = await queryAsync(notificationQuery, [
+      notification.senderId,
+      notification.recieverId,
+      notification.notificationType,
+      notification.message,
+      notification.isRead,
+    ]);
+
+  io.to(`user_${notification.recieverId}`).emit("newNotification", {
+    notificationId: notificationId,
+    notificationType: notification.notificationType,
+    message: notification.message,
+    isRead: notification.isRead,
+    senderId: notification.senderId,
+  });
+
+  // io.to(`owner_${notification.recieverId}`).emit("newNotification", {
+  //   notificationId: notificationId,
+  //   notificationType: notification.notificationType,
+  //   message: 'Bạn đã hủy đơn đặt phòng thành công!',
+  //   isRead: notification.isRead,
+  //   senderId: notification.senderId,
+  // });
+};
+
+
 const handleCancel = async (req, res) => {
   try {
-    const { bookingInformation } = req.body;
+    const { bookingInformation, hotelInformation } = req.body;
 
-    if (!bookingInformation) {
+    if (!bookingInformation || !hotelInformation) {
       return res
         .status(400)
         .json({ success: false, message: "Booking code is required" });
@@ -81,7 +141,10 @@ const handleCancel = async (req, res) => {
     });
 
     // send email to who booked the reservation
-    await sendCancelEmail(bookingInformation);
+    await sendCancelEmail(bookingInformation, hotelInformation);
+
+    // send notification to use who booked the reservation
+    await sendCancelBookingNotification(bookingInformation, hotelInformation);
 
     return res.status(200).json({
       success: true,

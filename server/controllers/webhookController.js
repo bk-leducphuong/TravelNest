@@ -283,7 +283,6 @@ const handleRefundIntentSucceeded = async (chargeRefunded) => {
     `;
     await queryAsync(updateBookingQuery, ["cancelled", bookingCode]);
 
-
     // delete invoice
     const updateInvoiceQuery = `
       DELETE FROM invoices where transaction_id = ?
@@ -305,7 +304,6 @@ const handleRefundIntentSucceeded = async (chargeRefunded) => {
         checkOutDate,
       ]);
     }
-    console.log("query successful:");
   } catch (error) {
     console.error("Refund failed:", error);
   }
@@ -337,14 +335,8 @@ const sendConfirmationEmail = async (paymentIntent) => {
       // .replace('{{buyerName}}', buyerName)
       // .replace('{{hotelName}}', hotelName)
       .replace("{{bookingCode}}", bookingCode)
-      .replace(
-        "{{checkInDate}}",
-        new Date(checkInDate).toDateString()
-      )
-      .replace(
-        "{{checkOutDate}}",
-        new Date(checkOutDate).toDateString()
-      )
+      .replace("{{checkInDate}}", new Date(checkInDate).toDateString())
+      .replace("{{checkOutDate}}", new Date(checkOutDate).toDateString())
       .replace("{{numberOfGuests}}", numberOfGuests)
       .replace(
         "{{totalPrice}}",
@@ -368,7 +360,7 @@ const sendConfirmationEmail = async (paymentIntent) => {
 
 /******************************************* Notification **********************************************/
 // store notification
-async function storeNotification(notification) {
+async function storeAdminNotification(notification) {
   const { senderId, recieverId, notificationType, message, isRead } =
     notification;
   try {
@@ -389,110 +381,102 @@ async function storeNotification(notification) {
     throw error;
   }
 }
+
+async function storeUserNotification(notification) {
+  const { senderId, recieverId, notificationType, message, isRead } =
+    notification;
+  try {
+    const notificationQuery = `
+      INSERT INTO user_notifications (sender_id, reciever_id, notification_type, message, is_read)
+      VALUES (?, ?, ?, ?, ?)
+    `;
+    const { insertId: notificationId } = await queryAsync(notificationQuery, [
+      senderId,
+      recieverId,
+      notificationType,
+      message,
+      isRead,
+    ]);
+    return notificationId;
+  } catch (error) {
+    console.error("Error storing notification:", error);
+    throw error;
+  }
+}
 // payment event handler for socket io
 async function sendNewBookingNotification(paymentIntent) {
-  const io = getIO();
+  try {
+    const io = getIO();
 
-  const {
-    hotel_id: hotelId,
-    buyer_id: buyerId,
-    booked_rooms,
-    check_in_date: checkInDate,
-    check_out_date: checkOutDate,
-    number_of_guests: numberOfGuests,
-  } = paymentIntent.metadata;
-
-  // get buyer name
-  const buyerQuery = `
-    SELECT username FROM users WHERE user_id = ?
-  `;
-  const buyer = await queryAsync(buyerQuery, [buyerId]);
-  const buyerName = buyer[0].username;
-  // get total number of rooms
-  let totalRooms = 0;
-  JSON.parse(booked_rooms).forEach((bookedRoom) => {
-    totalRooms += bookedRoom.roomQuantity;
-  });
-
-  // create notification
-  const notification = {
-    senderId: buyerId,
-    recieverId: hotelId, // hotel  id
-    notificationType: "booking",
-    message: `New booking: ${buyerName} booked ${totalRooms} rooms from ${new Date(
-      checkInDate
-    ).toDateString()} to ${new Date(
-      checkOutDate
-    ).toDateString()} for ${numberOfGuests} guests.`,
-    isRead: 0,
-  };
-
-  // store notification
-  const notificationId = await storeNotification(notification);
-
-  io.to(`owner_${notification.recieverId}`).emit("newNotification", {
-    notificationId: notificationId,
-    notificationType: notification.notificationType,
-    message: notification.message,
-    isRead: notification.isRead,
-    senderId: notification.senderId,
-  });
-}
-
-const sendCancelBookingNotification = async (chargeRefunded) => {
-  const io = getIO();
-
-  const {
-      buyer_id: buyerId,
+    const {
       hotel_id: hotelId,
-      booking_code: bookingCode,
-      booked_rooms: bookedRooms,
+      buyer_id: buyerId,
+      booked_rooms,
       check_in_date: checkInDate,
       check_out_date: checkOutDate,
       number_of_guests: numberOfGuests,
-    } = chargeRefunded.metadata;
+    } = paymentIntent.metadata;
 
-  // get buyer name
-  const buyerQuery = `
+    // get buyer name
+    const buyerQuery = `
     SELECT username FROM users WHERE user_id = ?
   `;
-  const buyer = await queryAsync(buyerQuery, [buyerId]);
-  const buyerName = buyer[0].username;
+    const buyer = await queryAsync(buyerQuery, [buyerId]);
+    const buyerName = buyer[0].username;
+    // get total number of rooms
+    let totalRooms = 0;
+    JSON.parse(booked_rooms).forEach((bookedRoom) => {
+      totalRooms += bookedRoom.roomQuantity;
+    });
 
-  // get total number of rooms
-  let totalRooms = 0;
-  JSON.parse(bookedRooms).forEach((bookedRoom) => {
-    totalRooms += bookedRoom.roomQuantity;
-  });
+    // send new booking notification for owner hotel
+    const adminNotification = {
+      senderId: buyerId,
+      recieverId: hotelId, // hotel  id
+      notificationType: "booking",
+      message: `New booking: ${buyerName} booked ${totalRooms} rooms from ${new Date(
+        checkInDate
+      ).toDateString()} to ${new Date(
+        checkOutDate
+      ).toDateString()} for ${numberOfGuests} guests.`,
+      isRead: 0,
+    };
 
-  // create notification
-  const notification = {
-    senderId: buyerId,
-    recieverId: hotelId, // hotel  id
-    notificationType: "cancel booking",
-    message: `Cancel booking: ${buyerName} has cancelled ${totalRooms} rooms from ${new Date(
-      checkInDate
-    ).toDateString()} to ${new Date(
-      checkOutDate
-    ).toDateString()} for ${numberOfGuests} guests.`,
-    isRead: 0,
-  };
+    const adminNotificationId = await storeAdminNotification(adminNotification);
 
-  // store notification
-  const notificationId = await storeNotification(notification);
+    io.to(`owner_${adminNotification.recieverId}`).emit("newNotification", {
+      notificationId: adminNotificationId,
+      notificationType: adminNotification.notificationType,
+      message: adminNotification.message,
+      isRead: adminNotification.isRead,
+      senderId: adminNotification.senderId,
+    });
 
-  io.to(`owner_${notification.recieverId}`).emit("newNotification", {
-    notificationId: notificationId,
-    notificationType: notification.notificationType,
-    message: notification.message,
-    isRead: notification.isRead,
-    senderId: notification.senderId,
-  });
-};
+    // send new booking notification for user who book the reservation
+    const userNotification = {
+      senderId: 0, // system,
+      recieverId: buyerId,
+      notificationType: "booking",
+      message: `Bạn đã đặt phòng thành công!`,
+      isRead: 0,
+    };
+
+    const userNotificationId = await storeUserNotification(userNotification);
+
+    io.to(`user_${buyerId}`).emit("newNotification", {
+      notificationId: userNotificationId,
+      notificationType: userNotification.notificationType,
+      message: userNotification.message,
+      isRead: userNotification.isRead,
+      senderId: userNotification.senderId,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
 
 const sendPayoutNotification = (payoutIntent, status) => {
   //TODO: send notification to hotel owner
-
   // switch (status) {
   //   case "completed":
   //     io.to(`owner_${payoutIntent.metadata.hotel_id}`).emit(
@@ -661,9 +645,6 @@ const webhookController = async (req, res) => {
         const chargeRefunded = event.data.object;
         // console.log('Charge refunded:', chargeRefunded);
         await handleRefundIntentSucceeded(chargeRefunded);
-        await sendCancelBookingNotification(chargeRefunded);
-        //TODO: send email
-        //...
         break;
 
       // Add more event types as needed

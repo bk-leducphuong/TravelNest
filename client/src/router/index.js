@@ -12,6 +12,8 @@ import SettingDetails from '@/views/account-settings/SettingDetails.vue'
 import BookingConfirmation from '@/views/BookingConfirmation.vue'
 import Bookings from '@/views/Bookings.vue'
 import BookingDetails from '@/views/BookingDetails.vue'
+import Reviews from '@/views/Reviews.vue'
+import ReviewDetails from '@/views/ReviewDetails.vue'
 
 import stores from '@/stores/index.js'
 
@@ -23,6 +25,7 @@ import AdminHome from '@/views/admin/AdminHome.vue'
 import AdminPayment from '@/views/admin/payment/AdminPayment.vue'
 import InvoiceList from '@/views/admin/payment/InvoiceList.vue'
 import InvoiceDetails from '@/views/admin/payment/InvoiceDetails.vue'
+import StripeManagement from '@/views/admin/payment/StripeManagement.vue'
 import Return from '@/views/admin/Return.vue'
 import Refresh from '@/views/admin/Refresh.vue'
 // admin bookings
@@ -37,6 +40,8 @@ import SavedHotels from '@/views/SavedHotels.vue'
 import RoomDetails from '@/views/admin/room/RoomDetails.vue'
 import RoomPhotos from '@/views/admin/room/RoomPhotos.vue'
 import RoomAmenities from '@/views/admin/room/RoomAmenities.vue'
+// review
+import GuestReviews from '@/views/admin/review/GuestReviews.vue'
 
 const routes = [
   // route for customer
@@ -130,6 +135,23 @@ const routes = [
     component: SavedHotels,
     meta: { requiresAuth: true }
   },
+  {
+    path: '/reviews',
+    name: 'Reviews',
+    component: Reviews,
+    meta: { requiresAuth: true}
+  },
+  {
+    path: '/reviews/review-details',
+    name: 'ReviewDetails',
+    component: ReviewDetails,
+    props: (route) => ({
+      bc: route.query.bc, // booking code
+      hid: route.query.hid, // hotel id
+      hn: route.query.hn // hotel name
+    }),
+    meta: { requiresAuth: true}
+  },
   // route for partner/admin
   {
     path: '/admin/login',
@@ -170,6 +192,12 @@ const routes = [
 
     meta: { requiresAuth: true }
   },
+  {
+    path: '/admin/:hotelId/payment/stripe-connect-account-management',
+    name: 'StripeManagement',
+    component: StripeManagement,
+    meta: { requiresAuth: true }
+  },
   // admin bookings
   {
     path: '/admin/:hotelId/bookings/all',
@@ -192,7 +220,7 @@ const routes = [
     name: 'AdminBookingDetails',
     component: AdminBookingDetails,
     props: (route) => ({
-      bc: route.query.bc // booking code
+      bc: route.query.bc, // booking code
     }),
     meta: {requiresAuth: true}
   },
@@ -219,6 +247,12 @@ const routes = [
     path: '/admin/:hotelId/room/room-amenities',
     name: 'RoomAmenities',
     component: RoomAmenities,
+    meta: {requiresAuth: true}
+  },
+  {
+    path: '/admin/:hotelId/review/guest-reviews',
+    name: 'GuestReviews',
+    component: GuestReviews,
     meta: {requiresAuth: true}
   },
   // Catch-all route (for 404s)

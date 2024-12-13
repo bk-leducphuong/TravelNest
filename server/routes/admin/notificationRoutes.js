@@ -7,7 +7,7 @@ router.use(isAdminAuthenticated);
 // Route to get notifications
 router.post('/', getNotifications);
 // Route to mark notification as read
-router.get('/mark-all-as-read', markAllNotificationAsRead);
+router.post('/mark-all-as-read', markAllNotificationAsRead);
 
 router.post('/mark-as-read', markNotificationAsRead);
 

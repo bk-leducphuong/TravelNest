@@ -489,7 +489,6 @@ img {
 
 .home-container {
   position: relative;
-  z-index: 10;
   clear: both;
   vertical-align: top;
   width: 100%;
@@ -562,7 +561,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 2;
 }
 
 .close-button:hover {
@@ -753,7 +752,7 @@ h1 {
   transition:
     background-color 0.3s,
     transform 0.3s;
-  z-index: 10;
+  z-index: 2;
 }
 
 .nav-button:hover {

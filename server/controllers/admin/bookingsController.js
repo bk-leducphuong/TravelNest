@@ -7,8 +7,17 @@ const queryAsync = promisify(connection.query).bind(connection);
 const getAllBookings = async (req, res) => {
   try {
     const { hotelId } = req.body;
-    //TODO: update booking status
-    //...
+    console.log(hotelId);
+    // update status booking
+    const updateBookingQuery = `UPDATE bookings 
+          SET  status = CASE 
+                    WHEN (CURRENT_DATE() BETWEEN check_in_date AND check_out_date)  THEN 'checked in'
+                    WHEN CURRENT_DATE() > check_out_date THEN 'completed'
+                    ELSE status
+                        END
+          WHERE hotel_id = ? AND status != 'cancelled';
+                `;
+     await queryAsync(updateBookingQuery, [hotelId]);
     const bookings = await queryAsync(
       "SELECT * FROM bookings WHERE hotel_id = ?",
       [hotelId]

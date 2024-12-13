@@ -1,8 +1,12 @@
 <script>
 import axios from 'axios'
 import { mapActions, mapGetters } from 'vuex'
+import LoginHeader from '@/components/LoginHeader.vue'
 
 export default {
+  components: {
+    LoginHeader
+  },
   data() {
     return {
       
@@ -25,23 +29,7 @@ export default {
 </script>
 <template>
   <!-- header  -->
-  <div class="top-header">
-    <div class="" style="padding: 0px 20px">
-      <div class="inner-wrap">
-        <div class="inner-logo">
-          <strong @click="this.$router.push('/')" style="cursor: pointer">Booking.com</strong>
-        </div>
-        <div class="inner-login">
-          <ul>
-            <li><strong>VND</strong></li>
-            <li><img src="" alt="" /></li>
-            <li><i class="fa-regular fa-circle-question"></i></li>
-            <li class="login">Trợ giúp</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
+  <LoginHeader :isAdminLogin="false" />
   <!-- end header  -->
   <div class="container">
     <div class="header">
@@ -164,82 +152,9 @@ export default {
   </div>
 </template>
 <style scoped>
-/* header  */
-.top-header {
-  background-color: #003b95;
-  margin-bottom: 35px;
-}
-
-.top-header .inner-wrap {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  align-items: center;
-}
-
-.top-header .inner-logo strong {
-  font-size: 24px;
-  color: #fff;
-}
-
-.top-header .inner-login ul {
-  display: flex;
-  color: #fff;
-  list-style-type: none;
-  align-items: center;
-  margin-bottom: 0;
-}
-
-.top-header .inner-login ul li {
-  padding: 10px;
-  margin-left: 15px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.top-header .inner-login ul li:hover {
-  background-color: #1a4fa0;
-}
-
-.top-header .inner-login ul li img {
-  border-radius: 50%;
-  height: 18px;
-  overflow: hidden;
-  width: auto;
-}
-.top-header .inner-login ul li span {
-  font-weight: 600;
-}
-
-.top-header .inner-login ul .login {
-  padding: 5px 10px;
-  color: #1d5fc2;
-  font-weight: 500;
-  background-color: #fff;
-  border-radius: 5px;
-}
-.top-header .inner-login ul .guides {
-  padding: 5px 10px;
-  color: #1d5fc2;
-  font-weight: 500;
-  background-color: #fff;
-  border-radius: 5px;
-}
-
-.top-header .inner-login ul .login:hover {
-  background-color: #f0f6fde8;
-}
-.top-header .inner-login ul .guides:hover {
-  background-color: #f0f6fde8;
-}
-/* end header  */
-
 .container {
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 20px auto;
 }
 
 .header {

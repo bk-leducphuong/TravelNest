@@ -125,7 +125,7 @@ export default {
             <span class="nav-text">Rewards & Wallet</span>
           </a>
 
-          <a href="#" class="nav-item">
+          <a @click="this.$router.push('/reviews')" class="nav-item">
             <svg
               class="nav-icon"
               viewBox="0 0 24 24"

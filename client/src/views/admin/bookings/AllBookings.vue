@@ -310,6 +310,7 @@ export default {
 
 <style scoped>
 .all-bookings-container {
+  
   display: flex;
 }
 /* Main Content Styles */
@@ -320,6 +321,7 @@ export default {
 }
 
 .main-content {
+  /* overflow-y: scroll; */
   padding: 24px;
   position: relative;
 }

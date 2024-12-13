@@ -9,6 +9,7 @@ export default {
           isPaymentSelected: false,
           isBookingsSelected: false,
           isRoomAvailabilitySelected: false,
+          isReviewSelected: false,
           isRoomSelected: false,
           selected: false
         }
@@ -28,7 +29,8 @@ export default {
 }
 </script>
 <template>
-     <nav class="dashboard">
+     <div class="dashboard-container">
+      <nav class="dashboard">
         <div class="logo" @click="this.$router.push('/admin/hotels-management')">Booking.com</div>
 
         <ul class="nav-menu">
@@ -87,16 +89,21 @@ export default {
             </div>
             <div class="child-item-container" v-if="this.isPaymentSelected">
               <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/payment`)">Payment methods</li>
+              <!-- <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/payment/stripe-connect-account-management`)">Stripe management</li> -->
+               <li class="child-item"><a href="https://connect.stripe.com/express_login" target="_blank">Stripe management</a></li>
               <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/payment/invoices`)">Invoices</li>
             </div>
           </div>
           <!-- Guest reviews -->
           <div class="nav-item-container">
             <div class="title-nav-item">
-              <li class="nav-item" @click="this.$router.push('/admin/home')"><i class="fa fa-comments" aria-hidden="true"></i>Guest reviews</li>
+              <li class="nav-item" @click="this.isReviewSelected = !this.isReviewSelected"><i class="fa fa-comments" aria-hidden="true"></i>Guest reviews</li>
+              <i class="fa fa-angle-right" aria-hidden="true" style="margin-right: 10px;" v-if="!this.isReviewSelected"></i>
+              <i class="fa fa-angle-down" aria-hidden="true" style="margin-right: 10px;" v-if="this.isReviewSelected"></i>
             </div>
-            <div class="child-item-container">
-              <li class="child-item"></li>
+            <div class="child-item-container" v-if="this.isReviewSelected">
+              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/review/guest-reviews`)">Guest reviews</li>
+              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/review/guest-experiences`)">Guest experiences</li>
             </div>
           </div>
           <!-- Analytics -->
@@ -127,22 +134,38 @@ export default {
           </div>
         </ul>
     </nav>
+ </div>
 </template>
 <style scoped>  
 /* Dashboard Sidebar Styles */
-.dashboard {
+.dashboard-container {
+  /* height: 100vh; */
   width: 220px;
+  /* padding: 0px 20px; */
+  flex-shrink: 0;
   background-color: #003b95;
   color: #ffffff;
-  padding: 20px;
-  flex-shrink: 0;
+  position: relative;
+  
+}
+.dashboard {
+  position: fixed;
+  height: 100vh;
+  overflow-y: scroll;
+  background-color: #003b95;
+  width: 220px;
+  padding: 0px 20px;
+  /* height: 100%; */
+}
+
+.dashboard::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
 }
 
 .logo {
   font-size: 25px;
   font-weight: 700;
   padding: 12px 0;
-  margin-bottom: 24px;
   text-align: center;
   cursor: pointer;
 }
