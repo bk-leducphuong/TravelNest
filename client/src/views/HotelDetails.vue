@@ -149,12 +149,6 @@ export default {
     closeReviewValidation() {
       this.showReviewValidation = false
     },
-    openReviewForm() {
-      this.showReviewForm = true
-    },
-    closeReviewForm() {
-      this.showReviewForm = false
-    },
     /******** map popup ********/
     closeMapPopup() {
       this.openMapPopup = false
@@ -344,8 +338,7 @@ export default {
       :isOpenImageGallery="isImageGalleryOpen"
       @close-image-gallery="closeImageGallery"
     />
-    <ReviewValidation v-if="showReviewValidation" @close="closeReviewValidation" @open-review-form="openReviewForm" />
-    <ReviewForm v-if="showReviewForm" @close-review-form="closeReviewForm" />
+    <ReviewValidation v-if="showReviewValidation" @close="closeReviewValidation" :hotelId="this.hotel_id" :hotelName="this.hotel.name" />
     <!-- menu  -->
     <div class="menu">
       <div class="container">
@@ -755,7 +748,7 @@ export default {
         <div class="review__open--text" v-for="review in reviews" :key="review.review_id">
           <div class="review__open--infor">
             <div class="name">
-              <img :src="review.profile_picture_url" alt="avatar" />
+              <img :src="review.profile_picture_url" alt="avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
               <div class="infor">
                 <span style="font-weight: 600">{{ review.username }}</span>
                 <br />
@@ -777,7 +770,8 @@ export default {
             <div class="point">
               <div>
                 <p>Ngày đánh giá: {{ new Date(review.created_at).toLocaleDateString('vi-VN') }}</p>
-                <strong>Xuất sắc</strong>
+                <strong v-if="review.rating >= 3">Xuất sắc</strong>
+                <strong v-else>Chưa tốt</strong>
               </div>
               <span>{{ review.rating }}</span>
             </div>

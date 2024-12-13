@@ -97,10 +97,31 @@ export default {
       }else {
         return true
       }
+    },
+    async checkAlreadyReviewed() {
+      try {
+        const response = await axios.post(
+          'http://localhost:3000/api/review/check-already-reviewed',
+          {
+            bookingCode: this.$route.query.bc,
+            hotelId: this.$route.query.hid
+          },
+          {
+            withCredentials: true
+          }
+        )
+        if (response.data.success) {
+          //TODO: redirect to edit review page
+          this.$router.push('/reviews') // test
+        }
+      } catch (error) {
+        console.log(error)
+      }
     }
   },
-  mounted() {
-    this.validateReview()
+  async mounted() {
+    await this.validateReview()
+    await this.checkAlreadyReviewed()
   }
 }
 </script>

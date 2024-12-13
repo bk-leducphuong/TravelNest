@@ -30,6 +30,48 @@ const validateReview = async (req, res) => {
   }
 };
 
+const checkAlreadyReviewed = async (req, res) => {
+  try {
+    const { bookingCode, hotelId } = req.body;
+    if (!bookingCode || !hotelId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing bookingCode" });
+    }
+    const query = `
+      SELECT * FROM reviews WHERE booking_code = ? AND hotel_id = ?
+    `;
+    const reviewCount = await queryAsync(query, [bookingCode, hotelId]);
+    if (reviewCount[0]) {
+      // get review criteria
+      const criteria = await queryAsync(
+        `SELECT criteria_name, score FROM review_criterias WHERE review_id = ?`,
+        [reviewCount[0].review_id]
+      );
+      const review = {
+        review_id: reviewCount[0].review_id,
+        rating: reviewCount[0].rating,
+        comment: reviewCount[0].comment,
+        created_at: reviewCount[0].created_at,
+        reply: reviewCount[0].reply,
+        number_of_likes: reviewCount[0].number_of_likes,
+        number_of_dislikes: reviewCount[0].number_of_dislikes,
+        review_criteria: criteria
+      };
+      return res
+        .status(200)
+        .json({ success: true, review: review });
+    }else {
+      return res
+        .status(200)
+        .json({ success: false });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 const postReview = async (req, res) => {
   try {
     const userId = req.session.user.user_id;
@@ -113,4 +155,4 @@ const getAllReviews = async (req, res) => {
   }
 };
 
-module.exports = { validateReview, postReview, getAllReviews };
+module.exports = { validateReview, postReview, getAllReviews, checkAlreadyReviewed };
