@@ -12,6 +12,8 @@ import SettingDetails from '@/views/account-settings/SettingDetails.vue'
 import BookingConfirmation from '@/views/BookingConfirmation.vue'
 import Bookings from '@/views/Bookings.vue'
 import BookingDetails from '@/views/BookingDetails.vue'
+import Reviews from '@/views/Reviews.vue'
+import ReviewDetails from '@/views/ReviewDetails.vue'
 
 import stores from '@/stores/index.js'
 
@@ -23,6 +25,7 @@ import AdminHome from '@/views/admin/AdminHome.vue'
 import AdminPayment from '@/views/admin/payment/AdminPayment.vue'
 import InvoiceList from '@/views/admin/payment/InvoiceList.vue'
 import InvoiceDetails from '@/views/admin/payment/InvoiceDetails.vue'
+import StripeManagement from '@/views/admin/payment/StripeManagement.vue'
 import Return from '@/views/admin/Return.vue'
 import Refresh from '@/views/admin/Refresh.vue'
 // admin bookings
@@ -132,6 +135,21 @@ const routes = [
     component: SavedHotels,
     meta: { requiresAuth: true }
   },
+  {
+    path: '/reviews',
+    name: 'Reviews',
+    component: Reviews,
+    meta: { requiresAuth: true}
+  },
+  {
+    path: '/reviews/review-details',
+    name: 'ReviewDetails',
+    component: ReviewDetails,
+    props: (route) => ({
+      bc: route.query.bc // booking code
+    }),
+    meta: { requiresAuth: true}
+  },
   // route for partner/admin
   {
     path: '/admin/login',
@@ -170,6 +188,12 @@ const routes = [
       invoiceId: route.query.invoiceId
     }),
 
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/:hotelId/payment/stripe-connect-account-management',
+    name: 'StripeManagement',
+    component: StripeManagement,
     meta: { requiresAuth: true }
   },
   // admin bookings

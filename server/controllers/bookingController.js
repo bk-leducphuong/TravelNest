@@ -26,7 +26,7 @@ const getAllBookings = async (req, res) => {
 
         for (let booking of bookings) {
             const hotelId = booking.hotel_id;
-            const query2 = 'SELECT name, city, image_urls FROM hotels WHERE hotel_id = ?';
+            const query2 = 'SELECT hotel_id, name, city, image_urls FROM hotels WHERE hotel_id = ?';
             const hotelInformation = await queryAsync(query2, [hotelId]);
             booking.hotel = hotelInformation[0];
 

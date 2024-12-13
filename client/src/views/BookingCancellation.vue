@@ -43,7 +43,7 @@ export default {
         this.disableCancelBtn = true
 
         const response = await axios.post('http://localhost:3000/api/cancel-bookings', {
-          bookingCode: this.getBookingInformation.booking_code,
+          bookingInformation: this.getBookingInformation,
         }, {
           withCredentials: true
         })

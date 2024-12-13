@@ -224,13 +224,15 @@ export default {
           <div class="two-columns">
             <div class="form-group">
               <label>Full name<span class="required">*</span></label>
-              <input :disabled="getUserInformation.full_name != null" :placeholder="getUserInformation.full_name"  type="text" style="width: 95%" required />
+              <input v-if="getUserInformation"  :disabled="getUserInformation.full_name != null" :placeholder="getUserInformation.full_name"  type="text" style="width: 95%" required />
+              <input type="text" v-else placeholder="your full name"> 
             </div>
           </div>
 
           <div class="form-group">
             <label>Email address <span class="required">*</span></label>
-            <input disabled :placeholder="getUserInformation.email"  type="email" style="width: 96%" />
+            <input v-if="getUserInformation" disabled :placeholder="getUserInformation.email"  type="email" style="width: 96%" />
+            <input type="email" placeholder="Your email" v-else>
             <div class="helper-text">Confirmation email goes to this address</div>
           </div>
 
@@ -247,7 +249,8 @@ export default {
               <select class="phone-code">
                 <option selected>VN +84</option>
               </select>
-              <input disabled :placeholder="getUserInformation.phone_number" type="text" class="phone-number" required />
+              <input v-if="getUserInformation" disabled :placeholder="getUserInformation.phone_number" type="text" class="phone-number" required />
+              <input type="text" v-else placeholder="Your phone number"> 
             </div>
             <div class="helper-text">Needed by the property to validate your booking</div>
           </div>

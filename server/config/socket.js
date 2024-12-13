@@ -13,10 +13,15 @@ module.exports = {
 
     io.on("connection", (socket) => {
       // Tham gia vào room dựa trên hotel_owner_id
-      socket.on("joinRoom", (ownerId) => {
+      socket.on("joinAdminRoom", (ownerId) => {
         const roomName = `owner_${ownerId}`;
         socket.join(roomName);
       });
+
+      socket.on("joinUserRoom", (userId) => {
+        const roomName = `user_${userId}`
+        socket.join(roomName)
+      })
 
       socket.on("disconnect", () => {
         console.log("Client disconnected:", socket.id);
