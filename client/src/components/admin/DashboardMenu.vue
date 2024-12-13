@@ -141,10 +141,11 @@ export default {
 .dashboard-container {
   /* height: 100vh; */
   width: 220px;
-  padding: 0px 20px;
+  /* padding: 0px 20px; */
   flex-shrink: 0;
   background-color: #003b95;
   color: #ffffff;
+  position: relative;
   
 }
 .dashboard {
@@ -152,6 +153,8 @@ export default {
   height: 100vh;
   overflow-y: scroll;
   background-color: #003b95;
+  width: 220px;
+  padding: 0px 20px;
   /* height: 100%; */
 }
 
