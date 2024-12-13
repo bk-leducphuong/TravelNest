@@ -62,7 +62,14 @@ export default {
     <!-- Left Section -->
     <div class="details-left">
       <div class="property-details">
-        <h2 class="property-name">{{ getBookingInformation.hotel.name }}  <span class="rating">★★★★★</span> <span class="badge">Genius</span></h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+          <img :src="JSON.parse(getBookingInformation.hotel.image_urls)[0]" alt="Hotel Image" class="property-image" />
+          <div>
+            <h2 class="property-name">{{ getBookingInformation.hotel.name }}</h2>
+            <span class="rating">★★★★★</span>
+            <span class="badge">Genius</span>
+          </div>
+        </div>
         <p><strong>Booking code:</strong> {{ getBookingInformation.booking_code }}</p>
         <p><strong>PIN Code:</strong> 4338 <span class="lock-icon">🔒</span></p>
         <h3 class="subheading">Booking Details</h3>
@@ -216,6 +223,13 @@ export default {
   font-size: 1.3rem;
   font-weight: bold;
   margin-bottom: 5px;
+}
+
+.property-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 10px;
+  object-fit: cover;
 }
 
 .badge {

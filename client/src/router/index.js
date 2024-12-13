@@ -146,7 +146,9 @@ const routes = [
     name: 'ReviewDetails',
     component: ReviewDetails,
     props: (route) => ({
-      bc: route.query.bc // booking code
+      bc: route.query.bc, // booking code
+      hid: route.query.hid, // hotel id
+      hn: route.query.hn // hotel name
     }),
     meta: { requiresAuth: true}
   },
@@ -218,7 +220,7 @@ const routes = [
     name: 'AdminBookingDetails',
     component: AdminBookingDetails,
     props: (route) => ({
-      bc: route.query.bc // booking code
+      bc: route.query.bc, // booking code
     }),
     meta: {requiresAuth: true}
   },
