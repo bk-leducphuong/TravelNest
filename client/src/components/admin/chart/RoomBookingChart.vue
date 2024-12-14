@@ -4,24 +4,6 @@ import { Chart, registerables } from 'chart.js'
 // Register Chart.js components
 Chart.register(...registerables)
 export default {
-  props: {
-    roomSales: Array,
-    totalBookings: Number
-  },
-  data() {
-    return {
-      roomLabels: [],
-      roomData: [],
-      roomColors: ['#8884d8', '#37DDB2', '#FFD88D', '#FF9F7B'],
-    }
-  },
-  watch: {
-    roomSales() {
-      this.roomLabels = this.roomSales.map(room => room.roomName)
-      this.roomData = this.roomSales.map(room => room.book_count)
-      this.renderChart()
-    }
-  },
   methods: {
     renderChart() {
       const ctx = this.$refs.bookingChart.getContext('2d')
@@ -29,11 +11,11 @@ export default {
         type: 'bar', // e.g., 'bar', 'line', etc.
         type: 'doughnut',
         data: {
-          labels: this.roomLabels,
+          labels: ['Single', 'Double', 'Delux', 'Suite'],
           datasets: [
             {
-              data: this.roomData,
-              backgroundColor: this.roomColors.slice(0, this.roomData.length)
+              data: [1913, 859, 482, 138],
+              backgroundColor: ['#8884d8', '#37DDB2', '#FFD88D', '#FF9F7B']
             }
           ]
         },
@@ -49,6 +31,9 @@ export default {
         }
       })
     }
+  },
+  mounted() {
+    this.renderChart()
   },
   beforeDestroy() {
     if (this.chartInstance) {
@@ -70,11 +55,32 @@ export default {
     </div>
 
     <div class="legend-grid">
-      <div class="legend-item" v-for="roomLabel in roomLabels" :key="roomLabel">
-        <div class="legend-color" :style="{ backgroundColor: roomColors[roomLabels.indexOf(roomLabel)] }"></div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #8884d8"></div>
         <div>
-          <div class="legend-text">{{ roomLabel }}</div>
-          <div class="legend-value">{{ roomData[roomLabels.indexOf(roomLabel)] }} <span class="legend-percentage">{{ (roomData[roomLabels.indexOf(roomLabel)] / totalBookings).toFixed(2) * 100 }}%</span></div>
+          <div class="legend-text">Single</div>
+          <div class="legend-value">1913 <span class="legend-percentage">58.63%</span></div>
+        </div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #37ddb2"></div>
+        <div>
+          <div class="legend-text">Double</div>
+          <div class="legend-value">859 <span class="legend-percentage">23.94%</span></div>
+        </div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #ffd88d"></div>
+        <div>
+          <div class="legend-text">Delux</div>
+          <div class="legend-value">482 <span class="legend-percentage">12.94%</span></div>
+        </div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #ff9f7b"></div>
+        <div>
+          <div class="legend-text">Suite</div>
+          <div class="legend-value">138 <span class="legend-percentage">4.49%</span></div>
         </div>
       </div>
     </div>

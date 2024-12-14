@@ -4,61 +4,16 @@ import { Chart, registerables } from 'chart.js'
 // Register Chart.js components
 Chart.register(...registerables)
 export default {
-  props: {
-    dailyRevenue: Array,
-    startDate: Date,
-    endDate: Date
-  },
-  data() {
-    return {
-      dailyRevenueLabels: [],
-      dailyRevenueData: []
-    }
-  },
-  watch: {
-    startDate() {
-      this.dailyRevenueLabels = this.createLabels()
-      this.renderChart()
-    },
-    dailyRevenue() {
-      this.dailyRevenueData = this.createData()
-    }
-  },
   methods: {
-    createLabels() {
-      const labels = []
-      const startDate = this.startDate
-      const endDate = this.endDate
-      // loop from startDate to endDate
-      for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
-        labels.push(date.toLocaleDateString('vi-VN').split('/').slice(0, 2).join('/'))
-      }
-      return labels
-    },
-    createData() {
-      const data = []
-      const startDate = this.startDate
-      const endDate = this.endDate
-      // loop from startDate to endDate
-      for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
-        const revenueDays =  this.dailyRevenue.find(revenue => revenue.date === date.toISOString().slice(0, 10))
-        if (revenueDays) {
-          data.push(revenueDays.revenue)
-        }else {
-          data.push(0)
-        }
-      }
-      return data
-    },
     renderChart() {
       const revenueCtx = this.$refs.revenueChart.getContext('2d')
       this.chartInstance = new Chart(revenueCtx, {
         type: 'bar',
         data: {
-          labels: this.dailyRevenueLabels,
+          labels: Array.from({ length: 30 }, (_, i) => i + 1),
           datasets: [
             {
-              data: this.dailyRevenueData,
+              data: Array.from({ length: 30 }, () => Math.floor(Math.random() * 500) + 300),
               backgroundColor: '#8884d8',
               borderRadius: 4,
               barThickness: 12
@@ -86,6 +41,9 @@ export default {
         }
       })
     }
+  },
+  mounted() {
+    this.renderChart()
   },
   beforeDestroy() {
     if (this.chartInstance) {
