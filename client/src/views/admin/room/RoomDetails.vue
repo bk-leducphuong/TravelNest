@@ -207,6 +207,7 @@ export default {
 }
 
 .room__image {
+  height: 220px;
   position: relative;
 }
 
