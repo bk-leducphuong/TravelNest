@@ -41,6 +41,7 @@ const editDisplayName = async (req, res) => {
     await queryAsync(query, [displayName, userId]);
     res.status(200).json({ success: true });
   } catch (error) {
+    // console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

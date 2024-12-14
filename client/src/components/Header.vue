@@ -4,7 +4,7 @@
     <div class="container">
       <div class="inner-wrap">
         <div class="inner-logo">
-          <a @click="this.$router.push('/')"><strong>Booking.com</strong></a>
+          <a @click="this.$router.push('/')"><strong>TravelNest</strong></a>
         </div>
         <div class="inner-login">
           <ul>
