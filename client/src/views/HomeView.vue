@@ -268,7 +268,7 @@ export default {
   <div class="home-container">
     <!-- Recently Search -->
     <div class="recent-search-container container" v-if="recentSearches.length > 0">
-      <h2 class="h2">Tìm kiếm gần đây của bạn</h2>
+      <h2 class="h2">{{ $t('userHome.recentSearches') }}</h2>
       <div class="slider-container">
         <div
           ref="recentSlider"
@@ -318,7 +318,7 @@ export default {
 
     <!-- Viewed Hotels -->
     <div class="hotel-container container" v-if="viewedHotels.length > 0">
-      <h2 class="h2">Bạn có còn quan tâm đến những chỗ nghỉ này?</h2>
+      <h2 class="h2">{{ $t('userHome.viewedHotels') }}</h2>
       <div class="slider-container">
         <div
           ref="viewedSlider"
@@ -332,7 +332,7 @@ export default {
             @click="redirectToHotelDetails(hotel)"
           >
             <div class="hotel-image">
-              <img :src="JSON.parse(hotel.image_urls)[0]" :alt="hotel.name" />
+              <img :src="JSON.parse(hotel.image_urls)[0]" :alt="hotel.name" loading="lazy" />
               <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
@@ -367,7 +367,7 @@ export default {
 
     <!-- Nearby Hotels -->
     <div class="hotel-container container" v-if="nearbyHotels.length > 0">
-      <h2 class="h2">Những khách sạn gần đây</h2>
+      <h2 class="h2">{{ $t('userHome.nearbyHotels') }}</h2>
       <loading
         v-model:active="isNearByHotelsLoading"
         :can-cancel="true"
@@ -423,8 +423,8 @@ export default {
     <!-- Popular Places -->
     <div class="popular-container container" v-if="popularPlaces.length > 0">
       <div class="popular-header">
-        <h2 class="h2">Điểm đến đang thịnh hành</h2>
-        <h4 class="h4">Các lựa chọn phổ biến nhất cho du khách từ Việt Nam</h4>
+        <h2 class="h2">{{ $t('userHome.popularPlaces') }}</h2>
+        <h4 class="h4">{{ $t('userHome.popularPlaces_1') }}</h4>
       </div>
       <loading
         v-model:active="isPopularPlacesLoading"

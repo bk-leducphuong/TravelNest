@@ -1,6 +1,24 @@
 {
-  "titleHeader": "Find your next stay",
-  "subtitleHeader": "Search deals on hotels, homes, and much more...",
+  "userHeader.titleHeader": "Find your next stay",
+  "userHeader.subtitleHeader": "Search deals on hotels, homes, and much more...",
+  "userHeader.locationInputPlaceholder": "Where are you goging?",
+  "userHeader.dateInputPlaceholder_1": "From",
+  "userHeader.dateInputPlaceholder_2": "To",
+  "userHeader.guestInputPlaceholder_1": "Adults",
+  "userHeader.guestInputPlaceholder_2": "Children",
+  "userHeader.guestInputPlaceholder_3": "Rooms",
+  "userHeader.searchButton": "Search",
+  "userHeader.postProperty": "List your property",
+
+  "userHome.recentSearches": "Continue your search",
+  "userHome.viewedHotels": "Still interested in these properties?",
+  "userHome.nearbyHotels": "Nearby Hotels",
+  "userHome.popularPlaces": "Popular Places",
+  "userHome.popularPlaces_1": "The best deals for foreigners from Vietnam",
+
+  "searchResults.foundTitle_1": "Found",
+  "searchResults.foundTitle_2": "hotels",
+
   "welcomeMessage": "Welcome to the booking website!",
   "selectLanguage": "Select Language",
   "search": "Search",

@@ -24,7 +24,7 @@
               <i class="fa-regular fa-bell"></i>
             </li>
             <li>
-              <span><a @click="this.$router.push('/join')">Đăng chỗ nghỉ của Quý vị</a></span>
+              <span><a @click="this.$router.push('/join')">{{ $t('userHeader.postProperty') }}</a></span>
             </li>
             <li v-if="!this.isUserAuthenticated">
               <a @click="this.$router.push('/login')" class="login" style="margin-right: 5px"
@@ -93,9 +93,9 @@
   <div class="slide" v-if="isSearchOpen">
     <div class="container">
       <div class="inner-wrap" v-if="this.$route.name === 'Home'">
-        <strong>{{ $t('titleHeader') }}</strong>
+        <strong>{{ $t('userHeader.titleHeader') }}</strong>
         <br />
-        <p>{{ $t('subtitleHeader') }}</p>
+        <p>{{ $t('userHeader.subtitleHeader') }}</p>
       </div>
     </div>
   </div>
@@ -110,7 +110,7 @@
           class="search-input"
           id="local"
           v-model="selectedLocation"
-          placeholder="Bạn muốn đến đâu?"
+          :placeholder="$t('userHeader.locationInputPlaceholder')"
           @click="toggleLocationPopup"
           v-click-outside="hideLocationPopup"
         />
@@ -158,7 +158,7 @@
           <!-- Guest room selector -->
           <div v-if="showGuestSelector" class="guest-room-selector" id="guest-room-selector">
             <div class="selector-item">
-              <span>Người lớn</span>
+              <span>{{ $t('userHeader.guestInputPlaceholder_1') }}</span>
               <div class="counter">
                 <button class="decrement" @click="updateGuests('adults', 'decrement')">-</button>
                 <span>{{ adults }}</span>
@@ -166,7 +166,7 @@
               </div>
             </div>
             <div class="selector-item">
-              <span>Trẻ em <small>(0 - 17 tuổi)</small></span>
+              <span>{{ $t('userHeader.guestInputPlaceholder_2') }} <small>(0 - 17 tuổi)</small></span>
               <div class="counter">
                 <button class="decrement" @click="updateGuests('children', 'decrement')">-</button>
                 <span>{{ children }}</span>
@@ -174,7 +174,7 @@
               </div>
             </div>
             <div class="selector-item">
-              <span>Phòng</span>
+              <span>{{ $t('userHeader.guestInputPlaceholder_3') }}</span>
               <div class="counter">
                 <button class="decrement" @click="updateGuests('rooms', 'decrement')">-</button>
                 <span>{{ rooms }}</span>
@@ -185,7 +185,7 @@
         </div>
 
         <!-- Search button -->
-        <button class="search-button" @click="submitSearch">Tìm</button>
+        <button class="search-button" @click="submitSearch">{{ $t('userHeader.searchButton') }}</button>
       </div>
     </div>
   </div>
@@ -264,7 +264,7 @@ export default {
     ...mapGetters('search', ['getSearchData']),
     ...mapGetters('user', ['getUserLanguage']),
     guestDetails() {
-      return `${this.adults} người lớn · ${this.children} trẻ em · ${this.rooms} phòng`
+      return `${this.adults} ` + this.$t('userHeader.guestInputPlaceholder_1') + ` · ${this.children} ` + this.$t('userHeader.guestInputPlaceholder_2') + ` · ${this.rooms}` + this.$t('userHeader.guestInputPlaceholder_3')
     }
   },
   watch: {
@@ -406,9 +406,9 @@ export default {
     if (this.getSearchData) {
       this.selectedLocation = this.getSearchData.location
       this.dateRange =
-        'Từ ' +
-        new Date(this.getSearchData.checkInDate).toLocaleDateString('vi-VN') +
-        ' đến ' +
+        this.$t('userHeader.dateInputPlaceholder_1') + ' ' +
+        new Date(this.getSearchData.checkInDate).toLocaleDateString('vi-VN') + ' ' +
+        this.$t('userHeader.dateInputPlaceholder_2') + ' ' +
         new Date(this.getSearchData.checkOutDate).toLocaleDateString('vi-VN')
       this.children = this.getSearchData.children
       this.adults = this.getSearchData.adults

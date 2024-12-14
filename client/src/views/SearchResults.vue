@@ -136,7 +136,9 @@ export default {
     async redirectToHotelDetails(hotel_id) {
       try {
         // save viewed hotel
-        let viewedHotels = localStorage.getItem('viewedHotels') ? JSON.parse(localStorage.getItem('viewedHotels')) : []
+        let viewedHotels = localStorage.getItem('viewedHotels')
+          ? JSON.parse(localStorage.getItem('viewedHotels'))
+          : []
 
         // Check if the hotel has already been viewed
         const index = viewedHotels.findIndex((hotelId) => hotelId === hotel_id)
@@ -350,8 +352,8 @@ export default {
           <div class="col-9">
             <div class="inner-content">
               <strong
-                >{{ this.$route.query.location }}: tìm thấy {{ this.hotels.length }} chỗ
-                nghỉ</strong
+                >{{ this.$route.query.location }}: {{ $t('searchResults.foundTitle_1') }}
+                {{ hotels.length }} {{ $t('searchResults.foundTitle_2') }}</strong
               >
               <div class="arrange">
                 <div class="selection-search">
@@ -396,10 +398,7 @@ export default {
               >
                 <div class="inner-img">
                   <SavedHotelIcon :hotelId="hotel.hotel_id" />
-                  <img
-                    :src="JSON.parse(hotel.image_urls)[0]"
-                    alt="hotel image"
-                  />
+                  <img :src="JSON.parse(hotel.image_urls)[0]" alt="hotel image" />
                 </div>
                 <div class="inner-show">
                   <div class="inner-introduction">
@@ -454,8 +453,7 @@ export default {
                       <span class="people">2 đêm, 2 người lớn</span>
                       <br />
                       <span class="newPrice"
-                        >VND
-                        {{ parseInt(hotel.lowestPrice).toLocaleString('vi-VN') }}</span
+                        >VND {{ parseInt(hotel.lowestPrice).toLocaleString('vi-VN') }}</span
                       >
                       <br />
                       <span class="desc">Đã bao gồm thuế và phí</span>
