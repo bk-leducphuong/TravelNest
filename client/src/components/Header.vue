@@ -4,7 +4,7 @@
     <div class="container">
       <div class="inner-wrap">
         <div class="inner-logo">
-          <a @click="this.$router.push('/')"><strong>Booking.com</strong></a>
+          <a @click="this.$router.push('/')"><strong>TravelNest</strong></a>
         </div>
         <div class="inner-login">
           <ul>
@@ -257,6 +257,9 @@ export default {
         // Calculate the number of days between the start and end dates
         this.calculateNumberOfDays(this.checkInDate, this.checkOutDate)
       }
+    },
+     notifications(newValue) {
+      this.calculateNumerOfNewNotifications()
     }
   },
   computed: {
@@ -265,11 +268,6 @@ export default {
     ...mapGetters('user', ['getUserLanguage']),
     guestDetails() {
       return `${this.adults} ` + this.$t('userHeader.guestInputPlaceholder_1') + ` · ${this.children} ` + this.$t('userHeader.guestInputPlaceholder_2') + ` · ${this.rooms}` + this.$t('userHeader.guestInputPlaceholder_3')
-    }
-  },
-  watch: {
-    notifications(newValue) {
-      this.calculateNumerOfNewNotifications()
     }
   },
   methods: {
