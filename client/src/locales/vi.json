@@ -1,6 +1,24 @@
 {
-  "titleHeader": "Tìm chỗ nghỉ tiếp theo",
-  "subtitleHeader": "Tìm ưu đãi khách sạn, chỗ nghỉ dạng nhà và nhiều hơn nữa...",
+  "userHeader.titleHeader": "Tìm chỗ nghỉ tiếp theo",
+  "userHeader.subtitleHeader": "Tìm ưu đãi khách sạn, chỗ nghỉ dạng nhà và nhiều hơn nữa...",
+  "userHeader.locationInputPlaceholder": "Bạn muốn đến đâu?",
+  "userHeader.dateInputPlaceholder_1": "Từ",
+  "userHeader.dateInputPlaceholder_2": "Đến",
+  "userHeader.guestInputPlaceholder_1": "Người lớn",
+  "userHeader.guestInputPlaceholder_2": "Trẻ em",
+  "userHeader.guestInputPlaceholder_3": "Phòng",
+  "userHeader.searchButton": "Tìm",
+  "userHeader.postProperty": "Đăng chỗ nghỉ của Quý vị",
+
+  "userHome.recentSearches": "Tìm kiếm gần đây",
+  "userHome.viewedHotels": "Bạn có còn quan tâm đến những chỗ nghỉ này?",
+  "userHome.nearbyHotels": "Những khách sạn gần đây",
+  "userHome.popularPlaces": "Điểm đến đang thịnh hành",
+  "userHome.popularPlaces_1": "Các lựa chọn phổ biến nhất cho du khách từ Việt Nam",
+
+  "searchResults.foundTitle_1": "Tìm thấy",
+  "searchResults.foundTitle_2": "chỗ nghỉ",
+
   "welcomeMessage": "Chào mừng đến với trang web đặt phòng!",
   "selectLanguage": "Chọn ngôn ngữ",
   "search": "Tìm kiếm",
