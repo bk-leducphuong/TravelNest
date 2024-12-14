@@ -78,9 +78,15 @@ const getRevenueStats = async (req, res) => {
         WHERE hotel_id = ? AND created_at BETWEEN ? AND ?
         GROUP BY room_id
       `;
-      const results = await queryAsync(query, [hotelId, period.start, period.end]);
-  
-      res.status(200).json({ roomSales: results });
+      const roomSales = await queryAsync(query, [hotelId, period.start, period.end]);
+
+      const roomQuery = `SELECT room_name FROM rooms WHERE room_id = ?`;
+      for (const roomSale of roomSales) {
+        const roomName = await queryAsync(roomQuery, [roomSale.room_id]);
+        roomSale.roomName = roomName[0].room_name;
+      }
+
+      res.status(200).json({ roomSales: roomSales });
     } catch (error) {
       console.error('Error in getRoomSales:', error);
       res.status(500).json({ message: 'Internal Server Error' });
@@ -98,7 +104,7 @@ const getRevenueStats = async (req, res) => {
       }
 
       const query = `
-          SELECT DISTINCT u.username AS new_customers
+          SELECT DISTINCT u.username, u.email, u.profile_picture_url
           FROM bookings b1
           join users u on b1.buyer_id = u.user_id
           WHERE hotel_id = ?
