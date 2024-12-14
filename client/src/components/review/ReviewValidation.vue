@@ -3,33 +3,57 @@ import axios from 'axios'
 import { useToast } from 'vue-toastification'
 
 export default {
-    setup() {
-        const toast = useToast()
-        return { toast }
+  setup() {
+    const toast = useToast()
+    return { toast }
+  },
+  props: {
+    hotelId: {
+      type: String,
+      required: true
     },
-    data() {
-        return {
-            bookingCode: null,
-        }
-    },
-    methods: {
-        // validate user who booked the room before writing a review
-        async validateUser() {
-            const response = await axios.post('http://localhost:3000/api/review/validate-user', {
-                bookingCode: this.bookingCode
-            }, {
-                withCredentials: true
-            })
-            if (response.data.success) { 
-                // this.toast.success('Đặt phòng đã được xác nhận!')
-                this.$emit('close')
-                this.$emit('open-review-form')
-            }else {
-                this.$emit('close')
-                this.toast.error('Không tìm thất mã đặt phòng này!')
-            }
-        }
+    hotelName: {
+      type: String,
+      required: true
     }
+  },
+  data() {
+    return {
+      bookingCode: null
+    }
+  },
+  methods: {
+    // validate user who booked the room before writing a review
+    async validateUser() {
+      try {
+        const response = await axios.post(
+          'http://localhost:3000/api/review/validate-review',
+          {
+            bookingCode: this.bookingCode,
+            hotelId: this.hotelId
+          },
+          {
+            withCredentials: true
+          }
+        )
+        if (response.data.success) {
+          // this.toast.success('Đặt phòng đã được xác nhận!')
+          this.$emit('close')
+          this.$router.push({
+            path: '/reviews/review-details',
+            query: {
+              bc: this.bookingCode,
+              hid: this.hotelId,
+              hn: this.hotelName
+            }
+          })
+        }
+      } catch (error) {
+        this.$emit('close')
+        this.toast.error('Không tìm thất mã đặt phòng này!')
+      }
+    }
+  }
 }
 </script>
 <template>

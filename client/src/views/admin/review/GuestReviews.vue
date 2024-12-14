@@ -199,25 +199,14 @@ export default {
                   Review date: {{ new Date(review.created_at).toLocaleDateString() }}
                 </div>
                 <br />
-                <div class="review-details">
-                  <p>
-                    Staff: <span class="bar"><span style="width: 50%"></span></span>
+                <div class="review-details" v-if="review.review_criteria.length > 0">
+                  <p v-for="criteria in review.review_criteria" :key="criteria.criteria_name">
+                    {{ criteria.criteria_name }}: <span class="bar"><span :style="{ width: criteria.score / 5 * 100 + '%' }"></span></span>
                   </p>
-                  <p>
-                    Cleanliness: <span class="bar"><span style="width: 75%"></span></span>
-                  </p>
-                  <p>
-                    Location: <span class="bar"><span style="width: 50%"></span></span>
-                  </p>
-                  <p>
-                    Facilities: <span class="bar"><span style="width: 50%"></span></span>
-                  </p>
-                  <p>
-                    Comfort: <span class="bar"><span style="width: 75%"></span></span>
-                  </p>
-                  <p>
-                    Value for money: <span class="bar"><span style="width: 75%"></span></span>
-                  </p>
+                </div>
+                <div class="review-details" v-else>
+                  <p v-if="review.rating >= 3">Đã đánh giá khách sạn của bạn tốt</p>
+                  <p v-else>Đã đánh giá khách sạn của bạn chưa tốt</p>
                 </div>
                 <div class="line-break"></div>
                 <!-- show the comment -->

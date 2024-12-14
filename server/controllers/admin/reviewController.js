@@ -25,6 +25,12 @@ const getAllReviews = async (req, res) => {
       );
       review.user_name = user[0].username;
       review.user_email = user[0].email;
+      // get reivew criteria
+      const criteria = await queryAsync(
+        `SELECT criteria_name, score FROM review_criterias WHERE review_id = ?`,
+        [review.review_id]
+      );
+      review.review_criteria = criteria;
     }
 
     res.status(200).json(reviews);

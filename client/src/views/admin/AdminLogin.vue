@@ -6,17 +6,17 @@
     <h4>{{ $t('loginHeader') }}</h4>
     <p>Nhập email để trở thành đối tác của chúng tôi</p>
     <form @submit.prevent="checkEmail">
-      <label for="email">Địa chỉ email</label>
+      <label for="email">Địa chỉ email hay số điện thoại</label>
       <input
         type="email"
         id="email"
         name="email"
         v-model="email"
-        placeholder="Nhập địa chỉ email của bạn"
+        placeholder="Nhập địa chỉ email của bạn hoặc số điện thoại"
         required
       />
 
-      <button type="submit" class="btn">Tiếp tục với email</button>
+      <button type="submit" class="btn">Tiếp tục</button>
     </form>
     <p>hoặc sử dụng một trong các lựa chọn này</p>
     <div class="social-login">

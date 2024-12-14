@@ -1,9 +1,22 @@
 <script>
 import { mapActions, mapGetters, mapState } from 'vuex'
+import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet'
+import * as L from 'leaflet'
 export default {
+  components: {
+    LMap,
+    LTileLayer,
+    LMarker
+  },
   data() {
     return {
-      
+      openMapPopup: false,
+      zoom: 6,
+      center: [14.058324, 108.277199], // Default to London
+      markerPosition: null, // Position of the clicked marker
+      tileUrl: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      tileAttribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }
   },
   computed: {
@@ -14,15 +27,26 @@ export default {
         : false
     }
   },
+  watch: {
+    markerPosition(newValue) {
+      this.getJoinFormData.coordinates.latitude = newValue.lat
+      this.getJoinFormData.coordinates.longitude = newValue.lng
+    }
+  },
   methods: {
     goNext() {
       this.$emit('next')
+    },
+    onMapClick(event) {
+      // Get latitude and longitude of the clicked point
+      this.markerPosition = event.latlng
+      // this.openMapPopup = false
     }
   }
 }
 </script>
 <template>
-  <form class="multi-step-form">
+  <form class="multi-step-form" style="margin-bottom: 40px;" v-if="!openMapPopup">
     <!--  form-2  -->
     <div class="card">
       <div class="map-section">
@@ -32,7 +56,20 @@ export default {
           trí chính xác của chỗ nghỉ, sau đó nhấn để thả ghim.
         </p>
         <div class="map-container">
-          <img src="" alt="Map placeholder" style="width: 100%; height: 100%; object-fit: cover" />
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d59582.31596536299!2d105.834667!3d21.036897!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135aba15ec15d17%3A0x620e85c2cfe14d4c!2zTMSDbmcgQ2jhu6cgdOG7i2NoIEjhu5MgQ2jDrSBNaW5o!5e0!3m2!1svi!2sus!4v1729735752435!5m2!1svi!2sus"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+          <button class="map-button" @click="openMapPopup = !openMapPopup">
+            <svg class="map-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"
+              />
+            </svg>
+            Hiển thị trên bản đồ
+          </button>
         </div>
       </div>
       <div class="form-button-container">
@@ -43,6 +80,13 @@ export default {
       </div>
     </div>
   </form>
+  <div id="map-container" class="leaflet-map-container" v-if="openMapPopup">
+    <l-map style="height: 500px; width: 80%" :zoom="zoom" :center="center" @click="onMapClick">
+      <l-tile-layer :url="tileUrl" :attribution="tileAttribution" />
+      <l-marker v-if="markerPosition" :lat-lng="markerPosition"></l-marker>
+    </l-map>
+    <i class="fa-solid fa-circle-xmark" style="font-size: 30px; margin-top: -25px; cursor: pointer;" @click="openMapPopup = false"></i>
+  </div>
   <!--  form-2  -->
 </template>
 <style scoped>
@@ -416,6 +460,57 @@ select {
 .radio-option input[type='radio']:focus + .radio-custom {
   box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
 }
+
+.map-container {
+  height: 200px;
+  border-radius: 5px;
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 10px;
+}
+
+.map-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #0066cc;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  top: -60px;
+  margin: auto;
+  position: relative;
+}
+
+.map-button:hover {
+  background-color: #0052a3;
+}
+
+.map-icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.leaflet-map-container {
+    margin: 0 auto;
+    top: 100px;
+    position: absolute;
+    width: 100vw;
+    justify-content: center;
+    display: flex;
+    border-radius: 10px;
+}
+
 
 @keyframes slide {
   0% {

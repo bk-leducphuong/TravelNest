@@ -1,9 +1,17 @@
 <script>
 import TheHeader from '../components/Header.vue'
+import { mapGetters } from 'vuex'
 import axios from 'axios'
+import { useToast } from 'vue-toastification'
 export default {
   components: {
     TheHeader
+  },
+  setup() {
+    const toast = useToast()
+    return {
+      toast
+    }
   },
   data() {
     return {
@@ -25,6 +33,9 @@ export default {
       })
     }
   },
+  computed: {
+    ...mapGetters('user', ['getUserInformation'])
+  },
   methods: {
     async getAllReviews() {
       const response = await axios.get('http://localhost:3000/api/review/get-all-reviews', {
@@ -32,13 +43,18 @@ export default {
       })
       this.reviews = response.data.reviews
     },
-    makeReview(bookingCode) {
+    makeReview(bookingCode, hotelId, hotelName) {
       this.$router.push({
         name: 'ReviewDetails',
         query: {
-          bc: bookingCode
+          bc: bookingCode,
+          hid: hotelId,
+          hn: hotelName
         }
       })
+    },
+    editReview(bookingCode, hotelId, hotelName) {
+      this.toast.info('Coming soon')
     }
   },
   async mounted() {
@@ -51,10 +67,10 @@ export default {
   <div class="review-dashboard">
     <div class="left-container">
       <div class="profile-section">
-        <img src="" alt="Profile" class="profile-image" />
+        <img v-if="getUserInformation" :src="getUserInformation.profile_picture_url" alt="Profile" class="profile-image" />
         <div>
-          <h2 class="profile-name">Đặng Đình Khải</h2>
-          <a class="edit-profile">Edit your profile</a>
+          <h2 class="profile-name" v-if="getUserInformation">{{ getUserInformation.username }}</h2>
+          <a class="edit-profile" @click="this.$router.push('/account-settings/personal-information')">Edit your profile</a>
         </div>
       </div>
 
@@ -93,15 +109,19 @@ export default {
             class="property-image"
           />
           <div class="review-content">
-            <h4>You haven't reviewed your stay at {{ review.hotel.name }}</h4>
+            <h4 v-if="review.review.length == 0">You haven't reviewed your stay at {{ review.hotel.name }}</h4>
+            <h4 v-else>You have reviewed your stay at {{ review.hotel.name }}</h4>
             <div>
               <span class="" v-if="review.review.length == 0"
                 >You only have 60 days left to review.</span
               >
               <span class="review-status" v-else>Reviewed</span>
             </div>
-            <button class="review-button" @click="makeReview(review.booking_code)">
+            <button class="review-button"v-if="review.review.length == 0" @click="makeReview(review.booking_code, review.hotel.hotel_id, review.hotel.name)">
               Review your stay
+            </button>
+            <button class="review-button" v-else @click="editReview(review.booking_code, review.hotel.hotel_id, review.hotel.name)">
+              Edit your review
             </button>
           </div>
         </div>
@@ -141,6 +161,7 @@ export default {
   height: 48px;
   border-radius: 50%;
   margin-right: 12px;
+  object-fit: cover;
 }
 
 .profile-name {
