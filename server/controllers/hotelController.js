@@ -55,6 +55,15 @@ const getHotelDetails = async (req, res) => {
             FROM nearby_places WHERE hotel_id = ?
         `;
 
+    //TODO: delete review breakdown table, use new review_criterias table 
+    const reviewCriterias = `
+      SELECT rc.review_score_id, rc.criteria_name, rc.score, h.hotel_id, rc.review_id FROM review_criterias AS rc
+      JOIN reviews AS r ON r.review_id = rc.review_id
+      JOIN hotels AS h ON h.hotel_id = r.hotel_id
+      WHERE h.hotel_id = ?;
+    `
+    //...
+    
     const reviewsBreakdownQuery = `
             SELECT review_id, hotel_id, category_name, total_mentioned, positive, negative, neutral 
             FROM reviews_breakdown WHERE hotel_id = ?
