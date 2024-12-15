@@ -259,7 +259,17 @@ export default {
     },
   },
   mounted() {
-    this.isNewUserPopupOpen = !this.isUserAuthenticated
+    if (!this.isUserAuthenticated) {
+      const isNewUser = localStorage.getItem('isNewUser')
+      if (!isNewUser) {
+        localStorage.setItem('isNewUser', 'true')
+        this.isNewUserPopupOpen = true
+      }else {
+        localStorage.setItem('isNewUser', 'false')
+      }
+    }else {
+      localStorage.setItem('isNewUser', 'false')
+    }
     this.loadRecentSearches()
     this.loadViewedHotels()
     this.loadPopularPlaces()
