@@ -199,8 +199,15 @@ import { mapActions, mapState, mapGetters } from 'vuex'
 import AccountMenu from './user/AccountMenu.vue'
 import LanguageSwitch from './LanguageSwitch.vue'
 import socket from '@/services/socket'
+import {useToast} from 'vue-toastification'
 
 export default {
+  setup() {
+    const toast = useToast()
+    return {
+      toast
+    }
+  },
   props: {
     isSearchOpen: {
       type: Boolean,
@@ -315,6 +322,10 @@ export default {
     },
 
     async submitSearch() {
+      if (!this.selectedLocation || !this.checkInDate || !this.checkOutDate) {
+        this.toast.error('Vui lòng chọn địa điểm và ngày bắt đầu và kết thúc')
+        return
+      }
       const searchData = {
         location: this.selectedLocation,
         checkInDate: this.checkInDate,
@@ -403,11 +414,23 @@ export default {
 
     if (this.getSearchData) {
       this.selectedLocation = this.getSearchData.location
-      this.dateRange =
-        this.$t('userHeader.dateInputPlaceholder_1') + ' ' +
-        new Date(this.getSearchData.checkInDate).toLocaleDateString('vi-VN') + ' ' +
-        this.$t('userHeader.dateInputPlaceholder_2') + ' ' +
-        new Date(this.getSearchData.checkOutDate).toLocaleDateString('vi-VN')
+      if (this.getSearchData.checkInDate && this.getSearchData.checkOutDate) {
+        let checkInDate = new Date(this.getSearchData.checkInDate).toLocaleDateString('vi-VN')
+        let checkOutDate = new Date(this.getSearchData.checkOutDate).toLocaleDateString('vi-VN')
+
+        if (new Date(this.getSearchData.checkInDate).getTime() < new Date().getTime()) {
+          checkInDate = new Date().toLocaleDateString('vi-VN')
+        } 
+        if (new Date(this.getSearchData.checkOutDate).getTime() < new Date().getTime()) {
+          checkOutDate = new Date(new Date().getTime() + (1000 * 60 * 60 * 24)).toLocaleDateString('vi-VN')
+        }
+
+        this.dateRange =
+          this.$t('userHeader.dateInputPlaceholder_1') + ' ' +
+          checkInDate + ' ' +
+          this.$t('userHeader.dateInputPlaceholder_2') + ' ' +
+          checkOutDate
+      }
       this.children = this.getSearchData.children
       this.adults = this.getSearchData.adults
       this.rooms = this.getSearchData.rooms

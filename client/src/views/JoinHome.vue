@@ -15,7 +15,7 @@ export default {
         <h1 class="main-title">
           Đăng<br />
           <span class="highlight">bất cứ chỗ nghỉ nào</span><br />
-          trên Booking.com
+          trên TravelNest
         </h1>
         <h1 class="subtitle">
           Dù host là nghề tay trái hay công việc toàn thời gian, hãy đăng nhà của bạn ngay hôm nay

@@ -61,7 +61,7 @@ const getRecentViewedHotelInformation = async (hotelIdArray) => {
   for (const hotelId of hotelIdArray) {
     // get hotel information: hotel_id, name, overall_rating, address, image_urls
     const hotelQuery = `
-            SELECT hotel_id, name, overall_rating, address, image_urls
+            SELECT hotel_id, name, overall_rating, address, image_urls, city
             FROM hotels
             WHERE hotel_id = ?;
         `;

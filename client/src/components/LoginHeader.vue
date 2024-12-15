@@ -34,7 +34,7 @@ export default {
   <div class="header-container">
       <div class="inner-wrap">
         <div class="inner-logo">
-          <strong><a @click="this.$router.push('/')">Booking.com</a></strong>
+          <strong><a @click="this.$router.push('/')">TravelNest</a></strong>
         </div>
         <div class="inner-login">
           <ul>

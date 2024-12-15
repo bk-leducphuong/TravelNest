@@ -65,13 +65,13 @@
     </div>
     <div class="footer-bottom">
       <p>
-        Booking.com is part of Booking Holdings Inc., the world leader in online travel and related
+        TravelNest is part of Booking Holdings Inc., the world leader in online travel and related
         services.
       </p>
-      <p>Copyright © 1996–2024 Booking.com™. All rights reserved.</p>
+      <p>Copyright © 1996–2024 TravelNest™. All rights reserved.</p>
     </div>
     <div class="brand-logos">
-      <img src="" alt="Booking.com" />
+      <img src="" alt="TravelNest" />
       <img src="" alt="Priceline" />
       <img src="" alt="Kayak" />
       <img src="" alt="Agoda" />

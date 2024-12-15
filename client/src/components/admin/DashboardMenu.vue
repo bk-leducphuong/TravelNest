@@ -31,7 +31,7 @@ export default {
 <template>
      <div class="dashboard-container">
       <nav class="dashboard">
-        <div class="logo" @click="this.$router.push('/admin/hotels-management')">Booking.com</div>
+        <div class="logo" @click="this.$router.push('/admin/hotels-management')">TravelNest</div>
 
         <ul class="nav-menu">
           <!-- Home -->

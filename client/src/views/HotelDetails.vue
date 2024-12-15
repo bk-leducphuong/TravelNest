@@ -291,10 +291,25 @@ export default {
   },
   async mounted() {
      if (this.getSearchData) {
-      console.log(this.getSearchData);
       this.checkOutDate = this.getSearchData.checkOutDate
       this.selectedLocation = this.getSearchData.location
-      this.dateRange = 'Từ ' + new Date(this.getSearchData.checkInDate).toLocaleDateString('vi-VN') + ' đến ' + new Date(this.getSearchData.checkOutDate).toLocaleDateString('vi-VN')
+      if (this.getSearchData.checkInDate && this.getSearchData.checkOutDate) {
+        let checkInDate = new Date(this.getSearchData.checkInDate).toLocaleDateString('vi-VN')
+        let checkOutDate = new Date(this.getSearchData.checkOutDate).toLocaleDateString('vi-VN')
+
+        if (new Date(this.getSearchData.checkInDate).getTime() < new Date().getTime()) {
+          checkInDate = new Date().toLocaleDateString('vi-VN')
+        } 
+        if (new Date(this.getSearchData.checkOutDate).getTime() < new Date().getTime()) {
+          checkOutDate = new Date(new Date().getTime() + (1000 * 60 * 60 * 24)).toLocaleDateString('vi-VN')
+        }
+
+        this.dateRange =
+          this.$t('userHeader.dateInputPlaceholder_1') + ' ' +
+          checkInDate + ' ' +
+          this.$t('userHeader.dateInputPlaceholder_2') + ' ' +
+          checkOutDate
+      }
       this.children = this.getSearchData.children
       this.adults = this.getSearchData.adults
       this.rooms = this.getSearchData.rooms

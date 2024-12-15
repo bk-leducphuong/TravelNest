@@ -78,6 +78,7 @@ export default {
     // redirect user to hotel details page
     async redirectToHotelDetails(hotel) {
       try {
+        this.updateLocation(hotel.city)
         const hotel_id = hotel.hotel_id
         // save viewed hotel
         let viewedHotels = localStorage.getItem('viewedHotels')
