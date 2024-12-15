@@ -2,6 +2,7 @@
 import TheHeader from '../components/Header.vue'
 import TheFooter from '../components/Footer.vue'
 import SavedHotelIcon from '@/components/SavedHotelIcon.vue'
+import NewUserPopup from '@/components/NewUserPopup.vue'
 import axios from 'axios'
 import { mapActions, mapState, mapGetters } from 'vuex'
 import Loading from 'vue-loading-overlay'
@@ -12,7 +13,8 @@ export default {
     TheHeader,
     TheFooter,
     Loading,
-    SavedHotelIcon
+    SavedHotelIcon,
+    NewUserPopup
   },
   data() {
     return {
@@ -30,7 +32,8 @@ export default {
       isNearByHotelsLoading: false,
       isPopularPlacesLoading: false,
       isRecentSearchesLoading: false,
-      isViewedHotelsLoading: false
+      isViewedHotelsLoading: false,
+      isNewUserPopupOpen: false
     }
   },
   computed: {
@@ -253,9 +256,10 @@ export default {
         }
       },
       immediate: true // Ensures the watcher runs immediately when the component is created
-    }
+    },
   },
   mounted() {
+    this.isNewUserPopupOpen = !this.isUserAuthenticated
     this.loadRecentSearches()
     this.loadViewedHotels()
     this.loadPopularPlaces()
@@ -264,6 +268,7 @@ export default {
 </script>
 
 <template>
+  <NewUserPopup v-if="isNewUserPopupOpen" @close="isNewUserPopupOpen = false" />
   <TheHeader :isSearchOpen="true" />
   <!-- home body -->
   <div class="home-container">
