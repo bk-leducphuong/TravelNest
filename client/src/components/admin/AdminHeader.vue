@@ -40,7 +40,7 @@ export default {
         // Tham gia vào room của admin
         socket.emit('joinAdminRoom', this.getCurrentManagingHotelId)
         // Nhận thông báo mới
-        socket.on('newNotification', (data) => {
+        socket.on('newAdminNotification', (data) => {
           this.notifications.unshift(data)
           this.numberOfNewNotifications++
           this.haveNewNotifications = true

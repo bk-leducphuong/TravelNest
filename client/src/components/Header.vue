@@ -355,7 +355,7 @@ export default {
         // Tham gia vào room của admin
         socket.emit('joinUserRoom', this.getUserId)
         // Nhận thông báo mới
-        socket.on('newNotification', (data) => {
+        socket.on('newUserNotification', (data) => {
           this.notifications.unshift(data)
           this.numberOfNewNotifications++
           this.haveNewNotifications = true

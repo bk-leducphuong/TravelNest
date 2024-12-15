@@ -444,12 +444,12 @@ async function sendNewBookingNotification(paymentIntent) {
 
     const adminNotificationId = await storeAdminNotification(adminNotification);
 
-    io.to(`owner_${adminNotification.recieverId}`).emit("newNotification", {
-      notificationId: adminNotificationId,
-      notificationType: adminNotification.notificationType,
+    io.to(`owner_${adminNotification.recieverId}`).emit("newAdminNotification", {
+      notification_id: adminNotificationId,
+      notification_type: adminNotification.notificationType,
       message: adminNotification.message,
-      isRead: adminNotification.isRead,
-      senderId: adminNotification.senderId,
+      is_read: adminNotification.isRead,
+      sender_id: adminNotification.senderId,
     });
 
     // send new booking notification for user who book the reservation
@@ -463,12 +463,12 @@ async function sendNewBookingNotification(paymentIntent) {
 
     const userNotificationId = await storeUserNotification(userNotification);
 
-    io.to(`user_${buyerId}`).emit("newNotification", {
-      notificationId: userNotificationId,
-      notificationType: userNotification.notificationType,
+    io.to(`user_${buyerId}`).emit("newUserNotification", {
+      notification_id: userNotificationId,
+      notification_type: userNotification.notificationType,
       message: userNotification.message,
-      isRead: userNotification.isRead,
-      senderId: userNotification.senderId,
+      is_read: userNotification.isRead,
+      sender_id: userNotification.senderId,
     });
   } catch (error) {
     console.error(error);

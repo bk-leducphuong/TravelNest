@@ -81,7 +81,7 @@
       <a  >Điều khoản và Điều kiện</a> cũng như
       <a  >Chính sách An toàn và Bảo mật</a> của chúng tôi
     </p>
-    <p>Bảo lưu mọi quyền.<br />Bản quyền (2006 - 2024) - Booking.com™</p>
+    <p>Bảo lưu mọi quyền.<br />Bản quyền (2006 - 2024) - TravelNest™</p>
   </div>
 </template>
 

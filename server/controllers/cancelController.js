@@ -64,11 +64,11 @@ const sendCancelBookingNotification = async (bookingInformation) => {
     ]);
 
     io.to(`owner_${adminNotification.recieverId}`).emit("newNotification", {
-      notificationId: notificationId,
-      notificationType: adminNotification.notificationType,
+      notification_id: notificationId,
+      notification_type: adminNotification.notificationType,
       message: adminNotification.message,
-      isRead: adminNotification.isRead,
-      senderId: adminNotification.senderId,
+      is_read: adminNotification.isRead,
+      sender_id: adminNotification.senderId,
     });
 
     // send cancel booking notification for user who book the reservation
@@ -96,11 +96,11 @@ const sendCancelBookingNotification = async (bookingInformation) => {
     );
 
     io.to(`user_${buyerId}`).emit("newNotification", {
-      notificationId: userNotificationId,
-      notificationType: userNotification.notificationType,
+      notification_id: userNotificationId,
+      notification_type: userNotification.notificationType,
       message: userNotification.message,
-      isRead: userNotification.isRead,
-      senderId: userNotification.senderId,
+      is_read: userNotification.isRead,
+      sender_id: userNotification.senderId,
     });
   } catch (error) {
     console.error(error);

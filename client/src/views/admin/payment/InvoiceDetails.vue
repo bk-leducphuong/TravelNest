@@ -31,25 +31,18 @@ export default {
 </script>
 <template>
   <div class="invoice-container">
-    <!-- Header Section -->
-    <div class="header">
-      <div class="header-content">
-        <p class="date">30 Dec 2019</p>
-        <h1>This is your invoice</h1>
-      </div>
-    </div>
-
     <!-- Logo Section -->
     <div class="logo">
-      <h2>Booking<span>.com</span></h2>
+      <h2>TravelNest Invoice</h2>
     </div>
 
     <!-- Your Details Section -->
     <div class="section">
       <h3>Your Details</h3>
       <div class="details">
-        <p><strong>Name:</strong> Adil Pervaiz</p>
-        <p><strong>Email address:</strong> adilpervaiz1@gmail.com</p>
+        <p><strong>Name:</strong>The Poppy Villa & Hotel</p>
+        <p><strong>Email address:</strong>phuongtroc2004@gmail.com</p>
+        <p><strong>Phone number:</strong>+84 123 456 789</p>
         <p><strong>Date:</strong> 30 Dec 2019</p>
       </div>
     </div>

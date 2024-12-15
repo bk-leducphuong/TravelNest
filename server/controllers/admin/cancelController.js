@@ -100,11 +100,11 @@ const sendCancelBookingNotification = async (bookingInformation, hotelInformatio
     ]);
 
   io.to(`user_${notification.recieverId}`).emit("newNotification", {
-    notificationId: notificationId,
-    notificationType: notification.notificationType,
+    notification_id: notificationId,
+    notification_type: notification.notificationType,
     message: notification.message,
-    isRead: notification.isRead,
-    senderId: notification.senderId,
+    is_read: notification.isRead,
+    sender_id: notification.senderId,
   });
 
   // io.to(`owner_${notification.recieverId}`).emit("newNotification", {
