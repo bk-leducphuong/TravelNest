@@ -18,18 +18,6 @@
 
       <button type="submit" class="btn">Tiếp tục</button>
     </form>
-    <p>hoặc sử dụng một trong các lựa chọn này</p>
-    <div class="social-login">
-      <button @click="socialLogin('facebook')" class="social-btn">
-        <img src="../assets/icons/facebook.png" alt="Facebook" />
-      </button>
-      <button @click="socialLogin('google')" class="social-btn">
-        <img src="../assets/icons/search.png" alt="Google" />
-      </button>
-      <button @click="socialLogin('twitter')" class="social-btn">
-        <img src="../assets/icons/twitter.png" alt="Twitter" />
-      </button>
-    </div>
   </div>
 
   <div class="container" v-if="step === 2">
@@ -100,7 +88,7 @@
       Qua việc đăng nhập hoặc tạo tài khoản, bạn đồng ý với các
       <a>Điều khoản và Điều kiện</a> cũng như <a>Chính sách An toàn và Bảo mật</a> của chúng tôi
     </p>
-    <p>Bảo lưu mọi quyền.<br />Bản quyền (2006 - 2024) - Booking.com™</p>
+    <p>Bảo lưu mọi quyền.<br />Bản quyền (2006 - 2024) - TravelNest™</p>
   </div>
 
   <OtpVerification

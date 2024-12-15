@@ -8,9 +8,7 @@ export default {
     LoginHeader
   },
   data() {
-    return {
-      
-    }
+    return {}
   },
   computed: {
     ...mapGetters('manageHotels', ['getManagingHotels'])
@@ -20,7 +18,7 @@ export default {
     selectHotel(hotelId) {
       this.selectHotelToManage(hotelId)
       this.$router.push(`/admin/${hotelId}/home`)
-    },
+    }
   },
   async mounted() {
     await this.getAllManagingHotels()
@@ -64,14 +62,14 @@ export default {
 
     <div v-if="getManagingHotels == []">
       <div
-      class="not-found-hotels"
-      style="margin-top: 80px; text-align: center; font-size: 30px; font-weight: 700"
-      v-if="getManagingHotels.length == 0"
-    >
-      <span>Bạn chưa đăng khách sạn nào</span>
+        class="not-found-hotels"
+        style="margin-top: 80px; text-align: center; font-size: 30px; font-weight: 700"
+        v-if="getManagingHotels.length == 0"
+      >
+        <span>Bạn chưa đăng khách sạn nào</span>
+      </div>
     </div>
-    </div>
-    
+
     <div class="hotel-grid">
       <!-- Hotel Card 1 -->
 
@@ -96,20 +94,7 @@ export default {
             </svg>
             {{ hotel.address }}
           </div>
-          <div class="hotel-stats">
-            <div class="stat">
-              <span class="stat-value">120</span>
-              <span class="stat-label">Rooms</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">85%</span>
-              <span class="stat-label">Occupancy</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">{{ hotel.overall_rating }}</span>
-              <span class="stat-label">Rating</span>
-            </div>
-          </div>
+          <!-- <div class="hotel-stats"></div> -->
           <div class="hotel-actions">
             <button class="action-btn manage-btn" @click="selectHotel(hotel.hotel_id)">
               <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,7 +174,7 @@ export default {
 
 .hotel-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 24px;
   padding: 10px;
 }
@@ -207,7 +192,6 @@ export default {
 }
 
 .hotel-image {
-
   width: 100%;
   height: 200px;
   object-fit: cover;
