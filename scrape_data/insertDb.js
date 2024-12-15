@@ -87,19 +87,18 @@ const insertReviewsBreakdown = async (review_breakdown) => {
 
 // Hàm chèn thông tin rooms vào database
 const insertRooms = async (room) => {
-  const sql = `INSERT INTO rooms (hotel_id, price_per_night, max_guests, total_rooms, booked_rooms, room_name, image_urls, room_amenities) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+  const sql = `INSERT INTO rooms (hotel_id, price_per_night, max_guests, room_name, image_urls, room_amenities) VALUES (?, ?, ?, ?, ?, ?)`;
   const values = [
     room.hotel_id,
     room.price_per_night,
     room.max_guests,
-    room.total_rooms,
-    room.booked_rooms,
     room.name,
     JSON.stringify(room.image_urls),
     JSON.stringify(room.room_amenities),
   ];
 
-  await queryPromise(sql, values);
+  const { insertId: room_id } = await queryPromise(sql, values);
+  await insertRoomAvailability(room_id, room.price_per_night);
 };
 
 // Hàm chèn reviews vào database
@@ -135,274 +134,272 @@ const checkHotelExist = (latitude, longitude, callback) => {
 };
 
 // Hàm chèn dữ liệu room_availability vào database
-const insertRoomAvailability = async () => {
-  const NUMBER_OF_DAYS = 60; // 2 months
-  const query = "SELECT room_id, price_per_night FROM rooms ORDER BY room_id ASC";
-  const results = await queryPromise(query);
+const insertRoomAvailability = async (room_id, price_per_night) => {
+  const NUMBER_OF_DAYS = 60; // 1 months
 
-  // for (room of results) {
-  //   for (let i = 0; i < NUMBER_OF_DAYS; i++) {
-  //     const d = new Date();
-  //     d.setDate(d.getDate() + i);
+  for (let i = 0; i < NUMBER_OF_DAYS; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
 
-  //     const query = `INSERT INTO room_inventory (room_id, date, total_inventory, total_reserved) VALUES (?, ?, ?, ?)`;
-  //     await queryPromise(query, [room.room_id, d, 10, 0]);
-  //     ``;
-  //   }
-  // }
-
-  for (room of results) {
-    const query = `UPDATE room_inventory SET status = 'open', price_per_night = ? WHERE room_id = ?`;
-    await queryPromise(query, [room.price_per_night, room.room_id]);
+    const query = `INSERT INTO room_inventory (room_id, date, total_inventory, total_reserved, price_per_night, status) VALUES (?, ?, ?, ?, ?, ?)`;
+    await queryPromise(query, [
+      room_id,
+      d,
+      10,
+      0,
+      price_per_night,
+      "open",
+    ]);
+    ``;
   }
 };
 
 /*************************** Data processing ***************************/
 
-// const processHotelData = async () => {
-//   const folderPath = path.join(
-//     __dirname,
-//     `data/hotels/${process.env.LOCATION}`
-//   ); // path to hotels folder
+const processHotelData = async () => {
+  const folderPath = path.join(
+    __dirname,
+    `data/hotels/${process.env.LOCATION}`
+  ); // path to hotels folder
 
-//   fs.readdir(folderPath, (err, files) => {
-//     if (err) {
-//       return console.error("Unable to scan folder:", err);
-//     }
+  fs.readdir(folderPath, (err, files) => {
+    if (err) {
+      return console.error("Unable to scan folder:", err);
+    }
 
-//     files.forEach((file) => {
-//       const filePath = path.join(folderPath, file);
+    files.forEach((file) => {
+      const filePath = path.join(folderPath, file);
 
-//       // Kiểm tra xem đây có phải là file không
-//       fs.stat(filePath, (err, stats) => {
-//         if (err) {
-//           console.error(`Unable to get stats of file ${file}:`, err);
-//           return;
-//         }
+      // Kiểm tra xem đây có phải là file không
+      fs.stat(filePath, (err, stats) => {
+        if (err) {
+          console.error(`Unable to get stats of file ${file}:`, err);
+          return;
+        }
 
-//         if (stats.isFile()) {
-//           // Đọc nội dung của file
-//           fs.readFile(filePath, "utf-8", async (err, data) => {
-//             if (err) {
-//               console.error(`Unable to read file ${file}:`, err);
-//             } else {
-//               try {
-//                 const hotel = JSON.parse(data);
+        if (stats.isFile()) {
+          // Đọc nội dung của file
+          fs.readFile(filePath, "utf-8", async (err, data) => {
+            if (err) {
+              console.error(`Unable to read file ${file}:`, err);
+            } else {
+              try {
+                const hotel = JSON.parse(data);
 
-//                 /************************* hotels ***************************/
+                /************************* hotels ***************************/
 
-//                 // Convert `checkHotelExist` to return a Promise
-//                 const checkHotelExistPromise = (latitude, longitude) =>
-//                   new Promise((resolve, reject) => {
-//                     checkHotelExist(latitude, longitude, (err, ex_hotel_id) => {
-//                       if (err) {
-//                         reject(err);
-//                       } else {
-//                         resolve(ex_hotel_id);
-//                       }
-//                     });
-//                   });
+                // Convert `checkHotelExist` to return a Promise
+                const checkHotelExistPromise = (latitude, longitude) =>
+                  new Promise((resolve, reject) => {
+                    checkHotelExist(latitude, longitude, (err, ex_hotel_id) => {
+                      if (err) {
+                        reject(err);
+                      } else {
+                        resolve(ex_hotel_id);
+                      }
+                    });
+                  });
 
-//                 // Check if hotel exists by coordinates
-//                 let hotel_id = await checkHotelExistPromise(
-//                   hotel.gps_coordinates.latitude,
-//                   hotel.gps_coordinates.longitude
-//                 );
+                // Check if hotel exists by coordinates
+                let hotel_id = await checkHotelExistPromise(
+                  hotel.gps_coordinates.latitude,
+                  hotel.gps_coordinates.longitude
+                );
 
-//                 // If hotel does not exist, insert a new hotel
-//                 if (!hotel_id) {
-//                   hotel.image_urls = hotel.images.map(
-//                     (obj) => obj.original_image
-//                   );
+                // If hotel does not exist, insert a new hotel
+                if (!hotel_id) {
+                  hotel.image_urls = hotel.images.map(
+                    (obj) => obj.original_image
+                  );
 
-//                   hotel.amenities = hotel.amenities || [
-//                     "Lễ tân 24/7",
-//                     "Wi-Fi miễn phí",
-//                     "Bãi đỗ xe",
-//                     "Dịch vụ phòng",
-//                     "Phòng tập thể dục",
-//                     "Hồ bơi",
-//                     "Nhà hàng",
-//                     "Dịch vụ giặt là",
-//                     "Dịch vụ đưa đón sân bay",
-//                   ];
+                  hotel.amenities = hotel.amenities || [
+                    "Lễ tân 24/7",
+                    "Wi-Fi miễn phí",
+                    "Bãi đỗ xe",
+                    "Dịch vụ phòng",
+                    "Phòng tập thể dục",
+                    "Hồ bơi",
+                    "Nhà hàng",
+                    "Dịch vụ giặt là",
+                    "Dịch vụ đưa đón sân bay",
+                  ];
 
-//                   hotel.description =
-//                     hotel.description ||
-//                     `Tọa lạc gần địa danh nổi bật, ${hotel.name} mang đến sự tiện nghi với phòng ốc hiện đại, Wi-Fi tốc độ cao, và các tiện ích khác như hồ bơi, spa,.... Thưởng thức các đặc sản ngay trong khách sạn và khám phá vẻ đẹp của các địa danh nổi tiếng chỉ với vài bước chân.`;
+                  hotel.description =
+                    hotel.description ||
+                    `Tọa lạc gần địa danh nổi bật, ${hotel.name} mang đến sự tiện nghi với phòng ốc hiện đại, Wi-Fi tốc độ cao, và các tiện ích khác như hồ bơi, spa,.... Thưởng thức các đặc sản ngay trong khách sạn và khám phá vẻ đẹp của các địa danh nổi tiếng chỉ với vài bước chân.`;
 
-//                   hotel_id = await insertHotel(hotel); // Insert the new hotel and get its ID
-//                 } else {
-//                   console.log("Hotel exists with ID:", hotel_id);
-//                 }
+                  hotel_id = await insertHotel(hotel); // Insert the new hotel and get its ID
+                } else {
+                  console.log("Hotel exists with ID:", hotel_id);
+                }
 
-//                 /************************* nearby_places ***************************/
-//                 // Insert each nearby place associated with the hotel
-//                 for (const place of hotel.nearby_places) {
-//                   const nearby_place_data = {
-//                     place_name: place.name,
-//                     hotel_id: hotel_id,
-//                     latitude: place.gps_coordinates.latitude,
-//                     longitude: place.gps_coordinates.longitude,
-//                   };
+                /************************* nearby_places ***************************/
+                // Insert each nearby place associated with the hotel
+                for (const place of hotel.nearby_places) {
+                  const nearby_place_data = {
+                    place_name: place.name,
+                    hotel_id: hotel_id,
+                    latitude: place.gps_coordinates.latitude,
+                    longitude: place.gps_coordinates.longitude,
+                  };
 
-//                   await insertNearbyPlaces(nearby_place_data);
-//                 }
+                  await insertNearbyPlaces(nearby_place_data);
+                }
 
-//                 /*********************** reviews breakdown **************************/
-//                 for (const review_breakdown of hotel.reviews_breakdown) {
-//                   review_breakdown.hotel_id = hotel_id;
-//                   await insertReviewsBreakdown(review_breakdown);
-//                 }
+                /*********************** reviews breakdown **************************/
+                for (const review_breakdown of hotel.reviews_breakdown) {
+                  review_breakdown.hotel_id = hotel_id;
+                  await insertReviewsBreakdown(review_breakdown);
+                }
 
-//                 /************************* rooms *****************************/
-//                 let isRoomInserted = false;
+                /************************* rooms *****************************/
+                let isRoomInserted = false;
 
-//                 for (const item of hotel.featured_prices) {
-//                   if (item.rooms && !isRoomInserted) {
-//                     for (const room of item.rooms) {
-//                       // extract and create room data
-//                       let roomData = {
-//                         hotel_id,
-//                         price_per_night: room.rate_per_night.extracted_lowest,
-//                         max_guests: room.num_guests,
-//                         total_rooms: 10,
-//                         booked_rooms: 0,
-//                         name: room.name,
-//                         image_urls: room.images,
-//                         room_amenities: [
-//                           "Giường ngủ thoải mái",
-//                           "Bàn làm việc và ghế",
-//                           "Internet Wi-Fi miễn phí",
-//                           "Điều hòa không khí",
-//                           "TV màn hình phẳng",
-//                           "Két sắt an toàn",
-//                           "Tủ lạnh nhỏ và minibar",
-//                           "Ấm đun nước và cà phê, trà miễn phí",
-//                           "Phòng tắm riêng với vòi hoa sen hoặc bồn tắm",
-//                           "Khăn tắm và đồ dùng vệ sinh cá nhân",
-//                           "Tủ quần áo và móc treo đồ",
-//                           "Điện thoại nội bộ",
-//                           "Đèn ngủ và đèn đọc sách",
-//                           "Gương soi toàn thân",
-//                           "Bàn ủi và bàn để ủi",
-//                           "Ổ cắm điện đa năng",
-//                         ],
-//                       };
+                for (const item of hotel.prices) {
+                  if (item.rooms && !isRoomInserted) {
+                    for (const room of item.rooms) {
+                      // extract and create room data
+                      let roomData = {
+                        hotel_id,
+                        price_per_night: room.rate_per_night.extracted_lowest,
+                        max_guests: room.num_guests,
+                        total_rooms: 10,
+                        booked_rooms: 0,
+                        name: room.name,
+                        image_urls: room.images,
+                        room_amenities: [
+                          "Giường ngủ thoải mái",
+                          "Bàn làm việc và ghế",
+                          "Internet Wi-Fi miễn phí",
+                          "Điều hòa không khí",
+                          "TV màn hình phẳng",
+                          "Két sắt an toàn",
+                          "Tủ lạnh nhỏ và minibar",
+                          "Ấm đun nước và cà phê, trà miễn phí",
+                          "Phòng tắm riêng với vòi hoa sen hoặc bồn tắm",
+                          "Khăn tắm và đồ dùng vệ sinh cá nhân",
+                          "Tủ quần áo và móc treo đồ",
+                          "Điện thoại nội bộ",
+                          "Đèn ngủ và đèn đọc sách",
+                          "Gương soi toàn thân",
+                          "Bàn ủi và bàn để ủi",
+                          "Ổ cắm điện đa năng",
+                        ],
+                      };
 
-//                       await insertRooms(roomData);
-//                     }
+                      await insertRooms(roomData);
+                    }
 
-//                     isRoomInserted = true;
-//                   }
-//                 }
+                    isRoomInserted = true;
+                  }
+                }
 
-//                 if (!isRoomInserted) {
-//                   const rooms = [
-//                     {
-//                       hotel_id: hotel_id,
-//                       name: "Phòng Tiêu Chuẩn",
-//                       price_per_night: 800000,
-//                       max_guests: 2,
-//                       total_rooms: 10,
-//                       booked_rooms: 3,
-//                       image_urls: [
-//                         "https://example.com/images/phong_tieu_chuan_1.jpg",
-//                         "https://example.com/images/phong_tieu_chuan_2.jpg",
-//                       ],
-//                       room_amenities: [
-//                         "Wi-Fi miễn phí",
-//                         "Tivi màn hình phẳng",
-//                         "Điều hòa nhiệt độ",
-//                         "Tủ lạnh mini",
-//                         "Dịch vụ dọn phòng hàng ngày",
-//                       ],
-//                     },
-//                     {
-//                       hotel_id: hotel_id,
-//                       name: "Phòng Gia Đình",
-//                       price_per_night: 1500000,
-//                       max_guests: 4,
-//                       total_rooms: 5,
-//                       booked_rooms: 1,
-//                       image_urls: [
-//                         "https://example.com/images/phong_gia_dinh_1.jpg",
-//                         "https://example.com/images/phong_gia_dinh_2.jpg",
-//                       ],
-//                       room_amenities: [
-//                         "Wi-Fi miễn phí",
-//                         "Tivi màn hình phẳng",
-//                         "Điều hòa nhiệt độ",
-//                         "Tủ lạnh mini",
-//                         "Bếp nhỏ",
-//                         "Khu vực tiếp khách",
-//                         "Ban công",
-//                       ],
-//                     },
-//                   ];
+                if (!isRoomInserted) {
+                  const rooms = [
+                    {
+                      hotel_id: hotel_id,
+                      name: "Phòng Tiêu Chuẩn",
+                      price_per_night: 800000,
+                      max_guests: 2,
+                      total_rooms: 10,
+                      booked_rooms: 3,
+                      image_urls: [
+                        "https://example.com/images/phong_tieu_chuan_1.jpg",
+                        "https://example.com/images/phong_tieu_chuan_2.jpg",
+                      ],
+                      room_amenities: [
+                        "Wi-Fi miễn phí",
+                        "Tivi màn hình phẳng",
+                        "Điều hòa nhiệt độ",
+                        "Tủ lạnh mini",
+                        "Dịch vụ dọn phòng hàng ngày",
+                      ],
+                    },
+                    {
+                      hotel_id: hotel_id,
+                      name: "Phòng Gia Đình",
+                      price_per_night: 1500000,
+                      max_guests: 4,
+                      total_rooms: 5,
+                      booked_rooms: 1,
+                      image_urls: [
+                        "https://example.com/images/phong_gia_dinh_1.jpg",
+                        "https://example.com/images/phong_gia_dinh_2.jpg",
+                      ],
+                      room_amenities: [
+                        "Wi-Fi miễn phí",
+                        "Tivi màn hình phẳng",
+                        "Điều hòa nhiệt độ",
+                        "Tủ lạnh mini",
+                        "Bếp nhỏ",
+                        "Khu vực tiếp khách",
+                        "Ban công",
+                      ],
+                    },
+                  ];
 
-//                   for (const room of rooms) {
-//                     await insertRooms(room);
-//                   }
-//                 }
+                  for (const room of rooms) {
+                    await insertRooms(room);
+                  }
+                }
 
-//                 /*********************** reviews ******************/
-//                 const reviews = [
-//                   {
-//                     user_id: 7,
-//                     hotel_id: hotel_id,
-//                     rating: 4,
-//                     comment:
-//                       "Phòng ốc rộng rãi, sạch sẽ. Nhân viên rất thân thiện và hỗ trợ nhiệt tình. Tuy nhiên, bữa sáng chưa đa dạng lắm.",
-//                   },
-//                   {
-//                     user_id: 10,
-//                     hotel_id: hotel_id,
-//                     rating: 5,
-//                     comment:
-//                       "Khách sạn tuyệt vời! Dịch vụ chuyên nghiệp, mọi thứ đều hoàn hảo. Vị trí thuận tiện, gần trung tâm và các điểm tham quan nổi tiếng.",
-//                   },
-//                   {
-//                     user_id: 4,
-//                     hotel_id: hotel_id,
-//                     rating: 3,
-//                     comment:
-//                       "Khách sạn ổn cho một kỳ nghỉ ngắn ngày, nhưng một số tiện nghi như wifi và tủ lạnh cần cải thiện. Giá cả hợp lý.",
-//                   },
-//                   {
-//                     user_id: 11,
-//                     hotel_id: hotel_id,
-//                     rating: 2,
-//                     comment:
-//                       "Không hài lòng lắm. Phòng khá nhỏ và hơi ồn do gần đường. Thái độ nhân viên chưa thân thiện.",
-//                   },
-//                   {
-//                     user_id: 5,
-//                     hotel_id: hotel_id,
-//                     rating: 4,
-//                     comment:
-//                       "Kỳ nghỉ dễ chịu, phòng tắm sạch sẽ, view đẹp. Sẽ quay lại lần sau nếu có dịp.",
-//                   },
-//                 ];
+                /*********************** reviews ******************/
+                const reviews = [
+                  {
+                    user_id: 7,
+                    hotel_id: hotel_id,
+                    rating: 4,
+                    comment:
+                      "Phòng ốc rộng rãi, sạch sẽ. Nhân viên rất thân thiện và hỗ trợ nhiệt tình. Tuy nhiên, bữa sáng chưa đa dạng lắm.",
+                  },
+                  {
+                    user_id: 10,
+                    hotel_id: hotel_id,
+                    rating: 5,
+                    comment:
+                      "Khách sạn tuyệt vời! Dịch vụ chuyên nghiệp, mọi thứ đều hoàn hảo. Vị trí thuận tiện, gần trung tâm và các điểm tham quan nổi tiếng.",
+                  },
+                  {
+                    user_id: 4,
+                    hotel_id: hotel_id,
+                    rating: 3,
+                    comment:
+                      "Khách sạn ổn cho một kỳ nghỉ ngắn ngày, nhưng một số tiện nghi như wifi và tủ lạnh cần cải thiện. Giá cả hợp lý.",
+                  },
+                  {
+                    user_id: 11,
+                    hotel_id: hotel_id,
+                    rating: 2,
+                    comment:
+                      "Không hài lòng lắm. Phòng khá nhỏ và hơi ồn do gần đường. Thái độ nhân viên chưa thân thiện.",
+                  },
+                  {
+                    user_id: 5,
+                    hotel_id: hotel_id,
+                    rating: 4,
+                    comment:
+                      "Kỳ nghỉ dễ chịu, phòng tắm sạch sẽ, view đẹp. Sẽ quay lại lần sau nếu có dịp.",
+                  },
+                ];
 
-//                 for (const review of reviews) {
-//                   await insertReviews(review);
-//                 }
-//               } catch (error) {
-//                 console.error("Error:", error);
-//               }
-//             }
-//           });
-//         }
-//       });
-//     });
-//   });
-// };
+                for (const review of reviews) {
+                  await insertReviews(review);
+                }
+              } catch (error) {
+                console.error("Error:", error);
+              }
+            }
+          });
+        }
+      });
+    });
+  });
+};
 
 // run
 async function main() {
-  // await processHotelData();
-  await insertRoomAvailability();
+  await processHotelData();
+  // await insertRoomAvailability();
   console.log("Data inserted successfully");
 }
 

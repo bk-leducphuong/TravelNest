@@ -4,7 +4,7 @@ const path = require("path");
 const axios = require("axios");
 require("dotenv").config();
 
-const MAX_DATA_LIMIT = 100; // You can ajust as needed
+const MAX_DATA_LIMIT = 40; // You can ajust as needed
 
 let count = 0; 
 let index = 1;

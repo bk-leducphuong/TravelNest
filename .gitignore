@@ -34,7 +34,7 @@ client/.vscode/*
 *.tsbuildinfo
 
 /scrape_data/data/*.json
-/scrape_data/data/hotels/Hà Nội
+/scrape_data/data/hotels/
 
 server/public/uploads/hotels/*
 !server/public/uploads/hotels/.gitkeep
