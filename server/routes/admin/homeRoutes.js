@@ -11,7 +11,7 @@ const {
 const { isAdminAuthenticated } = require('../../middlewares/sessionAuth');
 
 // Root route: /admin/home
-//router.use(isAdminAuthenticated);
+router.use(isAdminAuthenticated);
 
 // Các route thống kê cho dashboard admin
 router.post('/get-total-bookings', getTotalBookings); 

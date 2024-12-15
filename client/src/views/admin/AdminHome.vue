@@ -1,6 +1,6 @@
 <script>
 import axios from 'axios'
-import {mapGetters} from 'vuex'
+import { mapGetters } from 'vuex'
 import DashboardMenu from '@/components/admin/DashboardMenu.vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
 import RoomBookingChart from '@/components/admin/chart/RoomBookingChart.vue'
@@ -12,43 +12,108 @@ export default {
     AdminHeader,
     RoomBookingChart,
     SalesRevenue
-  }, 
+  },
   data() {
     return {
+      startDate: null,
+      endDate: null,
       totalBookings: 0,
       timeSettings: 30, // one month
+      roomSales: null,
+      newCustomers: null,
+      dailyRevenue: null
     }
   },
   computed: {
-    ...mapGetters('manageHotels', ['getCurrentManagingHotelId']),
+    ...mapGetters('manageHotels', ['getCurrentManagingHotelId'])
   },
   watch: {
     timeSettings() {
+      this.calculateDate()
       this.getTotalBookings()
+      this.getRoomSales()
+      this.getNewCustomers()
+      this.getDailyRevenue()
     }
   },
   methods: {
+    calculateDate() {
+      this.endDate = new Date()
+      this.startDate = new Date()
+      this.startDate.setDate(this.endDate.getDate() - this.timeSettings)
+    },
     async getTotalBookings() {
-      const end = new Date()
-      const start = new Date()
-      start.setDate(end.getDate() - this.timeSettings)
-
-      const response = await axios.post('http://localhost:3000/api/admin/home/get-total-bookings', {
-        hotelId: this.getCurrentManagingHotelId,
-        period: {
-          start: start.toISOString().slice(0, 10),
-          end: end.toISOString().slice(0, 10)
+      const response = await axios.post(
+        'http://localhost:3000/api/admin/home/get-total-bookings',
+        {
+          hotelId: this.getCurrentManagingHotelId,
+          period: {
+            start: this.startDate.toISOString().slice(0, 10),
+            end: this.endDate.toISOString().slice(0, 10)
+          }
+        },
+        {
+          withCredentials: true
         }
-      }, {
-        withCredentials: true
-      })
+      )
 
       this.totalBookings = response.data.totalBookings
-
+    },
+    async getRoomSales() {
+      const response = await axios.post(
+        'http://localhost:3000/api/admin/home/get-room-book',
+        {
+          hotelId: this.getCurrentManagingHotelId,
+          period: {
+            start: this.startDate.toISOString().slice(0, 10),
+            end: this.endDate.toISOString().slice(0, 10)
+          }
+        },
+        {
+          withCredentials: true
+        }
+      )
+      this.roomSales = response.data.roomSales
+    },
+    async getNewCustomers() {
+      const response = await axios.post(
+        'http://localhost:3000/api/admin/home/get-new-customers',
+        {
+          hotelId: this.getCurrentManagingHotelId,
+          period: {
+            start: this.startDate.toISOString().slice(0, 10),
+            end: this.endDate.toISOString().slice(0, 10)
+          }
+        },
+        {
+          withCredentials: true
+        }
+      )
+      this.newCustomers = response.data.newCustomers
+    },
+    async getDailyRevenue() {
+      const response = await axios.post(
+        'http://localhost:3000/api/admin/home/get-daily-revenue-chart',
+        {
+          hotelId: this.getCurrentManagingHotelId,
+          period: {
+            start: this.startDate.toISOString().slice(0, 10),
+            end: this.endDate.toISOString().slice(0, 10)
+          }
+        },
+        {
+          withCredentials: true
+        }
+      )
+      this.dailyRevenue = response.data.dailyRevenueChart
     }
   },
-  async mounted() {
-    await this.getTotalBookings()
+  mounted() {
+    this.calculateDate()
+    this.getTotalBookings()
+    this.getRoomSales()
+    this.getNewCustomers()
+    this.getDailyRevenue()
   }
 }
 </script>
@@ -80,31 +145,27 @@ export default {
               <span class="booking-value">{{ totalBookings }}</span>
             </div>
             <div class="room-stats">
-              <span>This month : 1913</span>
-              <span>This week : 1125</span>
+              <span style="font-size: 20px">bookings in {{ timeSettings }} days</span>
             </div>
           </div>
 
           <div class="card">
-            <h3 class="card-title">Rooms Available</h3>
-            <div class="booking-num">
-              <span class="booking-value">312</span>
-            </div>
-            <div class="room-stats">
-              <span>Booked(Month) : 912</span>
-              <span>Booked(Week) : 125</span>
+            <h3 class="card-title">Rooms Sales</h3>
+            <div class="room-stats" style="display: flex; flex-direction: column; gap: 10px">
+              <span style="font-size: 20px" v-for="room in roomSales" :key="room.room_id">
+                {{ room.roomName }} : {{ room.book_count }} bookings
+              </span>
             </div>
           </div>
         </div>
 
         <!-- Charts -->
         <div class="chart">
-          <RoomBookingChart />
+          <RoomBookingChart :roomSales="roomSales" :totalBookings="totalBookings" />
         </div>
         <div class="chart">
-          <SalesRevenue />
+          <SalesRevenue :dailyRevenue="dailyRevenue" :startDate="startDate" :endDate="endDate" />
         </div>
-        
 
         <!-- End Charts -->
 
@@ -115,43 +176,17 @@ export default {
             </div>
             <div class="card-content">
               <ul class="customer-list">
-                <li class="customer-item">
-                  <div class="avatar avatar-ab">AB</div>
-                  <div class="customer-info">
-                    <div class="customer-name">Abu Bin Ishtiyak</div>
-                    <div class="customer-email">info@softinio.com</div>
+                <li
+                  class="customer-item"
+                  v-for="customer in newCustomers"
+                  :key="customer.new_customers"
+                >
+                  <div class="avatar avatar-ab">
+                    <img :src="customer.profile_picture_url" alt="profile_picture_url" />
                   </div>
-                  <button class="more-button">⋮</button>
-                </li>
-                <li class="customer-item">
-                  <div class="avatar avatar-sw">SW</div>
                   <div class="customer-info">
-                    <div class="customer-name">Sharon Walker</div>
-                    <div class="customer-email">sharon-90@example.com</div>
-                  </div>
-                  <button class="more-button">⋮</button>
-                </li>
-                <li class="customer-item">
-                  <div class="avatar avatar-go">GO</div>
-                  <div class="customer-info">
-                    <div class="customer-name">Gloria Oliver</div>
-                    <div class="customer-email">gloria_72@example.com</div>
-                  </div>
-                  <button class="more-button">⋮</button>
-                </li>
-                <li class="customer-item">
-                  <div class="avatar">PS</div>
-                  <div class="customer-info">
-                    <div class="customer-name">Phillip Sullivan</div>
-                    <div class="customer-email">phillip-85@example.com</div>
-                  </div>
-                  <button class="more-button">⋮</button>
-                </li>
-                <li class="customer-item">
-                  <div class="avatar">TI</div>
-                  <div class="customer-info">
-                    <div class="customer-name">Tasnim Ifrat</div>
-                    <div class="customer-email">tasif-85@example.com</div>
+                    <div class="customer-name">{{ customer.username }}</div>
+                    <div class="customer-email">{{ customer.email }}</div>
                   </div>
                   <button class="more-button">⋮</button>
                 </li>
@@ -166,41 +201,7 @@ export default {
             </div>
             <div class="card-content">
               <ul class="activity-list">
-                <li class="activity-item">
-                  <div class="avatar">TM</div>
-                  <div class="activity-info">
-                    <div class="activity-text">Keith Jensen requested for room.</div>
-                    <div class="activity-time">2 hours ago</div>
-                  </div>
-                </li>
-                <li class="activity-item">
-                  <div class="avatar">HS</div>
-                  <div class="activity-info">
-                    <div class="activity-text">Harry Simpson placed a Order.</div>
-                    <div class="activity-time">2 hours ago</div>
-                  </div>
-                </li>
-                <li class="activity-item">
-                  <div class="avatar">SM</div>
-                  <div class="activity-info">
-                    <div class="activity-text">Stephanie Marshall cancelled booking.</div>
-                    <div class="activity-time">2 hours ago</div>
-                  </div>
-                </li>
-                <li class="activity-item">
-                  <div class="avatar">TM</div>
-                  <div class="activity-info">
-                    <div class="activity-text">Nicholas Carr confirmed booking.</div>
-                    <div class="activity-time">2 hours ago</div>
-                  </div>
-                </li>
-                <li class="activity-item">
-                  <div class="avatar">TM</div>
-                  <div class="activity-info">
-                    <div class="activity-text">Timothy Moreno placed a Order.</div>
-                    <div class="activity-time">2 hours ago</div>
-                  </div>
-                </li>
+                
               </ul>
             </div>
           </div>
@@ -255,6 +256,13 @@ export default {
   margin-right: 12px;
   flex-shrink: 0;
   background-color: gray;
+}
+
+.avatar img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .icon-button {
@@ -331,7 +339,7 @@ select {
 
 .card-title {
   color: #64748b;
-  font-size: 14px;
+  font-size: 20px;
   margin-bottom: 10px;
 }
 
