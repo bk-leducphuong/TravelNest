@@ -15,7 +15,8 @@
         <div class="detail-item">
           <label for="Email preferences" style="width: 30%">Email preferences</label>
           <div class="value">
-            oingucoolname@gmail.com<br />
+            phuongtroc2004@gmail.com
+            <br>
             This is the email address you use to sign in. It’s also where we send your booking
             confirmations.
           </div>

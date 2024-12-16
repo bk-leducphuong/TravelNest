@@ -10,8 +10,8 @@ const getHotelDetails = async (req, res) => {
 
   try {
     const hotelQuery = `
-            SELECT name, description, address, city, phone_number, overall_rating,
-            latitude, longitude, image_urls AS hotel_image_urls, hotel_class, 
+            SELECT hotel_id, name, description, address, city, phone_number, overall_rating,
+            latitude, longitude, image_urls, hotel_class, 
             hotel_amenities, check_in_time, check_out_time
             FROM hotels WHERE hotel_id = ?
         `;

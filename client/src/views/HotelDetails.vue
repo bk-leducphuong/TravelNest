@@ -132,7 +132,7 @@ export default {
         this.reviews = response.data.reviews
         this.reviews_breakdown = response.data.reviews_breakdown
         this.nearby_hotels = response.data.nearby_hotels
-        this.hotelImages = JSON.parse(response.data.hotel.hotel_image_urls)
+        this.hotelImages = JSON.parse(response.data.hotel.image_urls)
       } catch (error) {
         console.error(error)
         this.toast.error('Getting hotel details failed! Pls try again!')

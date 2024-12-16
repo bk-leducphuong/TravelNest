@@ -11,7 +11,8 @@
         <div class="hotel-card" v-for="hotel in hotels" :key="hotel.hotel_id"   @mouseover="hoveredHotelId = hotel.hotel_id"
           @mouseleave="hoveredHotelId = null">
           <div class="hotel-image">
-            <button class="favorite-button">♡</button>
+            <img :src="JSON.parse(hotel.image_urls)[0]" alt="hotel-image" />
+            <SavedHotelIcon :hotelId="hotel.hotel_id" />
           </div>
           <div class="hotel-content">
             <div class="rating-row">
@@ -37,8 +38,8 @@
               8 đêm, 2 người lớn
             </div>
 
-            <div class="price-section">
-              <span class="current-price">VND {{ hotel.price_per_night }}</span>
+            <div class="price-section" v-if="hotel.lowestPrice">
+              <span class="current-price">VND {{ parseInt(hotel.lowestPrice).toLocaleString('vi-VN') }}</span>
               <span class="price-info">Đã bao gồm thuế và phí</span>
             </div>
           </div>
@@ -63,6 +64,7 @@
 </template>
 
 <script>
+import SavedHotelIcon from '@/components/SavedHotelIcon.vue'
 import 'leaflet/dist/leaflet.css'
 // load marker icons
 import blueMarkerIcon from "leaflet/dist/images/marker-icon.png";
@@ -96,7 +98,8 @@ export default {
     LMap,
     LTileLayer,
     LMarker,
-    LPopup
+    LPopup,
+    SavedHotelIcon
   },
   data() {
     return {
@@ -118,6 +121,9 @@ export default {
     closeMapPopup() {
       this.$emit('close-map-popup');
     }
+  },
+  mounted() {
+    console.log(this.hotels)
   }
 }
 </script>
@@ -218,6 +224,12 @@ export default {
   background-image: url('https://cf.bstatic.com/xdata/images/hotel/square600/584426827.webp?k=bb9814a06488db8b686ac44963015b0f0a861f5536304a689fc2d00ed60a1679&o=');
   background-size: cover;
   background-position: center;
+}
+
+.hotel-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .favorite-button {

@@ -15,13 +15,13 @@
 
         <div class="detail-item">
           <label for="languague" style="width: 20%">Language</label>
-          <div class="value">English</div>
+          <div class="value">Vietnamese</div>
           <button class="edit-button">Edit</button>
         </div>
 
         <div class="detail-item">
           <label for="Currency" style="width: 20%">Currency</label>
-          <div class="value">€£$</div>
+          <div class="value">VND</div>
           <button class="edit-button">Edit</button>
         </div>
       </div>
