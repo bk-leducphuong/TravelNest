@@ -1,23 +1,5 @@
 <template>
-  <!-- header  -->
-  <div class="header">
-    <div class="">
-      <div class="inner-wrap">
-        <div class="inner-logo">
-          <a @click="this.$router.push('/')"><strong>Booking.com</strong></a>
-        </div>
-        <div class="inner-login">
-          <ul>
-            <li><strong>VND</strong></li>
-            <li><img src="" alt="" /></li>
-            <li><i class="fa-regular fa-circle-question"></i></li>
-            <li class="login">Trợ giúp</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- end header  -->
+  <LoginHeader :isAdminLogin="true" />
   <div>
     <div class="stepper-wrapper">
       <div class="stepper">
@@ -40,6 +22,7 @@
 </template>
 
 <script>
+import LoginHeader from '@/components/LoginHeader.vue'
 import Form1 from '@/components/join-forms/Form1.vue'
 import Form2 from '@/components/join-forms/Form2.vue'
 import Form3 from '@/components/join-forms/Form3.vue'
@@ -48,6 +31,15 @@ import Form5 from '@/components/join-forms/Form5.vue'
 import Form6 from '@/components/join-forms/Form6.vue'
 
 export default {
+  components: {
+    Form1,
+    Form2,
+    Form3,
+    Form4,
+    Form5,
+    Form6,
+    LoginHeader
+  },
   data() {
     return {
       currentStep: 1,
@@ -74,14 +66,7 @@ export default {
       }
     }
   },
-  components: {
-    Form1,
-    Form2,
-    Form3,
-    Form4,
-    Form5,
-    Form6
-  }
+  
 }
 </script>
 

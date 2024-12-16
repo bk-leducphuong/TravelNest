@@ -74,7 +74,8 @@ export default {
       <!-- Hotel Card 1 -->
 
       <div class="hotel-card" v-for="hotel in getManagingHotels" :key="hotel.hotel_id">
-        <img :src="JSON.parse(hotel.image_urls)[0]" alt="hotel-image" class="hotel-image" />
+        <img v-if="JSON.parse(hotel.image_urls)" :src="JSON.parse(hotel.image_urls)[0]" alt="hotel-image" class="hotel-image" />
+        <img src="http://localhost:3000/uploads/hotels/no-image.png" class="hotel-image" alt="no image" v-else>
         <div class="hotel-info">
           <h2 class="hotel-name">{{ hotel.name }}</h2>
           <div class="hotel-location">

@@ -51,18 +51,25 @@ const postJoinFormData = async (req, res) => {
     // Lưu thông tin phòng
     const roomQuery = `
      INSERT INTO rooms 
-       (room_name, max_guests, total_rooms, hotel_id, created_at, updated_at) 
-     VALUES (?, ?, ?, ?, ?, ?)
+       (room_name, max_guests, hotel_id, created_at, updated_at) 
+     VALUES (?, ?, ?, ?, ?)
    `;
     const roomResult = await queryAsync(roomQuery, [
       joinFormData.roomDetails.roomType,
       joinFormData.roomDetails.numberOfGuests,
-      joinFormData.roomDetails.numberOfRooms,
       hotel_id,
       new Date(),
       new Date(),
     ]);
     const room_id = roomResult.insertId;
+
+    for (let i = 0; i < 60; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+
+      const roomInventoryQuery = `INSERT INTO room_inventory (room_id, date, total_inventory, total_reserved, price_per_night, status) VALUES (?, ?, ?, ?, ?, ?)`;
+      await queryAsync(roomInventoryQuery, [room_id, d, joinFormData.roomDetails.numberOfRooms, 0, 0, "open"]);
+    }
 
     // return hotel_id and room_id if success
     res.json({
@@ -99,7 +106,9 @@ const postPhotos = async (req, res) => {
 
     // create directories for hotel and room
     try {
-      fs.mkdirSync(path.join(uploadDir, hotel_id, room_id), { recursive: true });
+      fs.mkdirSync(path.join(uploadDir, hotel_id, room_id), {
+        recursive: true,
+      });
     } catch (err) {
       res.status(500).json({
         success: false,
@@ -130,10 +139,20 @@ const postPhotos = async (req, res) => {
         return {
           originalName: file.originalname,
           avifName: avifFilename,
-          path: 'http://localhost:3000' + `/uploads/hotels/${hotel_id}/${room_id}/${avifFilename}`,
+          path:
+            "http://localhost:3000" +
+            `/uploads/hotels/${hotel_id}/${room_id}/${avifFilename}`,
         };
       })
     );
+
+    // save image_path to rooms table
+    let image_urls = []
+    for (let i = 0; i < processedFiles.length; i++) {
+      image_urls.push(processedFiles[i].path)
+    }
+    const updateRoomQuery = `UPDATE rooms SET image_urls = ? WHERE room_id = ?`;
+    await queryAsync(updateRoomQuery, [JSON.stringify(image_urls), room_id]);
 
     res.json({
       success: true,

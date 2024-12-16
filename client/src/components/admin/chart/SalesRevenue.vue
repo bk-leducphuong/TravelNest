@@ -18,11 +18,9 @@ export default {
   watch: {
     startDate() {
       this.dailyRevenueLabels = this.createLabels()
+      this.dailyRevenueData = this.createData()
       this.renderChart()
     },
-    dailyRevenue() {
-      this.dailyRevenueData = this.createData()
-    }
   },
   methods: {
     createLabels() {
@@ -36,7 +34,7 @@ export default {
       return labels
     },
     createData() {
-      const data = []
+      const data = []    
       const startDate = this.startDate
       const endDate = this.endDate
       // loop from startDate to endDate
