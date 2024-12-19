@@ -144,7 +144,12 @@ const createPayout = async (req, res) => {
     const { amount, transactionId, hotelId } = req.body;
     const userId = req.session.user.user_id;
    // chuyen sang sgd amount
+   const exchangeRate = 18000; // 1 SGD = 18000 VND (tỷ giá giả định)
+   const convertedAmount = Math.round(amount / exchangeRate); // Chuyển sang SGD
 
+   if (convertedAmount < 1) {
+     return res.status(400).json({ error: "Minimum amount must be at least 1 SGD." });
+   }
     // get user
     const userQuery = `SELECT * FROM users WHERE user_id = ?`;
     const user = await queryAsync(userQuery, [userId]);
@@ -154,7 +159,7 @@ const createPayout = async (req, res) => {
     }
 
     const payout = await stripe.payouts.create({
-      amount: Math.round(amount), // Convert to cents
+      amount: convertedAmount * 100, // Convert to cents
       currency: "sgd", // TODO: change to user currency
       destination: user.connect_account_id,
       metadata: { transaction_id: transactionId, hotel_id: hotelId },
