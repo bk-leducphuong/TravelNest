@@ -18,7 +18,7 @@ export default {
     TheFooter,
     MapComponent,
     ImageGallery,
-    Loading, 
+    Loading,
     ReviewForm,
     ReviewValidation
   },
@@ -89,7 +89,14 @@ export default {
   },
   methods: {
     ...mapActions('book', ['booking', 'checkRoomAvailability']),
-    ...mapActions('search', ['updateCheckInDate', 'updateCheckOutDate', 'updateNumberOfDays', 'updateAdults', 'updateRooms', 'updateChildren']),
+    ...mapActions('search', [
+      'updateCheckInDate',
+      'updateCheckOutDate',
+      'updateNumberOfDays',
+      'updateAdults',
+      'updateRooms',
+      'updateChildren'
+    ]),
     calculateNumberOfDays(checkInDateString, checkOutDateString) {
       const checkInDate = new Date(checkInDateString)
       const checkOutDate = new Date(checkOutDateString)
@@ -196,7 +203,7 @@ export default {
           rooms: this.rooms
         })
 
-        // update search data in store 
+        // update search data in store
         this.updateSearchDataInStore()
 
         this.room_list = response.data.available_rooms
@@ -276,7 +283,7 @@ export default {
     writeReview() {
       if (this.isUserAuthenticated) {
         this.showReviewValidation = true
-      }else {
+      } else {
         this.$router.push({ path: '/login', query: { redirect: this.$route.path } })
       }
     },
@@ -287,10 +294,26 @@ export default {
       this.updateAdults(this.adults)
       this.updateRooms(this.rooms)
       this.updateChildren(this.children)
+    },
+    calculateDistance(lat2, lon2) {
+      const toRadians = (degrees) => degrees * (Math.PI / 180)
+
+      const R = 6371000 // Earth's radius in meters
+      const φ1 = toRadians(this.hotel.latitude)
+      const φ2 = toRadians(lat2)
+      const Δφ = toRadians(lat2 - this.hotel.latitude)
+      const Δλ = toRadians(lon2 - this.hotel.longitude)
+
+      const a =
+        Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+        Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+      return Math.round(R * c) // Distance in meters
     }
   },
   async mounted() {
-     if (this.getSearchData) {
+    if (this.getSearchData) {
       this.checkOutDate = this.getSearchData.checkOutDate
       this.selectedLocation = this.getSearchData.location
       if (this.getSearchData.checkInDate && this.getSearchData.checkOutDate) {
@@ -299,15 +322,20 @@ export default {
 
         if (new Date(this.getSearchData.checkInDate).getTime() < new Date().getTime()) {
           checkInDate = new Date().toLocaleDateString('vi-VN')
-        } 
+        }
         if (new Date(this.getSearchData.checkOutDate).getTime() < new Date().getTime()) {
-          checkOutDate = new Date(new Date().getTime() + (1000 * 60 * 60 * 24)).toLocaleDateString('vi-VN')
+          checkOutDate = new Date(new Date().getTime() + 1000 * 60 * 60 * 24).toLocaleDateString(
+            'vi-VN'
+          )
         }
 
         this.dateRange =
-          this.$t('userHeader.dateInputPlaceholder_1') + ' ' +
-          checkInDate + ' ' +
-          this.$t('userHeader.dateInputPlaceholder_2') + ' ' +
+          this.$t('userHeader.dateInputPlaceholder_1') +
+          ' ' +
+          checkInDate +
+          ' ' +
+          this.$t('userHeader.dateInputPlaceholder_2') +
+          ' ' +
           checkOutDate
       }
       this.children = this.getSearchData.children
@@ -353,7 +381,12 @@ export default {
       :isOpenImageGallery="isImageGalleryOpen"
       @close-image-gallery="closeImageGallery"
     />
-    <ReviewValidation v-if="showReviewValidation" @close="closeReviewValidation" :hotelId="this.hotel_id" :hotelName="this.hotel.name" />
+    <ReviewValidation
+      v-if="showReviewValidation"
+      @close="closeReviewValidation"
+      :hotelId="this.hotel_id"
+      :hotelName="this.hotel.name"
+    />
     <!-- menu  -->
     <div class="menu">
       <div class="container">
@@ -618,8 +651,7 @@ export default {
               <select @change="handleRoomSelection($event, room)">
                 <option value="0" selected>0</option>
                 <option v-for="n in room.available_rooms" :key="n" :value="n">
-                  {{ n }} (VND
-                  {{ parseInt(n * room.price_per_night).toLocaleString('vi-VN') }})
+                  {{ n }} (VND {{ parseInt(n * room.price_per_night).toLocaleString('vi-VN') }})
                 </option>
               </select>
             </td>
@@ -640,11 +672,7 @@ export default {
           </tr>
         </tbody>
       </table>
-      <loading
-          v-model:active="isSearchRoomLoading"
-          :color="`#003b95`"
-          :is-full-page="false"
-        />
+      <loading v-model:active="isSearchRoomLoading" :color="`#003b95`" :is-full-page="false" />
       <div v-if="room_list.length == 0" class="no-room-found">
         <h5>Không tìm thấy phòng phù hợp với lựa chọn của bạn.</h5>
       </div>
@@ -679,11 +707,7 @@ export default {
                 <div class="category">
                   <div>{{ review.criteria_name }}</div>
                   <div>
-                    {{
-                      Number(
-                        (review.average_score / 5) * 10
-                      ).toFixed(1)
-                    }}
+                    {{ Number((review.average_score / 5) * 10).toFixed(1) }}
                   </div>
                 </div>
                 <div class="process--bar">
@@ -763,7 +787,11 @@ export default {
         <div class="review__open--text" v-for="review in reviews" :key="review.review_id">
           <div class="review__open--infor">
             <div class="name">
-              <img :src="review.profile_picture_url" alt="avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
+              <img
+                :src="review.profile_picture_url"
+                alt="avatar"
+                style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover"
+              />
               <div class="infor">
                 <span style="font-weight: 600">{{ review.username }}</span>
                 <br />
@@ -835,11 +863,7 @@ export default {
                   <div class="category">
                     <div>{{ review.criteria_name }}</div>
                     <div>
-                      {{
-                        Number(
-                          (review.average_score / 5) * 10
-                        ).toFixed(1)
-                      }}
+                      {{ Number((review.average_score / 5) * 10).toFixed(1) }}
                     </div>
                   </div>
                   <div class="process--bar">
@@ -895,100 +919,55 @@ export default {
           <div class="row">
             <div class="col-xl-4 col-md-6 col-12">
               <i class="fa-solid fa-person-walking"></i> <strong>Xung quanh có gì</strong>
-              <div class="sur__have">
+              <div
+                class="sur__have"
+                v-for="place in nearbyPlaces.slice(0, 10)"
+                :key="place.place_id"
+              >
                 <div class="sur__have--item">
-                  <div class="sur__have--name">Đảo Phú Quốc</div>
-                  <div class="sur__have--meters">0 m</div>
-                </div>
-              </div>
-              <div class="sur__have">
-                <div class="sur__have--item">
-                  <div class="sur__have--name">Vườn Quốc gia Phú Quốc</div>
-                  <div class="sur__have--meters">6 km</div>
-                </div>
-              </div>
-              <div class="sur__have">
-                <div class="sur__have--item">
-                  <div class="sur__have--name">Công Viên Bạch Đằng</div>
-                  <div class="sur__have--meters">8 km</div>
-                </div>
-              </div>
-              <div class="sur__have">
-                <div class="sur__have--item">
-                  <div class="sur__have--name">Suối Tiên - Fairy Stream</div>
-                  <div class="sur__have--meters">12 km</div>
-                </div>
-              </div>
-              <div class="sur__have">
-                <div class="sur__have--item">
-                  <div class="sur__have--name">Coi Nguon Museum</div>
-                  <div class="sur__have--meters">12 km</div>
-                </div>
-              </div>
-              <div class="sur__have">
-                <div class="sur__have--item">
-                  <div class="sur__have--name">Kidd Club</div>
-                  <div class="sur__have--meters">13 km</div>
-                </div>
-              </div>
-              <div class="sur__have">
-                <div class="sur__have--item">
-                  <div class="sur__have--name">Ream National Park</div>
-                  <div class="sur__have--meters">18 km</div>
+                  <div class="sur__have--name">{{ place.place_name }}</div>
+                  <div class="sur__have--meters">
+                    {{
+                      calculateDistance(Number(place.place_latitude), Number(place.place_longitude))
+                    }}
+                    m
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-xl-4 col-md-6 col-12">
-              <i class="fa-solid fa-utensils"></i> <strong>Nhà hàng & quán cà phê</strong>
+              <i class="fa-solid fa-person-walking"></i> <strong></strong>
               <div class="sur__have">
-                <div class="sur__have--item">
-                  <div class="sur__have--name">Nhà hàng Mai Jo Refined Ông Lang</div>
-                  <div class="sur__have--meters">400 m</div>
-                </div>
-              </div>
-              <div class="sur__have">
-                <div class="sur__have--item">
-                  <div class="sur__have--name">Cafe/quán bar Island Life</div>
-                  <div class="sur__have--meters">600 m</div>
-                </div>
-              </div>
-              <div class="sur__have">
-                <div class="sur__have--item">
-                  <div class="sur__have--name">Cafe/quán bar Rock Bar</div>
-                  <div class="sur__have--meters">650 m</div>
+                <div
+                  class="sur__have--item"
+                  v-for="place in nearbyPlaces.slice(10, 20)"
+                  :key="place.place_id"
+                >
+                  <div class="sur__have--name">{{ place.place_name }}</div>
+                  <div class="sur__have--meters">
+                    {{
+                      calculateDistance(Number(place.place_latitude), Number(place.place_longitude))
+                    }}
+                    m
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-xl-4 col-md-6 col-12">
-              <i class="fa-solid fa-umbrella-beach"></i> <strong>Các bãi biển trong khu vực</strong>
+              <i class="fa-solid fa-person-walking"></i> <strong></strong>
               <div class="sur__have">
-                <div class="sur__have--item">
-                  <div class="sur__have--name">Bãi biển Ông Lang</div>
-                  <div class="sur__have--meters">1.4 km</div>
-                </div>
-              </div>
-              <div class="sur__have">
-                <div class="sur__have--item">
-                  <div class="sur__have--name">Bãi biển Dương Đông</div>
-                  <div class="sur__have--meters">5 km</div>
-                </div>
-              </div>
-              <div class="sur__have">
-                <div class="sur__have--item">
-                  <div class="sur__have--name">Bãi Gành Gió</div>
-                  <div class="sur__have--meters">5 km</div>
-                </div>
-              </div>
-              <div class="sur__have">
-                <div class="sur__have--item">
-                  <div class="sur__have--name">Bãi biển Cửa Cạn</div>
-                  <div class="sur__have--meters">6 km</div>
-                </div>
-              </div>
-              <div class="sur__have">
-                <div class="sur__have--item">
-                  <div class="sur__have--name">Bãi Trường</div>
-                  <div class="sur__have--meters">9 km</div>
+                <div
+                  class="sur__have--item"
+                  v-for="place in nearbyPlaces.slice(20, 30)"
+                  :key="place.place_id"
+                >
+                  <div class="sur__have--name">{{ place.place_name }}</div>
+                  <div class="sur__have--meters">
+                    {{
+                      calculateDistance(Number(place.place_latitude), Number(place.place_longitude))
+                    }}
+                    m
+                  </div>
                 </div>
               </div>
             </div>
