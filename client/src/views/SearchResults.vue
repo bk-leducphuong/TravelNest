@@ -398,7 +398,8 @@ export default {
               >
                 <div class="inner-img">
                   <SavedHotelIcon :hotelId="hotel.hotel_id" />
-                  <img :src="JSON.parse(hotel.image_urls)[0]" alt="hotel image" />
+                  <img v-if="hotel.image_urls" :src="JSON.parse(hotel.image_urls)[0]" alt="hotel image" />
+                  <img src="http://localhost:3000/uploads/hotels/no-image.png" alt="hotel image" v-else />
                 </div>
                 <div class="inner-show">
                   <div class="inner-introduction">

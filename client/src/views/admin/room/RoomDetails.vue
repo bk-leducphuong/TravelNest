@@ -87,20 +87,6 @@ export default {
             <h2>
               <strong>Room detail</strong>
             </h2>
-
-            <div class="warning">
-              <strong> What's Missing</strong>
-              <ul>
-                <li>
-                  Bathroom-info
-                  <ul>
-                    <li><a href="">One-Bedroom Apartment</a></li>
-                    <li><a href="">Two-Bedroom Apartment</a></li>
-                    <li><a href="">Three-Bedroom Apartment</a></li>
-                  </ul>
-                </li>
-              </ul>
-            </div>
           </div>
           <div class="room__photos">
             <div class="room__total">

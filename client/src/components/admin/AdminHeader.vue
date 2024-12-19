@@ -150,7 +150,14 @@ export default {
         <div class="user-profile">
           <div class="avatar">
             <img
+              v-if="getCurrentManagingHotelInformation.image_urls"
               :src="JSON.parse(getCurrentManagingHotelInformation.image_urls)[0]"
+              alt="avatar"
+              style="width: 45px; height: 45px; border-radius: 10px; object-fit: cover"
+            />
+            <img
+              v-else
+              src="http://localhost:3000/uploads/hotels/no-image.png"
               alt="avatar"
               style="width: 45px; height: 45px; border-radius: 10px; object-fit: cover"
             />

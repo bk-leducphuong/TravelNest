@@ -348,7 +348,8 @@ export default {
             @click="redirectToHotelDetails(hotel)"
           >
             <div class="hotel-image">
-              <img :src="JSON.parse(hotel.image_urls)[0]" :alt="hotel.name" loading="lazy" />
+              <img v-if="hotel.image_urls" :src="JSON.parse(hotel.image_urls)[0]" :alt="hotel.name"/>
+              <img src="http://localhost:3000/uploads/hotels/no-image.png" alt="hotel image" v-else />
               <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
@@ -403,7 +404,8 @@ export default {
             @click="redirectToHotelDetails(hotel)"
           >
             <div class="hotel-image">
-              <img :src="JSON.parse(hotel.image_urls)[0]" :alt="hotel.name" />
+              <img v-if="hotel.image_urls" :src="JSON.parse(hotel.image_urls)[0]" :alt="hotel.name" />
+              <img v-else src="http://localhost:3000/uploads/hotels/no-image.png" :alt="hotel.name" />
               <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
