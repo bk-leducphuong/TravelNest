@@ -1,18 +1,109 @@
 <script>
+import axios from 'axios'
+import { useToast } from 'vue-toastification'
+import { mapGetters } from 'vuex'
 export default {
-    props: {
-        roomInformation: {
-            type: Object,
-            required: true
-        },
-        mode: {
-            type: String,
-            required: true
-        }
+  setup() {
+    const toast = useToast()
+    return { toast }
+  },
+  props: {
+    roomInformation: {
+      type: Object,
+      required: true
     },
-    methods: {
-        
+    mode: {
+      type: String,
+      required: true
     }
+  },
+  data() {
+    return {
+      roomTypes: [
+        'Single',
+        'Double',
+        'Triple',
+        'Quad',
+        'Junior suite',
+        'Suite',
+        'Executive suite',
+        'Twin',
+        'Twin/double',
+        'Double twin',
+        'Double twin/double',
+        'Family room',
+        'Family room with balcony',
+        'Family room with sauna',
+        'Family room with sea view',
+        'Family room with terrace',
+        'Suite with balcony',
+        'Suite with sauna',
+        'Suite with sea view',
+        'Suite with terrace',
+        'Executive suite with balcony',
+        'Executive suite with sauna',
+        'Executive suite with sea view',
+        'Executive suite with terrace'
+      ],
+      roomName: [
+        'Phòng Tiêu Chuẩn',
+        'Phòng Gia Đình',
+        'Phòng Deluxe Giường Đôi',
+        'Phòng Superior Giường Đôi',
+        'Phòng Tiêu Chuẩn Giường Đôi'
+      ],
+      room: {}
+    }
+  },
+  computed: {
+    ...mapGetters('manageHotels', ['getCurrentManagingHotelId'])
+  },
+  methods: {
+    async saveRoomInformation() {
+      try {
+        if (this.mode == 'edit') {
+
+          const response = await axios.post(
+            'http://localhost:3000/api/admin/room/update-room-information',
+            {
+              roomInformation: this.room
+            },
+            {
+              withCredentials: true
+            }
+          )
+          this.toast.success('Room information updated successfully')
+          this.$router.go(0)
+        }else if (this.mode == 'create') {
+          await axios.post('http://localhost:3000/api/admin/room/create-new-room', 
+            {
+              hotelId: this.getCurrentManagingHotelId,
+              roomInformation: this.room
+            },
+            {
+              withCredentials: true
+            }
+          )
+          this.toast.success('Room created successfully')
+          this.$router.go(0)
+        }
+      } catch (error) {
+        this.toast.error('Error saving room information')
+        console.log(error)
+      }
+    }
+  },
+  mounted() {
+    if (this.mode == 'create') {
+      this.room = {
+        room_name: '',
+        room_type: '',
+        quantity: 1
+      }
+    }else {
+      this.room = this.roomInformation
+    }
+  }
 }
 </script>
 <template>
@@ -26,39 +117,33 @@ export default {
           <div class="col-md-6 col-12">
             <label for="">Apartment Type</label>
             <br />
-            <select class="form-control" name="" id="">
-              <option value="please select">Please select</option>
-              <option value="single">Single</option>
-              <option value="double">Double</option>
-              <option value="twin">Twin</option>
-              <option value="twin/double">Twin/Double</option>
-              <option value="quad">Quad</option>
+            <select class="form-control" v-model="room.room_type">
+              <option :value="roomType" v-for="roomType in roomTypes" :key="roomType" :selected="roomType === room.room_type">
+                {{ roomType }}
+              </option>
             </select>
           </div>
           <div class="col-md-6 col-12"></div>
           <div class="col-md-6 col-12">
             <label for="">Room name</label>
             <br />
-            <select class="form-control" name="" id="">
-              <option value="please select">Please select</option>
-              <option value="single">Japanese Style Room</option>
-              <option value="double">Family Room with Balcony</option>
-              <option value="twin">Family Room with Sauna</option>
-              <option value="twin/double">Family Room with Sea View</option>
-              <option value="quad">Family Room with Terrace</option>
+            <select class="form-control" v-model="room.room_name">
+              <option :value="roomName" v-for="roomName in roomName" :key="roomName" :selected="roomName === room.room_name">
+                {{ roomName }}
+              </option>
             </select>
             <p>This is the name guests will see on the Booking.com Website</p>
           </div>
           <div class="col-md-6 col-12">
             <label for="">Custom name (optional)</label>
             <br />
-            <input class="form-control" type="text" />
+            <input class="form-control" type="text" v-model="room.room_name" />
             <p>Create an optional, custom name for your reference</p>
           </div>
           <div class="col-md-6 col-12">
             <label for="">Number of rooms (of this type)</label>
             <br />
-            <input class="form-control" type="number" placeholder="1" />
+            <input class="form-control" type="number" placeholder="" v-model="room.quantity" />
             <p>Out of 4 apartment (in total)</p>
           </div>
           <div class="col-md-6 col-12">
@@ -177,7 +262,7 @@ export default {
             <label for="">21</label>
           </div>
         </div>
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px; margin-bottom: 20px">
           <button class="select--all">Select all</button>
           <button class="deselect--all">Deselect all</button>
         </div>
@@ -258,7 +343,7 @@ export default {
         <input type="number" class="form-control" style="width: 40%" value="1" />
       </div>
       <br />
-      <input class="submit form-control" type="submit" value="Continue" />
+      <input class="submit form-control" type="submit" value="Save" @click="saveRoomInformation" />
     </form>
   </div>
 </template>

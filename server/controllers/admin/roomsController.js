@@ -23,6 +23,48 @@ const getAllRooms = async (req, res) => {
   }
 };
 
+const updateRoomInformation = async (req, res) => {
+  try {
+    const { roomInformation } = req.body;
+    if (!roomInformation) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing roomInformation" });
+    }
+    const query = `UPDATE rooms SET room_name = ?, room_type = ?, quantity = ? WHERE room_id = ?`;
+    await queryAsync(query, [
+      roomInformation.room_name,
+      roomInformation.room_type,
+      roomInformation.quantity,
+      roomInformation.room_id,
+    ]);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const createNewRoom = async (req, res) => {
+  try {
+    const { hotelId, roomInformation } = req.body;
+    if (!roomInformation || !hotelId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing roomInformation" });
+    }
+    const query = `INSERT INTO rooms (hotel_id, room_name, room_type, quantity) VALUES (?, ?, ?, ?)`;
+    await queryAsync(query, [
+      hotelId,
+      roomInformation.room_name,
+      roomInformation.room_type,
+      roomInformation.quantity,
+    ])
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 // room photos
 const getAllRoomPhotos = async (req, res) => {
   try {
@@ -259,6 +301,8 @@ const updateRoomInventory = async (req, res) => {
 
 module.exports = {
   getAllRooms,
+  updateRoomInformation,
+  createNewRoom,
   getAllRoomPhotos,
   deleteRoomPhotos,
   deleteHotelPhotos,

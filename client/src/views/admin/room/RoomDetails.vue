@@ -53,6 +53,23 @@ export default {
     async createNewRoom() {
       this.roomInformation = null
       this.createNewRoomMode = true
+    },
+    async deleteRoom(room) {
+      try {
+        const response = await axios.post(
+          'http://localhost:3000/api/admin/room/delete-room',
+          {
+            roomId: room.room_id
+          },
+          {
+            withCredentials: true
+          }
+        )
+        this.toast.success('Room deleted successfully')
+        this.$router.go(0)
+      } catch (error) {
+        console.log(error)
+      }
     }
   },
   async mounted() {
@@ -95,7 +112,13 @@ export default {
                   <div class="room__photo--element">
                     <div class="room__image">
                       <img
+                        v-if="room.image_urls"
                         :src="JSON.parse(room.image_urls)[0]"
+                        alt="phong"
+                      />
+                      <img
+                        v-else
+                        src="http://localhost:3000/uploads/hotels/no-image.png"
                         alt="phong"
                       />
                       <p>{{ room.room_name }}</p>
@@ -107,7 +130,7 @@ export default {
                       <p>Number of this type: <strong>1</strong></p>
                       <div class="button-container">
                         <button class="edit1" @click="editRoomInformation(room)">Edit</button>
-                        <button class="delete1">Delete</button>
+                        <button class="delete1" @click="deleteRoom(room)">Delete</button>
                         <button class="upload__photo">
                           <i class="fa-solid fa-camera"></i> Upload Photo
                         </button>
@@ -240,7 +263,7 @@ export default {
 }
 
 .button-container .upload__photo {
-  background-color: #003b95;
+  background-color: #185dc5;
   color: white;
   border: none;
   cursor: pointer;
