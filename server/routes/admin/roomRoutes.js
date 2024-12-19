@@ -21,7 +21,6 @@ router.post("/add-hotel-photos", upload.array("images", 30), addHotelPhotos);
 // Route for room amenities
 router.post("/get-all-room-amenities", getAllRoomAmenities);
 router.post("/update-room-amenities", updateRoomAmenities);
-
 // Routes for room inventory
 router.post("/get-room-inventory", getRoomInventory);
 router.post("/update-room-inventory", updateRoomInventory);

@@ -17,93 +17,29 @@ export default {
       unitArea: 'squareMeter',
       rooms: [],
       recommendRoomAmenities: [
-        {
-          amenity: 'Free breakfast',
-          room: []
-        },
-        {
-          amenity: 'Toiletries',
-          room: []
-        },
-        {
-          amenity: 'Welcome snacks & drinks',
-          room: []
-        },
-        {
-          amenity: 'Free Wi-Fi',
-          room: []
-        },
-        {
-          amenity: 'Bathrobes, towels, and slippers',
-          room: []
-        },
-        {
-          amenity: 'TV & telephone',
-          room: []
-        },
-        {
-          amenity: 'Wall outlets',
-          room: []
-        },
-        {
-          amenity: 'Lockers',
-          room: []
-        },
-        {
-          amenity: 'Free parking space',
-          room: []
-        },
-        {
-          amenity: 'Laundry & ironing services',
-          room: []
-        },
-        {
-          amenity: 'Coffee Kit',
-          room: []
-        },
-        {
-          amenity: 'Free parking',
-          room: []
-        },
-        {
-          amenity: 'Gym or fitness center',
-          room: []
-        }
+        { amenity: 'Free breakfast', room: [] },
+        { amenity: 'Toiletries', room: [] },
+        { amenity: 'Welcome snacks & drinks', room: [] },
+        { amenity: 'Free Wi-Fi', room: [] },
+        { amenity: 'Bathrobes, towels, and slippers', room: [] },
+        { amenity: 'TV & telephone', room: [] },
+        { amenity: 'Wall outlets', room: [] },
+        { amenity: 'Lockers', room: [] },
+        { amenity: 'Free parking space', room: [] },
+        { amenity: 'Laundry & ironing services', room: [] },
+        { amenity: 'Coffee Kit', room: [] },
+        { amenity: 'Free parking', room: [] },
+        { amenity: 'Gym or fitness center', room: [] }
       ],
-
       topAmenities: [
-        {
-          amenity: 'Air conditioning',
-          room: []
-        },
-        {
-          amenity: 'Kitchenette',
-          room: []
-        },
-        {
-          amenity: 'Kitchen',
-          room: []
-        },
-        {
-          amenity: 'Balcony',
-          room: []
-        },
-        {
-          amenity: 'View',
-          room: []
-        },
-        {
-          amenity: 'Flat screen TV',
-          room: []
-        },
-        {
-          amenity: 'Soundproof',
-          room: []
-        },
-        {
-          amenity: 'Kitchenware',
-          room: []
-        }
+        { amenity: 'Air conditioning', room: [] },
+        { amenity: 'Kitchenette', room: [] },
+        { amenity: 'Kitchen', room: [] },
+        { amenity: 'Balcony', room: [] },
+        { amenity: 'View', room: [] },
+        { amenity: 'Flat screen TV', room: [] },
+        { amenity: 'Soundproof', room: [] },
+        { amenity: 'Kitchenware', room: [] }
       ],
       isLoading: false
     }
@@ -116,76 +52,106 @@ export default {
       try {
         const response = await axios.post(
           'http://localhost:3000/api/admin/room/get-all-room-amenities',
-          {
-            hotelId: this.getCurrentManagingHotelId
-          },
-          {
-            withCredentials: true
-          }
+          { hotelId: this.getCurrentManagingHotelId },
+          { withCredentials: true }
         )
-        this.rooms = response.data
+        this.rooms = response.data.map((room) => ({
+          ...room,
+          room_amenities: room.room_amenities ? JSON.parse(room.room_amenities) : []
+        }))
+        this.initializeAmenities()
       } catch (error) {
-        console.log(error)
+        console.error('Error fetching room amenities:', error)
       }
     },
-    async updateRoomAmenities(amenities) {
+    initializeAmenities() {
+      this.rooms.forEach((room) => {
+        room.room_amenities.forEach((amenity) => {
+          const topAmenity = this.topAmenities.find((a) => a.amenity === amenity)
+          const recommendAmenity = this.recommendRoomAmenities.find((a) => a.amenity === amenity)
+          if (topAmenity) topAmenity.room.push(room.room_id)
+          if (recommendAmenity) recommendAmenity.room.push(room.room_id)
+        })
+      })
+    },
+    processAmenities(amenities, action) {
+      amenities.forEach((amenityObj) => {
+        if (action === 'add') {
+          amenityObj.room = this.rooms.map((room) => room.room_id)
+        } else if (action === 'delete') {
+          amenityObj.room = []
+        }
+      })
+    },
+    addAll(amenityName) {
+      this.updateAmenityRooms(amenityName, 'add')
+    },
+    deleteAll(amenityName) {
+      this.updateAmenityRooms(amenityName, 'delete')
+    },
+    updateAmenityRooms(amenityName, action) {
+      const updateAmenity = (amenities) => {
+        const amenityObj = amenities.find((amenity) => amenity.amenity === amenityName)
+        if (amenityObj) {
+          this.processAmenities([amenityObj], action)
+        }
+      }
+      updateAmenity(this.topAmenities)
+      updateAmenity(this.recommendRoomAmenities)
+    },
+    async saveAllAmenities() {
       try {
         this.isLoading = true
-        const response = await axios.post(
+        this.rooms.forEach((room) => {
+          room.room_amenities = []
+        })
+
+        // Hàm xử lý tiện ích cho từng nhóm
+        const processAmenities = (amenities) => {
+          amenities.forEach((amenityObj) => {
+            amenityObj.room.forEach((roomId) => {
+              this.rooms.forEach((room) => {
+                if (room.room_id === roomId) {
+                  room.room_amenities.push(amenityObj.amenity)
+                }
+              })
+            })
+          })
+        }
+
+        processAmenities(this.topAmenities)
+        processAmenities(this.recommendRoomAmenities)
+
+        const updatedRooms = this.rooms.map((room) => ({
+          ...room,
+          room_amenities: JSON.stringify(room.room_amenities)
+        }))
+
+        await axios.post(
           'http://localhost:3000/api/admin/room/update-room-amenities',
-          {
-            roomId: this.roomId,
-            amenities: amenities
-          },
-          {
-            withCredentials: true
-          }
+          { rooms: updatedRooms },
+          { withCredentials: true }
         )
-        this.roomAmenities = response.data
       } catch (error) {
-        console.log(error)
+        console.error('Error saving all amenities:', error)
       } finally {
         this.isLoading = false
       }
-    },
-    addAll(amenity) {
-      this.topAmenities.forEach((amenityObj) => {
-        if (amenityObj.amenity == amenity) {
-          this.rooms.forEach((room) => {
-            amenityObj.room.push(room.room_id)
-          })
-        }
-      })
-
-      this.recommendRoomAmenities.forEach((amenityObj) => {
-        if (amenityObj.amenity == amenity) {
-          this.rooms.forEach((room) => {
-            amenityObj.room.push(room.room_id)
-          })
-        }
-      })
-    },
-    deleteAll(amenity) {
-      this.topAmenities.forEach((amenityObj) => {
-        if (amenityObj.amenity == amenity) {
-          amenityObj.room = []
-        }
-      })
-
-      this.recommendRoomAmenities.forEach((amenityObj) => {
-        if (amenityObj.amenity == amenity) {
-          amenityObj.room = []
-        }
-      })
     }
   },
+
   async mounted() {
     this.isLoading = true
     await this.getAllRoomAmenities()
     this.isLoading = false
+  },
+
+  async beforeUnmount() {
+    await this.saveAllAmenities()
   }
 }
 </script>
+
 <template>
   <div class="room-amenities-container">
     <DashboardMenu />
@@ -240,13 +206,7 @@ export default {
 
         <!-- Top Amenities -->
         <div class="container">
-          <loading
-            v-model:active="isLoading"
-            :can-cancel="true"
-            :on-cancel="onCancel"
-            :color="`#003b95`"
-            :is-full-page="false"
-          />
+          <loading v-model:active="isLoading" :color="`#003b95`" :is-full-page="false" />
           <h1>Top Amenities</h1>
           <p>
             We know these amenites encourage guests to book. Let them know what you have by

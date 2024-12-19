@@ -53,7 +53,7 @@ const createNewRoom = async (req, res) => {
         .json({ success: false, message: "Missing roomInformation" });
     }
     const query = `INSERT INTO rooms (hotel_id, room_name, room_type, quantity) VALUES (?, ?, ?, ?)`;
-    const  {insertId: roomId} = await queryAsync(query, [
+    const { insertId: roomId } = await queryAsync(query, [
       hotelId,
       roomInformation.room_name,
       roomInformation.room_type,
@@ -68,7 +68,14 @@ const createNewRoom = async (req, res) => {
       d.setDate(d.getDate() + i);
 
       const queryRoomInventory = `INSERT INTO room_inventory (room_id, date, total_inventory, total_reserved, price_per_night, status) VALUES (?, ?, ?, ?, ?, ?)`;
-      await queryAsync(queryRoomInventory, [roomId, d, roomInformation.quantity, 0, 0, "open"]);
+      await queryAsync(queryRoomInventory, [
+        roomId,
+        d,
+        roomInformation.quantity,
+        0,
+        0,
+        "open",
+      ]);
     }
 
     res.status(200).json({ success: true });
@@ -268,22 +275,21 @@ const getAllRoomAmenities = async (req, res) => {
 
 const updateRoomAmenities = async (req, res) => {
   try {
-    const { roomId, amenities } = req.body;
-    if (!roomId) {
+    const { rooms } = req.body;
+    if (!rooms || rooms.length === 0) {
       return res
         .status(400)
         .json({ success: false, message: "Missing roomId" });
     }
-    if (!amenities || amenities.length === 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing amenities" });
+
+    for (const room of rooms) {
+      const query = `UPDATE rooms SET room_amenities = ?, room_size = ? WHERE room_id = ?`;
+      await queryAsync(query, [room.room_amenities, room.room_size, room.room_id]);
     }
 
-    const query = `UPDATE room_amenities SET amenities = ? WHERE room_id = ?`;
-    await queryAsync(query, [amenities, roomId]);
     res.status(200).json({ success: true });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
