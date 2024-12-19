@@ -56,26 +56,27 @@ const getHotelDetails = async (req, res) => {
         `;
 
     //TODO: delete review breakdown table, use new review_criterias table 
-    const reviewCriterias = `
-      SELECT rc.review_score_id, rc.criteria_name, rc.score, h.hotel_id, rc.review_id FROM review_criterias AS rc
-      JOIN reviews AS r ON r.review_id = rc.review_id
-      JOIN hotels AS h ON h.hotel_id = r.hotel_id
-      WHERE h.hotel_id = ?;
-    `
-    //...
-    
-    const reviewsBreakdownQuery = `
-            SELECT review_id, hotel_id, category_name, total_mentioned, positive, negative, neutral 
-            FROM reviews_breakdown WHERE hotel_id = ?
-        `;
+    const reviewCriteriasQuery = `
+      SELECT
+          rc.criteria_name, r.hotel_id,
+          AVG(rc.score) AS average_score
+      FROM
+          review_criterias rc
+      JOIN
+          reviews r ON rc.review_id = r.review_id
+      WHERE
+          r.hotel_id = ?
+      GROUP BY
+          rc.criteria_name;
+    `;
 
-    const [hotel, rooms, reviews, nearbyPlaces, reviewsBreakdown] =
+    const [hotel, rooms, reviews, nearbyPlaces, reviewCriterias] =
       await Promise.all([
         queryAsync(hotelQuery, [hotelId]),
         queryAsync(roomQuery, [checkInDate, checkOutDate, numberOfRooms, numberOfDays, hotelId, numberOfGuests]),
         queryAsync(reviewsQuery, [hotelId]),
         queryAsync(nearbyPlacesQuery, [hotelId]),
-        queryAsync(reviewsBreakdownQuery, [hotelId]),
+        queryAsync(reviewCriteriasQuery, [hotelId]),
       ]);
 
     //TODO: get booking details for each review
@@ -85,8 +86,8 @@ const getHotelDetails = async (req, res) => {
       hotel: hotel[0], // chỉ trả về bản ghi đầu tiên vì thông tin khách sạn là duy nhất
       rooms,
       reviews,
-      nearby_places: nearbyPlaces,
-      reviews_breakdown: reviewsBreakdown,
+      nearbyPlaces: nearbyPlaces,
+      reviewCriterias: reviewCriterias,
     });
   } catch (error) {
     console.error("Error fetching hotel details:", error);

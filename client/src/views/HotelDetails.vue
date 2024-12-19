@@ -40,8 +40,8 @@ export default {
       hotel: {},
       room_list: [],
       reviews: [],
-      nearby_hotels: [],
-      reviews_breakdown: [],
+      nearbyPlaces: [],
+      reviewCriterias: [],
 
       // selected rooms for booking
       selectedRooms: [],
@@ -130,8 +130,8 @@ export default {
         this.hotel = response.data.hotel
         this.room_list = response.data.rooms
         this.reviews = response.data.reviews
-        this.reviews_breakdown = response.data.reviews_breakdown
-        this.nearby_hotels = response.data.nearby_hotels
+        this.reviewCriterias = response.data.reviewCriterias
+        this.nearbyPlaces = response.data.nearbyPlaces
         this.hotelImages = JSON.parse(response.data.hotel.image_urls)
       } catch (error) {
         console.error(error)
@@ -675,13 +675,13 @@ export default {
           <strong>Hạng mục</strong>
           <div class="review__process--bar">
             <div class="row">
-              <div class="col-lg-4 col-md-6 col-12" v-for="review_breakdown in reviews_breakdown">
+              <div class="col-lg-4 col-md-6 col-12" v-for="review in reviewCriterias">
                 <div class="category">
-                  <div>{{ review_breakdown.category_name }}</div>
+                  <div>{{ review.criteria_name }}</div>
                   <div>
                     {{
                       Number(
-                        (review_breakdown.positive / review_breakdown.total_mentioned) * 10
+                        (review.average_score / 5) * 10
                       ).toFixed(1)
                     }}
                   </div>
@@ -831,13 +831,13 @@ export default {
             <strong>Hạng mục</strong>
             <div class="review__process--bar">
               <div class="row">
-                <div class="col-lg-4 col-md-6 col-12" v-for="review_breakdown in reviews_breakdown">
+                <div class="col-lg-4 col-md-6 col-12" v-for="review in reviewCriterias">
                   <div class="category">
-                    <div>{{ review_breakdown.category_name }}</div>
+                    <div>{{ review.criteria_name }}</div>
                     <div>
                       {{
                         Number(
-                          (review_breakdown.positive / review_breakdown.total_mentioned) * 10
+                          (review.average_score / 5) * 10
                         ).toFixed(1)
                       }}
                     </div>
