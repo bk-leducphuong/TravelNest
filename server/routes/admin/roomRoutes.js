@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getAllRooms, updateRoomInformation, createNewRoom, getRoomInventory, updateRoomInventory, getAllRoomPhotos, deleteRoomPhotos, deleteHotelPhotos, addRoomPhotos, addHotelPhotos, getAllRoomAmenities, updateRoomAmenities } = require("../../controllers/admin/roomsController");
+const { getAllRooms, updateRoomInformation, createNewRoom, deleteRoom, getRoomInventory, updateRoomInventory, getAllRoomPhotos, deleteRoomPhotos, deleteHotelPhotos, addRoomPhotos, addHotelPhotos, getAllRoomAmenities, updateRoomAmenities } = require("../../controllers/admin/roomsController");
 const upload = require("../../config/multer")
 const { isAdminAuthenticated } = require("../../middlewares/sessionAuth");
  
@@ -12,6 +12,7 @@ router.post("/get-all-rooms", getAllRooms);
 router.post("/get-all-room-photos", getAllRoomPhotos);
 router.post("/update-room-information", updateRoomInformation);
 router.post("/create-new-room", createNewRoom);
+router.post("/delete-room", deleteRoom);
 router.post("/delete-room-photos", deleteRoomPhotos);
 router.post("/delete-hotel-photos", deleteHotelPhotos);
 router.post("/add-room-photos", upload.array("images", 30), addRoomPhotos);

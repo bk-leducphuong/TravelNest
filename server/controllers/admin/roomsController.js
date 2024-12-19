@@ -53,15 +53,49 @@ const createNewRoom = async (req, res) => {
         .json({ success: false, message: "Missing roomInformation" });
     }
     const query = `INSERT INTO rooms (hotel_id, room_name, room_type, quantity) VALUES (?, ?, ?, ?)`;
-    await queryAsync(query, [
+    const  {insertId: roomId} = await queryAsync(query, [
       hotelId,
       roomInformation.room_name,
       roomInformation.room_type,
       roomInformation.quantity,
-    ])
+    ]);
+
+    // generate room inventory
+    const NUMBER_OF_DAYS = 60; // 1 months
+
+    for (let i = 0; i < NUMBER_OF_DAYS; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+
+      const queryRoomInventory = `INSERT INTO room_inventory (room_id, date, total_inventory, total_reserved, price_per_night, status) VALUES (?, ?, ?, ?, ?, ?)`;
+      await queryAsync(queryRoomInventory, [roomId, d, roomInformation.quantity, 0, 0, "open"]);
+    }
+
     res.status(200).json({ success: true });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const deleteRoom = async (req, res) => {
+  try {
+    const { roomId } = req.body;
+    if (!roomId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing roomInformation" });
+    }
+
+    // delete room inventory from room_inventory table
+    const query1 = `DELETE FROM room_inventory WHERE room_id = ?`;
+    await queryAsync(query1, [roomId]);
+    // delete room from rooms table
+    const query2 = `DELETE FROM rooms WHERE room_id = ?`;
+    await queryAsync(query2, [roomId]);
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -303,6 +337,7 @@ module.exports = {
   getAllRooms,
   updateRoomInformation,
   createNewRoom,
+  deleteRoom,
   getAllRoomPhotos,
   deleteRoomPhotos,
   deleteHotelPhotos,

@@ -5,6 +5,7 @@ import Loading from 'vue-loading-overlay'
 import RoomInformation from '@/components/admin/room/RoomInformation.vue'
 import 'vue-loading-overlay/dist/css/index.css'
 import axios from 'axios'
+import { useToast } from 'vue-toastification'
 import { mapActions, mapGetters } from 'vuex'
 
 export default {
@@ -13,6 +14,12 @@ export default {
     AdminHeader,
     Loading,
     RoomInformation
+  },
+  setup() {
+    const toast = useToast()
+    return {
+      toast
+    }
   },
   data() {
     return {
@@ -29,7 +36,6 @@ export default {
   methods: {
     async getAllRooms() {
       try {
-        this.isLoading = true
         const response = await axios.post(
           'http://localhost:3000/api/admin/room/get-all-rooms',
           {
@@ -42,9 +48,7 @@ export default {
         this.rooms = response.data
       } catch (error) {
         console.log(error)
-      } finally {
-        this.isLoading = false
-      }
+      } 
     },
     async editRoomInformation(roomInformation) {
       this.roomInformation = roomInformation
@@ -66,14 +70,16 @@ export default {
           }
         )
         this.toast.success('Room deleted successfully')
-        this.$router.go(0)
+        this.getAllRooms()
       } catch (error) {
         console.log(error)
       }
     }
   },
   async mounted() {
+    this.isLoading = true
     await this.getAllRooms()
+    this.isLoading = false
   }
 }
 </script>
