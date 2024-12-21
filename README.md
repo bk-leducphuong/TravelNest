@@ -83,6 +83,7 @@ The frontend is built with Vuejs.
 Run in terminal
 ```bash
 stripe listen --forward-to http://localhost:3000/stripe/webhook
+```
 
 ## Scrape data (for test)
 Document comming soon...
