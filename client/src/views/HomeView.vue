@@ -100,7 +100,7 @@ export default {
 
         if (this.isUserAuthenticated) {
           await axios.post(
-            'http://localhost:3000/api/home/post-recent-viewed-hotels',
+            `${import.meta.env.VITE_SERVER_HOST}/api/home/post-recent-viewed-hotels`,
             {
               hotelId: hotel_id
             },
@@ -118,7 +118,7 @@ export default {
     async loadNearbyHotels() {
       try {
         this.isNearByHotelsLoading = true
-        const response = await axios.post('http://localhost:3000/api/home/nearby-hotels', {
+        const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/home/nearby-hotels`, {
           location: this.getUserLocation
         })
         this.nearbyHotels = response.data.hotels
@@ -132,7 +132,7 @@ export default {
     // Load data from localStorage for recently searched
     async loadRecentSearches() {
       if (this.isUserAuthenticated) {
-        const response = await axios.get('http://localhost:3000/api/home/recent-searchs', {
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST}/api/home/recent-searchs`, {
           withCredentials: true
         })
         this.recentSearches = response.data
@@ -147,7 +147,7 @@ export default {
     async loadViewedHotels() {
       if (this.isUserAuthenticated) {
         const response = await axios.post(
-          'http://localhost:3000/api/home/get-recent-viewed-hotels',
+          `${import.meta.env.VITE_SERVER_HOST}/api/home/get-recent-viewed-hotels`,
           {},
           {
             withCredentials: true
@@ -157,7 +157,7 @@ export default {
         this.viewedHotels = response.data.hotels.reverse()
       } else {
         const response = await axios.post(
-          'http://localhost:3000/api/home/get-recent-viewed-hotels',
+          `${import.meta.env.VITE_SERVER_HOST}/api/home/get-recent-viewed-hotels`,
           {
             hotelIdArray: JSON.parse(localStorage.getItem('viewedHotels'))
           }
@@ -171,7 +171,7 @@ export default {
     async loadPopularPlaces() {
       try {
         this.isPopularPlacesLoading = true
-        const response = await axios.get('http://localhost:3000/api/home/popular-places')
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST}/api/home/popular-places`)
 
         this.popularPlaces = response.data.popular_places
 
@@ -196,7 +196,7 @@ export default {
         if (this.isUserAuthenticated) {
           // remove from database
           await axios.post(
-            'http://localhost:3000/api/home/remove-recent-search',
+            `${import.meta.env.VITE_SERVER_HOST}/api/home/remove-recent-search`,
             {
               search_id: removedSearch.search_id
             },
@@ -246,6 +246,9 @@ export default {
       const checkOutDate = new Date(checkOutDateString)
       const timeDifference = checkOutDate - checkInDate
       return timeDifference / (1000 * 60 * 60 * 24) + 1
+    },
+    serverHost() {
+      return import.meta.env.VITE_SERVER_HOST
     }
   },
   watch: {
@@ -299,7 +302,7 @@ export default {
           >
             <div class="search-image">
               <img
-                :src="'http://localhost:3000/vietnam_city/' + search.location + '.jpg'"
+                :src="serverHost() + '/vietnam_city/' + search.location + '.jpg'"
                 :alt="search.location"
               />
             </div>
@@ -349,7 +352,7 @@ export default {
           >
             <div class="hotel-image">
               <img v-if="hotel.image_urls" :src="JSON.parse(hotel.image_urls)[0]" :alt="hotel.name"/>
-              <img src="http://localhost:3000/uploads/hotels/no-image.png" alt="hotel image" v-else />
+              <img :src="serverHost() + '/uploads/hotels/no-image.png'" alt="hotel image" v-else />
               <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
@@ -405,7 +408,7 @@ export default {
           >
             <div class="hotel-image">
               <img v-if="hotel.image_urls" :src="JSON.parse(hotel.image_urls)[0]" :alt="hotel.name" />
-              <img v-else src="http://localhost:3000/uploads/hotels/no-image.png" :alt="hotel.name" />
+              <img v-else :src="serverHost() + '/uploads/hotels/no-image.png'" :alt="hotel.name" />
               <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
@@ -467,7 +470,7 @@ export default {
           "
         >
           <img
-            :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'"
+            :src="serverHost() + '/vietnam_city/' + place.location + '.jpg'"
             :alt="place.location"
           />
         </div>
@@ -482,7 +485,7 @@ export default {
           :key="index"
         >
           <img
-            :src="'http://localhost:3000/vietnam_city/' + place.location + '.jpg'"
+            :src="serverHost() + '/vietnam_city/' + place.location + '.jpg'"
             :alt="place.location"
           />
         </div>
