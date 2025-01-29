@@ -1,4 +1,7 @@
-require('dotenv').config();
+require('dotenv').config({
+  path: process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development'
+});
+
 const express = require('express');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
@@ -27,7 +30,7 @@ app.use(express.static('public'));
 
 // To Allow cross origin requests originating from selected origins
 var corsOptions = {
-  origin:  'http://localhost:5173', 
+  origin:  process.env.CLIENT_HOST, 
   methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
