@@ -37,7 +37,7 @@ export default {
       try {
         this.isLoading = true
         const response = await axios.post(
-          'http://localhost:3000/api/admin/payout',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/payout`,
           {
             hotelId: this.getCurrentManagingHotelId
           },

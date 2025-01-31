@@ -18,6 +18,9 @@ export default {
     selectHotel(hotelId) {
       this.selectHotelToManage(hotelId)
       this.$router.push(`/admin/${hotelId}/home`)
+    },
+    serverHost() {
+      return import.meta.env.VITE_SERVER_HOST
     }
   },
   async mounted() {
@@ -75,7 +78,7 @@ export default {
 
       <div class="hotel-card" v-for="hotel in getManagingHotels" :key="hotel.hotel_id">
         <img v-if="JSON.parse(hotel.image_urls)" :src="JSON.parse(hotel.image_urls)[0]" alt="hotel-image" class="hotel-image" />
-        <img src="http://localhost:3000/uploads/hotels/no-image.png" class="hotel-image" alt="no image" v-else>
+        <img :src="serverHost() + '/uploads/hotels/no-image.png'" class="hotel-image" alt="no image" v-else>
         <div class="hotel-info">
           <h2 class="hotel-name">{{ hotel.name }}</h2>
           <div class="hotel-location">

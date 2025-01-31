@@ -51,7 +51,7 @@ export default {
     async getAllRoomAmenities() {
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/admin/room/get-all-room-amenities',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/get-all-room-amenities`,
           { hotelId: this.getCurrentManagingHotelId },
           { withCredentials: true }
         )
@@ -128,7 +128,7 @@ export default {
         }))
 
         await axios.post(
-          'http://localhost:3000/api/admin/room/update-room-amenities',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/update-room-amenities`,
           { rooms: updatedRooms },
           { withCredentials: true }
         )

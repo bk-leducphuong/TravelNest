@@ -50,7 +50,7 @@ export default {
     async getAllReviews() {
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/admin/review/get-all-reviews',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/review/get-all-reviews`,
           {
             hotelId: this.getCurrentManagingHotelId
           },
@@ -87,7 +87,7 @@ export default {
 
         if (this.replies[reviewId]) {
           await axios.post(
-            'http://localhost:3000/api/admin/review/reply-to-review',
+            `${import.meta.env.VITE_SERVER_HOST}/api/admin/review/reply-to-review`,
             {
               reviewId: reviewId,
               reply: this.replies[reviewId]

@@ -37,7 +37,7 @@ export default {
     async getAllRooms() {
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/admin/room/get-all-rooms',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/get-all-rooms`,
           {
             hotelId: this.getCurrentManagingHotelId
           },
@@ -61,7 +61,7 @@ export default {
     async deleteRoom(room) {
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/admin/room/delete-room',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/delete-room`,
           {
             roomId: room.room_id
           },
@@ -74,6 +74,9 @@ export default {
       } catch (error) {
         console.log(error)
       }
+    },
+    serverHost() {
+      return import.meta.env.VITE_SERVER_HOST
     }
   },
   async mounted() {
@@ -124,7 +127,7 @@ export default {
                       />
                       <img
                         v-else
-                        src="http://localhost:3000/uploads/hotels/no-image.png"
+                        :src="serverHost() + '/uploads/hotels/no-image.png'"
                         alt="phong"
                       />
                       <p>{{ room.room_name }}</p>

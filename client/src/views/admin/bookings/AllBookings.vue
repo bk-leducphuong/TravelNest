@@ -28,7 +28,7 @@ export default {
     async getAllBookings() {
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/admin/bookings/all',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/bookings/all`,
           {
             hotelId: this.getCurrentManagingHotelId
           },
@@ -98,7 +98,7 @@ export default {
     async getBookerInformation(buyer_id) {
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/admin/bookings/get-booker-information',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/bookings/get-booker-information`,
           {
             buyer_id: buyer_id
           },
@@ -114,7 +114,7 @@ export default {
     },
     async getAllRooms() {
       const response = await axios.post(
-        'http://localhost:3000/api/admin/room/get-all-rooms',
+        `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/get-all-rooms`,
         {
           hotelId: this.getCurrentManagingHotelId
         },

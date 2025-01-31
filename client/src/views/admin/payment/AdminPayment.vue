@@ -26,7 +26,7 @@ export default {
     async checkAccountExist() {
       try {
         const response = await axios.get(
-          'http://localhost:3000/api/admin/payout/check-account-exist',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/payout/check-account-exist`,
           {
             withCredentials: true
           }
@@ -51,7 +51,7 @@ export default {
           this.error = false
 
           const response = await axios.post(
-            'http://localhost:3000/api/admin/payout/create-connect-account',
+            `${import.meta.env.VITE_SERVER_HOST}/api/admin/payout/create-connect-account`,
             { email: this.getEmail },
             {
               withCredentials: true
@@ -74,7 +74,7 @@ export default {
         this.accountLinkCreatePending = true
         this.error = false
         const response = await axios.post(
-          'http://localhost:3000/api/admin/payout/create-account-link',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/payout/create-account-link`,
           {
             connectedAccountId: this.connectedAccountId
           },

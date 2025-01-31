@@ -44,7 +44,7 @@ export default {
     },
     async getTotalBookings() {
       const response = await axios.post(
-        'http://localhost:3000/api/admin/home/get-total-bookings',
+        `${import.meta.env.VITE_SERVER_HOST}/api/admin/home/get-total-bookings`,
         {
           hotelId: this.getCurrentManagingHotelId,
           period: {
@@ -61,7 +61,7 @@ export default {
     },
     async getRoomSales() {
       const response = await axios.post(
-        'http://localhost:3000/api/admin/home/get-room-book',
+        `${import.meta.env.VITE_SERVER_HOST}/api/admin/home/get-room-book`,
         {
           hotelId: this.getCurrentManagingHotelId,
           period: {
@@ -77,7 +77,7 @@ export default {
     },
     async getNewCustomers() {
       const response = await axios.post(
-        'http://localhost:3000/api/admin/home/get-new-customers',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/home/get-new-customers`,
         {
           hotelId: this.getCurrentManagingHotelId,
           period: {
@@ -93,7 +93,7 @@ export default {
     },
     async getDailyRevenue() {
       const response = await axios.post(
-        'http://localhost:3000/api/admin/home/get-daily-revenue-chart',
+        `${import.meta.env.VITE_SERVER_HOST}/api/admin/home/get-daily-revenue-chart`,
         {
           hotelId: this.getCurrentManagingHotelId,
           period: {

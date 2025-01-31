@@ -168,7 +168,7 @@ export default {
     async getRoomInventory() {
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/admin/room/get-room-inventory',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/get-room-inventory`,
           {
             roomId: this.currentRoom.room_id
           },
@@ -186,7 +186,7 @@ export default {
     async getAllRooms() {
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/admin/room/get-all-rooms',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/get-all-rooms`,
           {
             hotelId: this.getCurrentManagingHotelId
           },
@@ -317,7 +317,7 @@ export default {
         }
 
         const response = await axios.post(
-          'http://localhost:3000/api/admin/room/update-room-inventory',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/update-room-inventory`,
           {
             newRoomInventory: newRoomInventory
           },

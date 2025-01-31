@@ -40,7 +40,7 @@ export default {
 
         this.isLoadingPopup = true
         const response = await axios.post(
-          'http://localhost:3000/api/admin/cancel-booking',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/cancel-booking`,
           {
             bookingInformation: this.getBookingInformation,
             hotelInformation: this.getCurrentManagingHotelInformation

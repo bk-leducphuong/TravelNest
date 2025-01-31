@@ -27,7 +27,7 @@ export default {
       try {
         this.accountLinkCreatePending = true
         this.error = false
-        const response = await axios.post('http://localhost:3000/api/admin/payout/create-account-link', {
+        const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/admin/payout/create-account-link`, {
           connectedAccountId: this.connectedAccountId
         }, {
             withCredentials: true

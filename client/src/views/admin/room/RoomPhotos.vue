@@ -41,7 +41,7 @@ export default {
       try {
         this.isLoading = true
         const response = await axios.post(
-          'http://localhost:3000/api/admin/room/get-all-room-photos',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/get-all-room-photos`,
           {
             hotelId: this.getCurrentManagingHotelId
           },
@@ -132,7 +132,7 @@ export default {
           .image_urls.map((image) => image.url)
 
         await axios.post(
-          'http://localhost:3000/api/admin/room/delete-room-photos',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/delete-room-photos`,
           {
             roomId: roomId,
             imageUrls: JSON.stringify(imageUrls)
@@ -151,7 +151,7 @@ export default {
         const imageUrls = this.hotelPhotos.map((photo) => photo.url)
 
         await axios.post(
-          'http://localhost:3000/api/admin/room/delete-hotel-photos',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/delete-hotel-photos`,
           {
             hotelId: hotelId,
             imageUrls: JSON.stringify(imageUrls)
@@ -186,7 +186,7 @@ export default {
       formData.append('hotelId', this.getCurrentManagingHotelId)
 
       const response = await axios.post(
-        'http://localhost:3000/api/admin/room/add-room-photos',
+        `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/add-room-photos`,
         formData,
         {
           headers: {
@@ -220,7 +220,7 @@ export default {
       })
       formData.append('hotelId', this.getCurrentManagingHotelId)
 
-      const response = await axios.post('http://localhost:3000/api/admin/room/add-hotel-photos', formData, {
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/admin/room/add-hotel-photos`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         },

@@ -158,7 +158,7 @@ export default {
     checkEmail() {
       // Call to API to check if email exists
       axios
-        .post('http://localhost:3000/api/auth/check-email', {
+        .post(`${import.meta.env.VITE_SERVER_HOST}/api/auth/check-email`, {
           email: this.email,
           userRole: 'partner'
         })
@@ -187,8 +187,8 @@ export default {
         await this.logout({ haveRedirect: false })
       }
       const apiUrl = this.isNewUser
-        ? 'http://localhost:3000/api/auth/admin/register'
-        : 'http://localhost:3000/api/auth/admin/login'
+        ?  `${import.meta.env.VITE_SERVER_HOST}/api/auth/admin/register`
+        : `${import.meta.env.VITE_SERVER_HOST}/api/auth/admin/login`
       const payload = this.isNewUser
         ? {
             email: this.email,
