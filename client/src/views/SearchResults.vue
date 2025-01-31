@@ -114,7 +114,7 @@ export default {
     // api query
     async searchHotels() {
       try {
-        const response = await axios.post('http://localhost:3000/api/search', {
+        const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/search`, {
           searchData: this.getSearchData
         })
 
@@ -152,7 +152,7 @@ export default {
 
         if (this.isUserAuthenticated) {
           await axios.post(
-            'http://localhost:3000/api/home/post-recent-viewed-hotels',
+            `${import.meta.env.VITE_SERVER_HOST}/api/home/post-recent-viewed-hotels`,
             {
               hotelId: hotel_id
             },
@@ -180,6 +180,9 @@ export default {
       if (!query) return name
       const regex = new RegExp(`(${query})`, 'gi')
       return name.replace(regex, '<mark style="background-color: #5dabff;">$1</mark>')
+    },
+    serverHost() {
+      return import.meta.env.VITE_SERVER_HOST
     }
   },
   mounted() {
@@ -399,7 +402,7 @@ export default {
                 <div class="inner-img">
                   <SavedHotelIcon :hotelId="hotel.hotel_id" />
                   <img v-if="hotel.image_urls" :src="JSON.parse(hotel.image_urls)[0]" alt="hotel image" />
-                  <img src="http://localhost:3000/uploads/hotels/no-image.png" alt="hotel image" v-else />
+                  <img :src="serverHost() + '/uploads/hotels/no-image.png'" alt="hotel image" v-else />
                 </div>
                 <div class="inner-show">
                   <div class="inner-introduction">

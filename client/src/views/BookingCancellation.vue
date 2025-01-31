@@ -42,7 +42,7 @@ export default {
         this.isLoading = true
         this.disableCancelBtn = true
 
-        const response = await axios.post('http://localhost:3000/api/cancel-bookings', {
+        const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/cancel-bookings`, {
           bookingInformation: this.getBookingInformation,
         }, {
           withCredentials: true

@@ -49,7 +49,7 @@ export default {
     async validateReview() {
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/review/validate-review',
+          `${import.meta.env.VITE_SERVER_HOST}/api/review/validate-review`,
           {
             bookingCode: this.$route.query.bc,
             hotelId: this.$route.query.hid,
@@ -71,7 +71,7 @@ export default {
           return
         }
         const response = await axios.post(
-          'http://localhost:3000/api/review/post-review',
+          `${import.meta.env.VITE_SERVER_HOST}/api/review/post-review`,
           {
             hotelId: this.$route.query.hid,
             overallRating: this.overallRating,
@@ -101,7 +101,7 @@ export default {
     async checkAlreadyReviewed() {
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/review/check-already-reviewed',
+          `${import.meta.env.VITE_SERVER_HOST}/api/review/check-already-reviewed`,
           {
             bookingCode: this.$route.query.bc,
             hotelId: this.$route.query.hid

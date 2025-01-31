@@ -124,7 +124,7 @@ export default {
     },
     async getHotelDetails() {
       try {
-        const response = await axios.post(`http://localhost:3000/api/hotels/get-hotel-details`, {
+        const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/hotels/get-hotel-details`, {
           hotelId: this.$route.params.hotel_id,
           checkInDate: this.getSearchData.checkInDate,
           checkOutDate: this.getSearchData.checkOutDate,
@@ -193,7 +193,7 @@ export default {
         this.isSearchRoomLoading = true
 
         this.extractDate(this.dateRange)
-        const response = await axios.post('http://localhost:3000/api/hotels/search-room', {
+        const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/hotels/search-room`, {
           hotel_id: this.hotel_id,
           checkInDate: this.checkInDate,
           checkOutDate: this.checkOutDate,

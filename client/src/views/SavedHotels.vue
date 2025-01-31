@@ -34,7 +34,7 @@ export default {
     async getSavedHotels() {
       try {
         const response = await axios.get(
-          'http://localhost:3000/api/user/favorite-hotels/get-favorite-hotels',
+          `${import.meta.env.VITE_SERVER_HOST}/api/user/favorite-hotels/get-favorite-hotels`,
           {
             withCredentials: true
           }
@@ -65,7 +65,7 @@ export default {
       slider.scrollTo({ left: this.sliderPosition, behavior: 'smooth' })
     },
     async deleteSavedHotel(hotelId) {
-      const response = await axios.post('http://localhost:3000/api/user/favorite-hotels/delete-favorite-hotel', {
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/user/favorite-hotels/delete-favorite-hotel`, {
         hotelId: hotelId
       }, {
         withCredentials: true

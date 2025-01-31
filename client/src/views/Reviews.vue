@@ -38,7 +38,7 @@ export default {
   },
   methods: {
     async getAllReviews() {
-      const response = await axios.get('http://localhost:3000/api/review/get-all-reviews', {
+      const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST}/api/review/get-all-reviews`, {
         withCredentials: true
       })
       this.reviews = response.data.reviews

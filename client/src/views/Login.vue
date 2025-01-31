@@ -128,7 +128,7 @@ export default {
     checkEmail() {
       // Call to API to check if email exists
       axios
-        .post('http://localhost:3000/api/auth/check-email', {
+        .post(`${import.meta.env.VITE_SERVER_HOST}/api/auth/check-email`, {
           email: this.email,
           userRole: this.userRole
         })
@@ -165,8 +165,8 @@ export default {
       }
 
       const apiUrl = this.isNewUser
-        ? 'http://localhost:3000/api/auth/register'
-        : 'http://localhost:3000/api/auth/login'
+        ? `${import.meta.env.VITE_SERVER_HOST}/api/auth/register`
+        : `${import.meta.env.VITE_SERVER_HOST}/api/auth/login`
 
       const payload = this.isNewUser
         ? { email: this.email, password: this.password, userRole: this.userRole}
@@ -190,7 +190,7 @@ export default {
       this.isLoading = true
 
       try {
-        const queryUrl = `http://localhost:3000/api/auth/login-${provider}`
+        const queryUrl = `${import.meta.env.VITE_SERVER_HOST}/api/auth/login-${provider}`
         const response = await axios.get(queryUrl, { withCredentials: true })
 
         if (response.data.success) {

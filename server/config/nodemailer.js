@@ -1,5 +1,7 @@
 const nodemailer = require('nodemailer')
-require('dotenv').config();  // Tải các biến môi trường từ file .env
+require('dotenv').config({
+  path: process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development'
+}); 
 
 // Email transporter configuration
 const transporter = nodemailer.createTransport({
