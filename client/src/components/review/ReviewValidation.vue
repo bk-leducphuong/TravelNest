@@ -27,7 +27,7 @@ export default {
     async validateUser() {
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/review/validate-review',
+          `${import.meta.env.VITE_SERVER_HOST}/api/review/validate-review`,
           {
             bookingCode: this.bookingCode,
             hotelId: this.hotelId

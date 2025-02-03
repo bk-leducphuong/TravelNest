@@ -24,7 +24,7 @@ export default {
     async withdrawMoney() {
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/admin/payout/create-payout',
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/payout/create-payout`,
           {
             amount: this.withdrawAmount,
             transactionId: this.withdrawTransactionId,

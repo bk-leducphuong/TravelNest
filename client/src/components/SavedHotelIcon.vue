@@ -29,7 +29,7 @@ export default {
             this.deleteFavoriteHotel()
           } else {
             const response = await axios.post(
-              'http://localhost:3000/api/user/favorite-hotels/set-favorite-hotel',
+              `${import.meta.env.VITE_SERVER_HOST}/api/user/favorite-hotels/set-favorite-hotel`,
               {
                 hotelId: this.hotelId
               },
@@ -52,7 +52,7 @@ export default {
       if (this.isUserAuthenticated) {
         try {
           const response = await axios.post(
-            'http://localhost:3000/api/user/favorite-hotels/check-favorite-hotel',
+            `${import.meta.env.VITE_SERVER_HOST}/api/user/favorite-hotels/check-favorite-hotel`,
             {
               hotelId: this.hotelId
             },
@@ -73,7 +73,7 @@ export default {
     async deleteFavoriteHotel() {
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/user/favorite-hotels/delete-favorite-hotel',
+          `${import.meta.env.VITE_SERVER_HOST}/api/user/favorite-hotels/delete-favorite-hotel`,
           {
             hotelId: this.hotelId
           },

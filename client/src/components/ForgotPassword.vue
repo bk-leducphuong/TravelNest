@@ -75,7 +75,7 @@ export default {
     },
     async sendOtp() {
       try {
-        const response = await axios.post('http://localhost:3000/api/auth/forgot-password', {
+        const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/auth/forgot-password`, {
           email: this.email, // Pass phone number if available
           userRole: this.userRole
         })
@@ -96,7 +96,7 @@ export default {
     async resetPassword() {
       try {
         this.isLoading = true
-        await axios.post('http://localhost:3000/api/auth/reset-password', {
+        await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/auth/reset-password`, {
           email: this.email,
           userRole: this.userRole,
           otp: this.otp.join(''),
@@ -104,7 +104,7 @@ export default {
         })
 
         // login
-        const apiUrl = 'http://localhost:3000/api/auth/login'
+        const apiUrl = `${import.meta.env.VITE_SERVER_HOST}/api/auth/login`
         const payload = { email: this.email, password: this.newPassword, userRole: 'customer' }
 
         await this.login({

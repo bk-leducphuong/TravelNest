@@ -114,7 +114,7 @@ export default {
 
           // Send payment method ID and email to server
           const response = await axios.post(
-            'http://localhost:3000/api/payment',
+            `${import.meta.env.VITE_SERVER_HOST}/api/payment`,
             {
               paymentMethodId: paymentMethod.id,
               amount: this.bookingInfor.totalPrice, // Amount in cents

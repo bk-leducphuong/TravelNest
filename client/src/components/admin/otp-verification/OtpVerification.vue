@@ -66,7 +66,7 @@ export default {
     },
     async resendOtp() {
       try {
-        const response = await axios.post('http://localhost:3000/api/auth/resend-otp', {
+        const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/auth/resend-otp`, {
           phoneNumber: this.$route.params.phoneNumber // Pass phone number if available
         })
 
@@ -81,7 +81,7 @@ export default {
     },
     async sendSmsOtp() {
       try {
-        await axios.post('http://localhost:3000/api/auth/send-sms-otp', {
+        await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/auth/send-sms-otp`, {
           phoneNumber: this.phoneNumber,
           userRole: this.userRole
         })
@@ -92,7 +92,7 @@ export default {
     },
     async verifySmsOtp() {
       try {
-        const response = await axios.post('http://localhost:3000/api/auth/verify-sms-otp', {
+        const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/auth/verify-sms-otp`, {
           phoneNumber: this.phoneNumber,
           otp: this.otp.join('')
         })

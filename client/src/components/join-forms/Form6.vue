@@ -113,7 +113,7 @@ export default {
 
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/join/upload-photos',
+          `${import.meta.env.VITE_SERVER_HOST}/api/join/upload-photos`,
           formData,
           {
             headers: {
@@ -155,7 +155,7 @@ export default {
       } else {
         try {
           const response = await axios.post(
-            'http://localhost:3000/api/join',
+            `${import.meta.env.VITE_SERVER_HOST}/api/join`,
             {
               joinFormData: this.getJoinFormData,
             },

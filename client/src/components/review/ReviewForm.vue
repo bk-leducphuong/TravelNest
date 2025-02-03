@@ -21,7 +21,7 @@ export default {
     async postReview() {
       try {
         const response = await axios.post(
-          'http://localhost:3000/api/review/post-review',
+          `${import.meta.env.VITE_SERVER_HOST}/api/review/post-review`,
           {
             hotelId: this.$route.params.hotel_id,
             rating: this.rating,

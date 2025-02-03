@@ -38,7 +38,7 @@ export default {
   methods: {
     // get user information
     async getUserInfo() {
-      const response = await axios.get('http://localhost:3000/api/user/get-user-information', {
+      const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST}/api/user/get-user-information`, {
         withCredentials: true
       })
       const user = response.data.user
@@ -55,7 +55,7 @@ export default {
       //...
     },
     async editName() {
-      const response = await axios.post('http://localhost:3000/api/user/edit-name', {
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/user/edit-name`, {
         name: this.firstName + ' ' + this.lastName
       }, {
         withCredentials: true
@@ -66,7 +66,7 @@ export default {
       }
     },
     async editDisplayName() {
-      const response = await axios.post('http://localhost:3000/api/user/edit-display-name', {
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/user/edit-display-name`, {
         displayName: this.displayName
       }, {
         withCredentials: true
@@ -77,7 +77,7 @@ export default {
       }
     },
     async editEmail() {
-      const response = await axios.post('http://localhost:3000/api/user/edit-email', {
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/user/edit-email`, {
         email: this.email
       }, {
         withCredentials: true
@@ -88,7 +88,7 @@ export default {
       }
     },
     async editPhoneNumber() {
-      const response = await axios.post('http://localhost:3000/api/user/edit-phone-number', {
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/user/edit-phone-number`, {
         phoneNumber: this.phoneNumber
       }, {
         withCredentials: true
@@ -99,7 +99,7 @@ export default {
       }
     },
     async editDateOfBirth() {
-      const response = await axios.post('http://localhost:3000/api/user/edit-date-of-birth', {
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/user/edit-date-of-birth`, {
         dateOfBirth: this.dateOfBirth
       }, {
         withCredentials: true
@@ -110,13 +110,13 @@ export default {
       }
     },
     async editAddress() {
-      const response = await axios.post('http://localhost:3000/api/user/edit-address', {
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/user/edit-address`, {
         address: this.address + ', ' + this.city
       }, {
         withCredentials: true
       })
 
-      const response2 = await axios.post('http://localhost:3000/api/user/edit-country', {
+      const response2 = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/user/edit-country`, {
         country: this.country
       }, {
         withCredentials: true
@@ -127,7 +127,7 @@ export default {
       }
     },
     async editNationality() {
-      const response = await axios.post('http://localhost:3000/api/user/edit-nationality', {
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/user/edit-nationality`, {
         nationality: this.nationality
       }, {
         withCredentials: true
@@ -138,7 +138,7 @@ export default {
       }
     },
     async editGender() {
-      const response = await axios.post('http://localhost:3000/api/user/edit-gender', {
+      const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/user/edit-gender`, {
         gender: this.gender
       }, {
         withCredentials: true
@@ -151,7 +151,7 @@ export default {
     async editAvatar() {
       const formData = new FormData();
       formData.append('avatar', this.avatarFile);
-      const response = await axios.post('http://localhost:3000/api/user/edit-avatar', formData, {
+    const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/user/edit-avatar`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         },

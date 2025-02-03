@@ -365,7 +365,7 @@ export default {
       }
     },
     async getNotifiactions() {
-      const response = await axios.get('http://localhost:3000/api/notifications', {
+      const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST}/api/notifications`, {
         withCredentials: true
       })
       this.notifications = response.data.notifications
@@ -386,7 +386,7 @@ export default {
         this.numberOfNewNotifications = 0
 
         await axios.get(
-          'http://localhost:3000/api/notifications/mark-all-as-read',
+          `${import.meta.env.VITE_SERVER_HOST}/api/notifications/mark-all-as-read`,
           {
             withCredentials: true
           }
