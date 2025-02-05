@@ -3,6 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const sharp = require("sharp");
 const { promisify } = require("util");
+const cloudinary = require("../../config/cloudinaryConfig");
 
 const queryAsync = promisify(connection.query).bind(connection);
 
@@ -171,38 +172,41 @@ const addRoomPhotos = async (req, res) => {
       return res.status(400).json({ success: false, message: "Missing files" });
     }
 
-    // Ensure the uploads directory exists
-    const uploadDir = "../server/public/uploads/hotels";
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    fs.mkdirSync(path.join(uploadDir, hotelId, roomId), { recursive: true });
-
     // Process each uploaded image
     const processedFiles = await Promise.all(
       req.files.map(async (file) => {
-        const timestamp = new Date()
-          .toISOString()
-          .replace(/[^a-zA-Z0-9_\\-]/g, "-");
+        const timestamp = new Date().toISOString().replace(/[^a-zA-Z0-9_\\-]/g, "-");
         const avifFilename = `${timestamp}.avif`;
-        const outputPath = path.join(uploadDir, hotelId, roomId, avifFilename); // http://localhost:3000/uploads/hotels/<hotel_id>/<room_id>/1665854966123-myimage.avif
 
         // Convert image to AVIF using sharp
-        await sharp(file.buffer)
+        const avifBuffer = await sharp(file.buffer)
           .avif({ quality: 50 }) // Adjust quality as needed
-          .toFile(outputPath);
+          .toBuffer();
 
-        return {
-          url:
-            "http://localhost:3000" +
-            `/uploads/hotels/${hotelId}/${roomId}/${avifFilename}`,
-        };
+        // Upload AVIF to Cloudinary
+        const result = await new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            {
+              resource_type: "image",
+              public_id: `${hotelId}/${roomId}/${timestamp}`,
+            },
+            (error, result) => {
+              if (error) {
+                console.error("Error uploading to Cloudinary:", error);
+                return reject(error);
+              }
+              resolve(result);
+            }
+          ).end(avifBuffer);
+        });
+
+        return { url: result.secure_url };
       })
     );
 
     res.status(200).json({ files: processedFiles });
   } catch (error) {
+    console.error("Error in addRoomPhotos:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -284,12 +288,16 @@ const updateRoomAmenities = async (req, res) => {
 
     for (const room of rooms) {
       const query = `UPDATE rooms SET room_amenities = ?, room_size = ? WHERE room_id = ?`;
-      await queryAsync(query, [room.room_amenities, room.room_size, room.room_id]);
+      await queryAsync(query, [
+        room.room_amenities,
+        room.room_size,
+        room.room_id,
+      ]);
     }
 
     res.status(200).json({ success: true });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
