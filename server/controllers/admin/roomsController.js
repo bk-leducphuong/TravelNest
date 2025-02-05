@@ -176,7 +176,6 @@ const addRoomPhotos = async (req, res) => {
     const processedFiles = await Promise.all(
       req.files.map(async (file) => {
         const timestamp = new Date().toISOString().replace(/[^a-zA-Z0-9_\\-]/g, "-");
-        const avifFilename = `${timestamp}.avif`;
 
         // Convert image to AVIF using sharp
         const avifBuffer = await sharp(file.buffer)
@@ -188,7 +187,7 @@ const addRoomPhotos = async (req, res) => {
           cloudinary.uploader.upload_stream(
             {
               resource_type: "image",
-              public_id: `${hotelId}/${roomId}/${timestamp}`,
+              public_id: `hotels/${hotelId}/rooms/${roomId}/${timestamp}`,
             },
             (error, result) => {
               if (error) {
