@@ -95,12 +95,26 @@ export default {
       try {
         if (!roomId) {
           if (this.selectedHotelPhotos.length > 0) {
+            const deletedHotelPhotos = this.hotelPhotos.filter((photo) =>
+              this.selectedHotelPhotos.includes(photo.index)
+            )
+            const deletedHotelPhotosUrls = deletedHotelPhotos.map((photo) => photo.url)
             // Delete selected photos from the main gallery
             this.hotelPhotos = this.hotelPhotos.filter(
               (photo) => !this.selectedHotelPhotos.includes(photo.index)
             )
             this.selectedHotelPhotos = [] // Clear selection
-            this.updateHotelPhotos(this.getCurrentManagingHotelId)
+
+            await axios.post(
+              `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/delete-hotel-photos`,
+              {
+                hotelId: this.getCurrentManagingHotelId,
+                deletedHotelPhotosUrls: JSON.stringify(deletedHotelPhotosUrls)
+              },
+              {
+                withCredentials: true
+              }
+            )
           } else {
             this.toast.error('Vui lòng chọn ảnh cần xóa')
           }
@@ -138,25 +152,6 @@ export default {
           }
         }
       } catch (error) {
-        this.toast.error('Có lỗi xảy ra trong quá trình cập nhật ảnh')
-      }
-    },
-    async updateHotelPhotos(hotelId) {
-      try {
-        const imageUrls = this.hotelPhotos.map((photo) => photo.url)
-
-        await axios.post(
-          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/delete-hotel-photos`,
-          {
-            hotelId: hotelId,
-            imageUrls: JSON.stringify(imageUrls)
-          },
-          {
-            withCredentials: true
-          }
-        )
-      } catch (error) {
-        console.log(error)
         this.toast.error('Có lỗi xảy ra trong quá trình cập nhật ảnh')
       }
     },
@@ -234,8 +229,6 @@ export default {
           url: uploadedImages[i - 1].url
         })
       }
-
-      await this.updateHotelPhotos(this.getCurrentManagingHotelId)
     }
   },
   async mounted() {

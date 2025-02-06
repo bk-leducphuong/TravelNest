@@ -164,26 +164,46 @@ const deleteRoomPhotos = async (req, res) => {
       res.status(500).json({ message: "Internal Server Error" });
     }
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
 const deleteHotelPhotos = async (req, res) => {
   try {
-    const { hotelId, imageUrls } = req.body;
-    if (!hotelId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing hotelId" });
-    }
-    const query = `UPDATE hotels SET image_urls = ? WHERE hotel_id = ?`;
-    await queryAsync(query, [imageUrls, hotelId]);
+    const { hotelId, deletedHotelPhotosUrls } = req.body;
+    const deletedHotelPhotosUrlsArray = JSON.parse(deletedHotelPhotosUrls);
 
-    //TODO: delete from file system
-    //...
-    res.status(200).json({ success: true });
+    if (!hotelId) {
+      return res.status(400).json({ success: false, message: "Missing hotelId" });
+    }
+
+    const oldImageUrls = await queryAsync(`SELECT image_urls FROM hotels WHERE hotel_id = ?`, [hotelId]);
+    const oldImageUrlsArray = JSON.parse(oldImageUrls[0].image_urls);
+    deletedHotelPhotosUrlsArray.forEach(url => {
+      oldImageUrlsArray.splice(oldImageUrlsArray.indexOf(url), 1);
+    });
+
+    // Extract publicId from Cloudinary URL
+    const regex = /\/upload\/(?:v\d+\/)?(.+?)\./;
+    const cloudinaryUrls = deletedHotelPhotosUrlsArray.map(url => url.match(regex)[1]);
+
+    // Delete from Cloudinary
+    await Promise.all(
+      cloudinaryUrls.map(async url => {
+        await cloudinary.uploader.destroy(url, {
+          resource_type: "image"
+        });
+      })
+    );
+
+    const isUpdateSuccess = await updateHotelPhotos(JSON.stringify(oldImageUrlsArray), hotelId);
+    if (isUpdateSuccess) {
+      res.status(200).json({ success: true });
+    } else {
+      res.status(500).json({ message: "Internal Server Error" });
+    }
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -285,11 +305,23 @@ const addHotelPhotos = async (req, res) => {
           ).end(avifBuffer);
         });
 
-        return result.secure_url;
+        return { url: result.secure_url };
       })
     );
 
-    res.status(200).json({ files: processedFiles });
+    // update room photo urls
+    const oldImageUrls = await queryAsync(`SELECT image_urls FROM hotels WHERE hotel_id = ?`, [hotelId]);
+    const oldImageUrlsArray = JSON.parse(oldImageUrls[0].image_urls);
+    processedFiles.forEach(file => {
+      oldImageUrlsArray.push(file.url);
+    })
+
+    const isUpdateSuccess = await updateHotelPhotos(JSON.stringify(oldImageUrlsArray), hotelId);
+    if (isUpdateSuccess) {
+      res.status(200).json({ files: processedFiles });
+    } else {
+      res.status(500).json({ message: "Internal Server Error" });
+    }
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
   }
@@ -299,6 +331,16 @@ const updateRoomPhotos = async (newImageUrls, roomId) => {
   try {
     const query = `UPDATE rooms SET image_urls = ? WHERE room_id = ?`;
     await queryAsync(query, [newImageUrls, roomId]);
+    return true; 
+  }catch(error) {
+    return false;
+  }
+}
+
+const updateHotelPhotos = async (newImageUrls, hotelId) => {
+  try {
+    const query = `UPDATE hotels SET image_urls = ? WHERE hotel_id = ?`;
+    await queryAsync(query, [newImageUrls, hotelId]);
     return true; 
   }catch(error) {
     return false;
