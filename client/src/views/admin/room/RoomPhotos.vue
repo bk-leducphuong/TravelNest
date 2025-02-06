@@ -92,57 +92,52 @@ export default {
       }
     },
     async deleteSelectedPhotos(roomId) {
-      if (!roomId) {
-        if (this.selectedHotelPhotos.length > 0) {
-          // Delete selected photos from the main gallery
-          this.hotelPhotos = this.hotelPhotos.filter(
-            (photo) => !this.selectedHotelPhotos.includes(photo.index)
-          )
-          this.selectedHotelPhotos = [] // Clear selection
-          this.updateHotelPhotos(this.getCurrentManagingHotelId)
-        } else {
-          this.toast.error('Vui lòng chọn ảnh cần xóa')
-        }
-      } else {
-        // Delete selected photos for a specific room
-        const room = this.rooms.find((room) => room.room_id === roomId)
-        const selectedRoom = this.selectedRoomPhotos.find((room) => room.roomId === roomId)
-        // Check if there are any selected photos
-        if (selectedRoom.selectedPhotos.length === 0) {
-          this.toast.error('Vui lòng chọn ảnh cần xóa')
-          return
-        }
-        if (room && selectedRoom) {
-          // Remove photos from the room's images
-          room.image_urls = room.image_urls.filter(
-            (image) => !selectedRoom.selectedPhotos.includes(image.index)
-          )
-
-          // Clear the selected photos for this room
-          selectedRoom.selectedPhotos = []
-
-          await this.updateRoomPhotos(roomId)
-        }
-      }
-    },
-    async updateRoomPhotos(roomId) {
       try {
-        const imageUrls = this.rooms
-          .find((room) => room.room_id == roomId)
-          .image_urls.map((image) => image.url)
-
-        await axios.post(
-          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/delete-room-photos`,
-          {
-            roomId: roomId,
-            imageUrls: JSON.stringify(imageUrls)
-          },
-          {
-            withCredentials: true
+        if (!roomId) {
+          if (this.selectedHotelPhotos.length > 0) {
+            // Delete selected photos from the main gallery
+            this.hotelPhotos = this.hotelPhotos.filter(
+              (photo) => !this.selectedHotelPhotos.includes(photo.index)
+            )
+            this.selectedHotelPhotos = [] // Clear selection
+            this.updateHotelPhotos(this.getCurrentManagingHotelId)
+          } else {
+            this.toast.error('Vui lòng chọn ảnh cần xóa')
           }
-        )
+        } else {
+          // Delete selected photos for a specific room
+          const room = this.rooms.find((room) => room.room_id === roomId)
+          const selectedRoom = this.selectedRoomPhotos.find((room) => room.roomId === roomId)
+          // Check if there are any selected photos
+          if (selectedRoom.selectedPhotos.length === 0) {
+            this.toast.error('Vui lòng chọn ảnh cần xóa')
+            return
+          }
+          if (room && selectedRoom) {
+            const deletedRoomPhotos = room.image_urls.filter((image) =>
+              selectedRoom.selectedPhotos.includes(image.index)
+            )
+            const deletedRoomPhotosUrls = deletedRoomPhotos.map((photo) => photo.url)
+
+            room.image_urls = room.image_urls.filter(
+              (image) => !selectedRoom.selectedPhotos.includes(image.index)
+            )
+            // Clear the selected photos for this room
+            selectedRoom.selectedPhotos = []
+
+            await axios.post(
+              `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/delete-room-photos`,
+              {
+                roomId: roomId,
+                deletedRoomPhotosUrls: JSON.stringify(deletedRoomPhotosUrls)
+              },
+              {
+                withCredentials: true
+              }
+            )
+          }
+        }
       } catch (error) {
-        console.log(error)
         this.toast.error('Có lỗi xảy ra trong quá trình cập nhật ảnh')
       }
     },
@@ -210,7 +205,6 @@ export default {
           }
         }
       })
-      await this.updateRoomPhotos(roomId)
     },
     async addHotelPhotos(event) {
       const files = [...event.target.files]
@@ -220,12 +214,16 @@ export default {
       })
       formData.append('hotelId', this.getCurrentManagingHotelId)
 
-      const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/admin/room/add-hotel-photos`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        withCredentials: true
-      })
+      const response = await axios.post(
+        `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/add-hotel-photos`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          withCredentials: true
+        }
+      )
 
       const uploadedImages = response.data.files
       // update hotel photos
