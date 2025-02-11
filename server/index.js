@@ -13,8 +13,8 @@ const passport = require('passport');
 const bodyParser = require('body-parser');
 require('./config/passportConfig.js');
 const http = require('http')
-
 const {webhookController} = require('./controllers/webhookController.js')
+const limiter = require('./middlewares/rateLimiter.js');
 
 const app = express();
 
@@ -67,6 +67,9 @@ const {init, getIO} = require('./config/socket.js'); // Import socket config
 const server = http.createServer(app)
 // Initialize Socket.IO using the server
 init(server);
+
+// Rate limiter
+app.use(limiter);
 
 /******************************************* Import Routes **********************************************/
 

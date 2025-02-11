@@ -7,6 +7,7 @@ import axios from 'axios'
 import { mapActions, mapState, mapGetters } from 'vuex'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
+import errorHandler from '@/request/errorHandler.js'
 
 export default {
   components: {
@@ -99,19 +100,21 @@ export default {
         localStorage.setItem('viewedHotels', JSON.stringify(viewedHotels))
 
         if (this.isUserAuthenticated) {
-          await axios.post(
-            `${import.meta.env.VITE_SERVER_HOST}/api/home/post-recent-viewed-hotels`,
-            {
-              hotelId: hotel_id
-            },
-            { withCredentials: true }
-          )
+          try {
+            await axios.post(
+              `${import.meta.env.VITE_SERVER_HOST}/api/home/post-recent-viewed-hotels`,
+              {
+                hotelId: hotel_id
+              },
+              { withCredentials: true }
+            )
+            this.$router.push({ name: 'HotelDetails', params: { hotel_id: hotel_id } })
+          }catch (error) {
+            errorHandler(error)
+          }
         }
-
-        this.$router.push({ name: 'HotelDetails', params: { hotel_id: hotel_id } })
       } catch (error) {
-        console.error(error)
-        console.log('Error saving viewed hotel')
+        errorHandler(error)
       }
     },
     // load hotels which close to user
@@ -124,7 +127,7 @@ export default {
         this.nearbyHotels = response.data.hotels
         this.noNearbyHotelsFound = this.nearbyHotels.length === 0 ? true : false
       } catch (error) {
-        console.error('Error fetching nearby hotels:', error)
+        errorHandler(error)
       } finally {
         this.isNearByHotelsLoading = false
       }
@@ -132,10 +135,14 @@ export default {
     // Load data from localStorage for recently searched
     async loadRecentSearches() {
       if (this.isUserAuthenticated) {
-        const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST}/api/home/recent-searchs`, {
-          withCredentials: true
-        })
-        this.recentSearches = response.data
+        try {
+          const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST}/api/home/recent-searchs`, {
+            withCredentials: true
+          })
+          this.recentSearches = response.data
+        }catch (error) {
+          errorHandler(error)
+        }
       } else {
         this.recentSearches = localStorage.getItem('recentSearches')
           ? JSON.parse(localStorage.getItem('recentSearches'))
@@ -146,24 +153,32 @@ export default {
     // Load data from localStorage for viewed hotels
     async loadViewedHotels() {
       if (this.isUserAuthenticated) {
-        const response = await axios.post(
-          `${import.meta.env.VITE_SERVER_HOST}/api/home/get-recent-viewed-hotels`,
-          {},
-          {
-            withCredentials: true
-          }
-        )
+        try {
+          const response = await axios.post(
+            `${import.meta.env.VITE_SERVER_HOST}/api/home/get-recent-viewed-hotels`,
+            {},
+            {
+              withCredentials: true
+            }
+          )
 
-        this.viewedHotels = response.data.hotels.reverse()
+          this.viewedHotels = response.data.hotels.reverse()
+        }catch (error) {
+          errorHandler(error)
+        }
       } else {
-        const response = await axios.post(
-          `${import.meta.env.VITE_SERVER_HOST}/api/home/get-recent-viewed-hotels`,
-          {
-            hotelIdArray: JSON.parse(localStorage.getItem('viewedHotels'))
-          }
-        )
+        try {
+          const response = await axios.post(
+            `${import.meta.env.VITE_SERVER_HOST}/api/home/get-recent-viewed-hotels`,
+            {
+              hotelIdArray: JSON.parse(localStorage.getItem('viewedHotels'))
+            }
+          )
 
-        this.viewedHotels = response.data.hotels.reverse()
+          this.viewedHotels = response.data.hotels.reverse()
+        }catch (error) {
+          errorHandler(error)
+        }
       }
     },
 
@@ -178,7 +193,7 @@ export default {
         this.noPopularPlacesFound = this.popularPlaces.length === 0 ? true : false
         // console.log(this.popularPlaces);
       } catch (error) {
-        console.error('Error fetching popular places:', error)
+        errorHandler(error)
       } finally {
         this.isPopularPlacesLoading = false
       }
@@ -206,7 +221,7 @@ export default {
           )
         }
       } catch (error) {
-        console.error(error)
+        errorHandler(error)
       }
     },
 
