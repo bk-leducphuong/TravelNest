@@ -3,6 +3,8 @@ import TheHeader from '../components/Header.vue'
 import { mapGetters } from 'vuex'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
+import errorHandler from '@/request/errorHandler';
+
 export default {
   components: {
     TheHeader
@@ -38,10 +40,14 @@ export default {
   },
   methods: {
     async getAllReviews() {
-      const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST}/api/review/get-all-reviews`, {
-        withCredentials: true
-      })
-      this.reviews = response.data.reviews
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST}/api/review/get-all-reviews`, {
+          withCredentials: true
+        })
+        this.reviews = response.data.reviews
+      }catch(error) {
+        errorHandler(error)
+      }
     },
     makeReview(bookingCode, hotelId, hotelName) {
       this.$router.push({

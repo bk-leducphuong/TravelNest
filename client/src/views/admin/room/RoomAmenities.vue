@@ -5,6 +5,7 @@ import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
 import axios from 'axios'
 import { mapActions, mapGetters } from 'vuex'
+import errorHandler from '@/request/errorHandler'
 
 export default {
   components: {
@@ -61,7 +62,7 @@ export default {
         }))
         this.initializeAmenities()
       } catch (error) {
-        console.error('Error fetching room amenities:', error)
+        errorHandler(error);
       }
     },
     initializeAmenities() {
@@ -133,7 +134,7 @@ export default {
           { withCredentials: true }
         )
       } catch (error) {
-        console.error('Error saving all amenities:', error)
+        errorHandler(error);
       } finally {
         this.isLoading = false
       }

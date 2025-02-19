@@ -6,6 +6,8 @@ import { mapActions, mapGetters } from 'vuex'
 import { useToast } from 'vue-toastification'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
+import errorHandler from '@/request/errorHandler'
+import { c } from 'vite/dist/node/types.d-aGj9QkWt'
 
 export default {
   components: {
@@ -68,7 +70,7 @@ export default {
           })
         })
       } catch (error) {
-        console.log(error)
+        errorHandler(error)
       } finally {
         this.isLoading = false
       }
@@ -152,7 +154,7 @@ export default {
           }
         }
       } catch (error) {
-        this.toast.error('Có lỗi xảy ra trong quá trình cập nhật ảnh')
+        errorHandler(error)
       }
     },
     triggerFileUpload(roomId) {
@@ -166,68 +168,76 @@ export default {
       }
     },
     async addRoomPhotos(roomId, event) {
-      const files = [...event.target.files]
+      try {
+        const files = [...event.target.files]
 
-      const formData = new FormData()
-      files.forEach((imageFile) => {
-        formData.append('images', imageFile)
-      })
-      formData.append('roomId', roomId)
-      formData.append('hotelId', this.getCurrentManagingHotelId)
+        const formData = new FormData()
+        files.forEach((imageFile) => {
+          formData.append('images', imageFile)
+        })
+        formData.append('roomId', roomId)
+        formData.append('hotelId', this.getCurrentManagingHotelId)
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/add-room-photos`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          },
-          withCredentials: true
-        }
-      )
-
-      const uploadedImages = response.data.files
-
-      // update room photos
-      this.rooms.forEach((room) => {
-        if (room.room_id == roomId) {
-          const currentIndex = room.image_urls.length - 1
-          for (let i = 1; i <= uploadedImages.length; i++) {
-            room.image_urls.push({
-              index: currentIndex + i,
-              url: uploadedImages[i - 1].url
-            })
+        const response = await axios.post(
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/add-room-photos`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            },
+            withCredentials: true
           }
-        }
-      })
+        )
+
+        const uploadedImages = response.data.files
+
+        // update room photos
+        this.rooms.forEach((room) => {
+          if (room.room_id == roomId) {
+            const currentIndex = room.image_urls.length - 1
+            for (let i = 1; i <= uploadedImages.length; i++) {
+              room.image_urls.push({
+                index: currentIndex + i,
+                url: uploadedImages[i - 1].url
+              })
+            }
+          }
+        })
+      } catch (error) {
+        errorHandler(error)
+      }
     },
     async addHotelPhotos(event) {
-      const files = [...event.target.files]
-      const formData = new FormData()
-      files.forEach((image) => {
-        formData.append('images', image)
-      })
-      formData.append('hotelId', this.getCurrentManagingHotelId)
-
-      const response = await axios.post(
-        `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/add-hotel-photos`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          },
-          withCredentials: true
-        }
-      )
-
-      const uploadedImages = response.data.files
-      // update hotel photos
-      const currentIndex = this.hotelPhotos.length - 1
-      for (let i = 1; i <= uploadedImages.length; i++) {
-        this.hotelPhotos.push({
-          index: currentIndex + i,
-          url: uploadedImages[i - 1].url
+      try {
+        const files = [...event.target.files]
+        const formData = new FormData()
+        files.forEach((image) => {
+          formData.append('images', image)
         })
+        formData.append('hotelId', this.getCurrentManagingHotelId)
+
+        const response = await axios.post(
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/add-hotel-photos`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            },
+            withCredentials: true
+          }
+        )
+
+        const uploadedImages = response.data.files
+        // update hotel photos
+        const currentIndex = this.hotelPhotos.length - 1
+        for (let i = 1; i <= uploadedImages.length; i++) {
+          this.hotelPhotos.push({
+            index: currentIndex + i,
+            url: uploadedImages[i - 1].url
+          })
+        }
+      } catch (error) {
+        errorHandler(error)
       }
     }
   },

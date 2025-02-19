@@ -9,6 +9,7 @@ import SavedHotelIcon from '@/components/SavedHotelIcon.vue'
 
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
+import errorHandler from '@/request/errorHandler'
 
 export default {
   components: {
@@ -126,7 +127,7 @@ export default {
 
         this.hotels = response.data.hotels
       } catch (error) {
-        console.error('Lỗi khi tìm kiếm khách sạn:', error)
+        errorHandler(error);
       }
     },
     // close the map popup
@@ -162,8 +163,7 @@ export default {
 
         this.$router.push({ name: 'HotelDetails', params: { hotel_id: hotel_id } })
       } catch (error) {
-        console.error(error)
-        console.log('Error saving viewed hotel')
+        errorHandler(error);
       }
     },
     handleSort() {

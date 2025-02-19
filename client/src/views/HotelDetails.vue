@@ -12,6 +12,8 @@ import 'vue-loading-overlay/dist/css/index.css'
 import ReviewForm from '@/components/review/ReviewForm.vue'
 import ReviewValidation from '@/components/review/ReviewValidation.vue'
 
+import errorHandler from '@/request/errorHandler';
+
 export default {
   components: {
     TheHeader,
@@ -141,8 +143,7 @@ export default {
         this.nearbyPlaces = response.data.nearbyPlaces
         this.hotelImages = JSON.parse(response.data.hotel.image_urls)
       } catch (error) {
-        console.error(error)
-        this.toast.error('Getting hotel details failed! Pls try again!')
+        errorHandler(error)
       }
     },
     /******** comment popup *******/
@@ -208,7 +209,7 @@ export default {
 
         this.room_list = response.data.available_rooms
       } catch (error) {
-        console.error(error)
+        errorHandler(error);
       } finally {
         this.isSearchRoomLoading = false
       }

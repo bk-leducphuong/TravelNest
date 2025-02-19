@@ -1,6 +1,7 @@
 <script>
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
+import errorHandler from '@/request/errorHandler';
 export default {
   setup() {
     // Get toast interface
@@ -35,9 +36,7 @@ export default {
           }
 
         } catch (error) {
-          console.log(error)
-          this.toast.error('Hệ thống bị lỗi, vui lòng thử lại sau!')
-          this.$router.replace({ name: 'NotFound' })
+          errorHandler(error)
         }
       } else {
         this.$router.replace({ name: 'NotFound' })

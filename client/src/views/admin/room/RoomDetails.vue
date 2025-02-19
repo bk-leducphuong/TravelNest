@@ -7,6 +7,7 @@ import 'vue-loading-overlay/dist/css/index.css'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import { mapActions, mapGetters } from 'vuex'
+import errorHandler from '@/request/errorHandler'
 
 export default {
   components: {
@@ -47,7 +48,7 @@ export default {
         )
         this.rooms = response.data
       } catch (error) {
-        console.log(error)
+        errorHandler(error);
       } 
     },
     async editRoomInformation(roomInformation) {
@@ -72,7 +73,7 @@ export default {
         this.toast.success('Room deleted successfully')
         this.getAllRooms()
       } catch (error) {
-        console.log(error)
+        errorHandler(error);
       }
     },
     serverHost() {

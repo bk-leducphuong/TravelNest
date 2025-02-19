@@ -6,6 +6,7 @@ import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
 import { mapGetters } from 'vuex'
 import LoadingPopup from '@/components/LoadingPopup.vue'
+import errorHandler from '@/request/errorHandler'
 
 export default {
   components: {
@@ -60,7 +61,7 @@ export default {
         this.doCancel = false
       } catch (error) {
         this.fail = true
-        console.log(error)
+        errorHandler(error);
       }
     }
   }

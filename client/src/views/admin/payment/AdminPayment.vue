@@ -4,6 +4,7 @@ import AdminHeader from '@/components/admin/AdminHeader.vue'
 
 import axios from 'axios'
 import { mapGetters } from 'vuex'
+import errorHandler from '@/request/errorHandler';
 
 export default {
   components: {
@@ -40,7 +41,7 @@ export default {
           return false
         }
       } catch (error) {
-        console.log(error)
+        errorHandler(error);
       }
     },
     async createAccount() {
@@ -64,7 +65,7 @@ export default {
         // redirect to account onboarding page
         await this.createAccountLink()
       } catch (error) {
-        console.log(error)
+        errorHandler(error);
       }finally {
         this.isLoading = false
       }
@@ -89,7 +90,7 @@ export default {
           window.location.href = url
         }
       } catch (error) {
-        console.error(error)
+        errorHandler(error);
       }
     }
   }

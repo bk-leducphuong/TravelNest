@@ -5,6 +5,8 @@ import DashboardMenu from '@/components/admin/DashboardMenu.vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
 import RoomBookingChart from '@/components/admin/chart/RoomBookingChart.vue'
 import SalesRevenue from '@/components/admin/chart/SalesRevenue.vue'
+import errorHandler from '@/request/errorHandler'
+import { c } from 'vite/dist/node/types.d-aGj9QkWt'
 
 export default {
   components: {
@@ -43,69 +45,85 @@ export default {
       this.startDate.setDate(this.endDate.getDate() - this.timeSettings)
     },
     async getTotalBookings() {
-      const response = await axios.post(
-        `${import.meta.env.VITE_SERVER_HOST}/api/admin/home/get-total-bookings`,
-        {
-          hotelId: this.getCurrentManagingHotelId,
-          period: {
-            start: this.startDate.toISOString().slice(0, 10),
-            end: this.endDate.toISOString().slice(0, 10)
+      try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/home/get-total-bookings`,
+          {
+            hotelId: this.getCurrentManagingHotelId,
+            period: {
+              start: this.startDate.toISOString().slice(0, 10),
+              end: this.endDate.toISOString().slice(0, 10)
+            }
+          },
+          {
+            withCredentials: true
           }
-        },
-        {
-          withCredentials: true
-        }
-      )
+        )
 
-      this.totalBookings = response.data.totalBookings
+        this.totalBookings = response.data.totalBookings
+      } catch (error) {
+        errorHandler(error)
+      }
     },
     async getRoomSales() {
-      const response = await axios.post(
-        `${import.meta.env.VITE_SERVER_HOST}/api/admin/home/get-room-book`,
-        {
-          hotelId: this.getCurrentManagingHotelId,
-          period: {
-            start: this.startDate.toISOString().slice(0, 10),
-            end: this.endDate.toISOString().slice(0, 10)
+      try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/home/get-room-book`,
+          {
+            hotelId: this.getCurrentManagingHotelId,
+            period: {
+              start: this.startDate.toISOString().slice(0, 10),
+              end: this.endDate.toISOString().slice(0, 10)
+            }
+          },
+          {
+            withCredentials: true
           }
-        },
-        {
-          withCredentials: true
-        }
-      )
-      this.roomSales = response.data.roomSales
+        )
+        this.roomSales = response.data.roomSales
+      } catch (error) {
+        errorHandler(error)
+      }
     },
     async getNewCustomers() {
-      const response = await axios.post(
+      try {
+        const response = await axios.post(
           `${import.meta.env.VITE_SERVER_HOST}/api/admin/home/get-new-customers`,
-        {
-          hotelId: this.getCurrentManagingHotelId,
-          period: {
-            start: this.startDate.toISOString().slice(0, 10),
-            end: this.endDate.toISOString().slice(0, 10)
+          {
+            hotelId: this.getCurrentManagingHotelId,
+            period: {
+              start: this.startDate.toISOString().slice(0, 10),
+              end: this.endDate.toISOString().slice(0, 10)
+            }
+          },
+          {
+            withCredentials: true
           }
-        },
-        {
-          withCredentials: true
-        }
-      )
-      this.newCustomers = response.data.newCustomers
+        )
+        this.newCustomers = response.data.newCustomers
+      } catch (error) {
+        errorHandler(error)
+      }
     },
     async getDailyRevenue() {
-      const response = await axios.post(
-        `${import.meta.env.VITE_SERVER_HOST}/api/admin/home/get-daily-revenue-chart`,
-        {
-          hotelId: this.getCurrentManagingHotelId,
-          period: {
-            start: this.startDate.toISOString().slice(0, 10),
-            end: this.endDate.toISOString().slice(0, 10)
+      try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/home/get-daily-revenue-chart`,
+          {
+            hotelId: this.getCurrentManagingHotelId,
+            period: {
+              start: this.startDate.toISOString().slice(0, 10),
+              end: this.endDate.toISOString().slice(0, 10)
+            }
+          },
+          {
+            withCredentials: true
           }
-        },
-        {
-          withCredentials: true
-        }
-      )
-      this.dailyRevenue = response.data.dailyRevenueChart
+        )
+        this.dailyRevenue = response.data.dailyRevenueChart
+      } catch (error) {
+        errorHandler(error)
+      }
     }
   },
   mounted() {
@@ -200,9 +218,7 @@ export default {
               <div class="card-actions"></div>
             </div>
             <div class="card-content">
-              <ul class="activity-list">
-                
-              </ul>
+              <ul class="activity-list"></ul>
             </div>
           </div>
         </div>

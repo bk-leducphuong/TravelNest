@@ -6,6 +6,7 @@ import { mapActions, mapGetters } from 'vuex'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
 import { useToast } from 'vue-toastification'
+import errorHandler from '@/request/errorHandler'
 
 export default {
   components: {
@@ -63,7 +64,7 @@ export default {
           this.replies[review.review_id] = review.reply
         })
       } catch (error) {
-        console.log(error)
+        errorHandler(error);
       }
     },
     replyToReview(reviewId) {
@@ -98,8 +99,7 @@ export default {
           )
         }
       } catch (error) {
-        console.error(error)
-        this.toast.error('Error saving reply')
+        errorHandler(error);
       }
     },
     editReply(reviewId) {

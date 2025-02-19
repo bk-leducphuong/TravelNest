@@ -8,6 +8,7 @@ import { useToast } from 'vue-toastification'
 import socket from '@/services/socket'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
+import errorHandler from '@/request/errorHandler'
 
 export default {
   components: {
@@ -47,8 +48,7 @@ export default {
         )
         this.invoices = response.data.invoices
       } catch (error) {
-        this.toast.error(error.message)
-        console.log(error)
+        errorHandler(error);
       } finally {
         this.isLoading = false
       }

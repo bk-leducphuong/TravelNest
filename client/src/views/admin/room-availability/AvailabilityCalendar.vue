@@ -4,6 +4,7 @@ import AdminHeader from '@/components/admin/AdminHeader.vue'
 import { mapGetters } from 'vuex'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
+import errorHandler from '@/request/errorHandler'
 
 export default {
   components: {
@@ -180,7 +181,7 @@ export default {
         this.roomInventory = response.data
         this.mapCalendarToRoomInventory() // map from the calendar to the room inventory
       } catch (error) {
-        console.error(error)
+        errorHandler(error);
       }
     },
     async getAllRooms() {
@@ -199,7 +200,7 @@ export default {
           this.currentRoom = this.rooms[0]
         }
       } catch (error) {
-        console.error(error)
+        errorHandler(error);
       }
     },
     mapCalendarToRoomInventory() {
@@ -331,8 +332,7 @@ export default {
           this.enableEdit = false
         }
       } catch (error) {
-        console.error(error)
-        this.toast.error('Có lỗi xảy ra, vui lòng thử lại sau')
+        errorHandler(error);
       }finally {
         this.isLoading = false
       }

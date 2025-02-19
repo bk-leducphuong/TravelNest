@@ -93,6 +93,7 @@ import ForgotPassword from '@/components/ForgotPassword.vue';
 import user from '@/stores/user';
 import checkPasswordStrength from '@/utils/checkPasswordStrength';
 import LoginHeader from '@/components/LoginHeader.vue'
+import errorHandler from '@/request/errorHandler';
 
 export default {
   components: {
@@ -144,8 +145,7 @@ export default {
         })
         .catch((error) => {
           if (error.response && error.response.status === 400) {
-            const errorMessage = error.response.data.message || 'Invalid input!'
-            this.toast.error(`Error: ${errorMessage}`)
+            this.toast.error(error);
           } else {
             this.toast.error('Unexpected error occurred. Please try again.')
           }
@@ -200,8 +200,7 @@ export default {
           this.toast.error('Login failed. Please try again.')
         }
       } catch (error) {
-        console.error('Error during social login:', error)
-        this.toast.error('An error occurred during login. Please try again.')
+        errorHandler(error)
       } finally {
         this.isLoading = false // Remove loading state
       }

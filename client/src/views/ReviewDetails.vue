@@ -1,5 +1,6 @@
 <script>
 import TheHeader from '@/components/Header.vue'
+import errorHandler from '@/request/errorHandler';
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
 
@@ -60,7 +61,7 @@ export default {
           }
         )
       } catch (error) {
-        console.log(error)
+        errorHandler(error)
         this.$router.push('/reviews')
       }
     },
@@ -87,7 +88,7 @@ export default {
         this.toast.success('Review posted successfully')
         this.$router.push('/reviews')
       } catch (error) {
-        console.log(error)
+        errorHandler(error);
         this.$router.push('/reviews')
       }
     },
@@ -115,7 +116,7 @@ export default {
           this.$router.push('/reviews') // test
         }
       } catch (error) {
-        console.log(error)
+        errorHandler(error)
       }
     }
   },

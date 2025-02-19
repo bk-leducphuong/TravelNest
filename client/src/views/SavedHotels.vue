@@ -3,6 +3,7 @@ import axios from 'axios'
 import TheHeader from '@/components/Header.vue'
 import TheFooter from '@/components/Footer.vue'
 import { mapGetters } from 'vuex'
+import errorHandler from '@/request/errorHandler';
 export default {
   components: {
     TheHeader,
@@ -42,7 +43,7 @@ export default {
 
         this.hotels = response.data.hotels
       } catch (error) {
-        console.log(error)
+        errorHandler(error)
       }
     },
     // Scroll functionality for sliders
@@ -65,13 +66,17 @@ export default {
       slider.scrollTo({ left: this.sliderPosition, behavior: 'smooth' })
     },
     async deleteSavedHotel(hotelId) {
-      const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/user/favorite-hotels/delete-favorite-hotel`, {
-        hotelId: hotelId
-      }, {
-        withCredentials: true
-      })
-      if (response.data.success) {
-        this.hotels = this.hotels.filter(hotel => hotel.hotel_id !== hotelId)
+      try {
+        const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/user/favorite-hotels/delete-favorite-hotel`, {
+          hotelId: hotelId
+        }, {
+          withCredentials: true
+        })
+        if (response.data.success) {
+          this.hotels = this.hotels.filter(hotel => hotel.hotel_id !== hotelId)
+        }
+      }catch(error) {
+        errorHandler(error);
       }
     },
      handleScroll(event) {

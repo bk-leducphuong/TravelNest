@@ -106,6 +106,7 @@ import { useToast } from 'vue-toastification'
 import OtpVerification from '@/components/admin/otp-verification/OtpVerification.vue'
 import checkPasswordStrength from '@/utils/checkPasswordStrength'
 import LoginHeader from '@/components/LoginHeader.vue'
+import errorHandler from '@/request/errorHandler'
 
 export default {
   components: {
@@ -173,12 +174,7 @@ export default {
           this.step = 2
         })
         .catch((error) => {
-          if (error.response && error.response.status === 400) {
-            const errorMessage = error.response.data.message || 'Invalid input!'
-            this.toast.error(`Error: ${errorMessage}`)
-          } else {
-            this.toast.error('Unexpected error occurred. Please try again.')
-          }
+          errorHandler(error)
         })
     },
     async registerOrLogin() {

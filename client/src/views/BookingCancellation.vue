@@ -2,6 +2,7 @@
 import Header from '@/components/Header.vue'
 import { mapGetters } from 'vuex'
 import LoadingPopup from '@/components/LoadingPopup.vue';
+import errorHandler from '@/request/errorHandler.js'
 import axios from 'axios';
 
 export default {
@@ -54,7 +55,7 @@ export default {
           this.fail = true
         }
       }catch(error) {
-        console.error(error)
+        erorrHandler(error)
         this.fail = true
       }   
     }

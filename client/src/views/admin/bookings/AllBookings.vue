@@ -5,6 +5,7 @@ import AdminHeader from '@/components/admin/AdminHeader.vue'
 import { mapActions, mapGetters } from 'vuex'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
+import errorHandler from '@/request/errorHandler'
 
 export default {
   components: {
@@ -62,9 +63,8 @@ export default {
           })
         )
       } catch (error) {
-        console.log(error)
-      } finally {
-      }
+        errorHandler(error)
+      } 
     },
     groupBookings(bookings) {
       const groupedBookings = new Map()
@@ -108,21 +108,24 @@ export default {
         )
         return response.data.bookerInformation
       } catch (error) {
-        console.error(`Error fetching booker information for buyer ${buyer_id}:`, error)
-        throw error // Re-throw the error to handle it in `getAllBookings`
+        errorHandler(error)
       }
     },
     async getAllRooms() {
-      const response = await axios.post(
-        `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/get-all-rooms`,
-        {
-          hotelId: this.getCurrentManagingHotelId
-        },
-        {
-          withCredentials: true
-        }
-      )
-      this.rooms = response.data
+      try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_SERVER_HOST}/api/admin/room/get-all-rooms`,
+          {
+            hotelId: this.getCurrentManagingHotelId
+          },
+          {
+            withCredentials: true
+          }
+        )
+        this.rooms = response.data
+      }catch(error) {
+        errorHandler(error)
+      }
     },
     onCancel() {
       console.log('User cancelled the loader.')

@@ -39,8 +39,7 @@ export default {
           window.location.href = url
         }
       } catch (error) {
-        console.error('Error generating reauthentication link:', error)
-        alert('Failed to generate a new link. Please try again later.')
+        errorHandler(error);
       }
     }
   }
