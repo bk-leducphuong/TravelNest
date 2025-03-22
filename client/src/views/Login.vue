@@ -90,7 +90,6 @@ import axios from 'axios' // Import Axios
 import { mapActions, mapGetters } from 'vuex'
 import { useToast } from "vue-toastification";
 import ForgotPassword from '@/components/ForgotPassword.vue';
-import user from '@/stores/user';
 import checkPasswordStrength from '@/utils/checkPasswordStrength';
 import LoginHeader from '@/components/LoginHeader.vue'
 import errorHandler from '@/request/errorHandler';

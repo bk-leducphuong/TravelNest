@@ -284,7 +284,7 @@ export default {
                   {{ new Date(booking.bookedOn).toString().split(' ').splice(0, 3).join(' ') }}
                 </td>
                 <td>
-                  <div v-for="room in booking.rooms">
+                  <div v-for="(room, index) in booking.rooms" :key="index">
                     {{ room.quantity }} x {{ room.roomInformation.room_name }}
                   </div>
                 </td>

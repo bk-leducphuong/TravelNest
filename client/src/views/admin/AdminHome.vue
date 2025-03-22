@@ -6,7 +6,6 @@ import AdminHeader from '@/components/admin/AdminHeader.vue'
 import RoomBookingChart from '@/components/admin/chart/RoomBookingChart.vue'
 import SalesRevenue from '@/components/admin/chart/SalesRevenue.vue'
 import errorHandler from '@/request/errorHandler'
-import { c } from 'vite/dist/node/types.d-aGj9QkWt'
 
 export default {
   components: {

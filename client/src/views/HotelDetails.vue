@@ -9,7 +9,7 @@ import { useToast } from 'vue-toastification'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
 
-import ReviewForm from '@/components/review/ReviewForm.vue'
+// import ReviewForm from '@/components/review/ReviewForm.vue'
 import ReviewValidation from '@/components/review/ReviewValidation.vue'
 
 import errorHandler from '@/request/errorHandler';
@@ -21,7 +21,7 @@ export default {
     MapComponent,
     ImageGallery,
     Loading,
-    ReviewForm,
+    // ReviewForm,
     ReviewValidation
   },
   setup() {

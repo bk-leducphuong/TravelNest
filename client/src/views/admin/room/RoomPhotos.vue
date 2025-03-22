@@ -2,12 +2,11 @@
 import DashboardMenu from '@/components/admin/DashboardMenu.vue'
 import AdminHeader from '@/components/admin/AdminHeader.vue'
 import axios from 'axios'
-import { mapActions, mapGetters } from 'vuex'
+import {mapGetters } from 'vuex'
 import { useToast } from 'vue-toastification'
 import Loading from 'vue-loading-overlay'
 import 'vue-loading-overlay/dist/css/index.css'
 import errorHandler from '@/request/errorHandler'
-import { c } from 'vite/dist/node/types.d-aGj9QkWt'
 
 export default {
   components: {

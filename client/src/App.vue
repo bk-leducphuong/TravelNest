@@ -1,12 +1,8 @@
 <script>
-import { mapActions, mapGetters, mapState } from 'vuex'
-import CookieConsent from './components/CookieConsent.vue'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'App',
-  components: {
-    CookieConsent
-  },
   data() {
     return {
       hotels: [],

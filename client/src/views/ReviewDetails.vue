@@ -49,7 +49,7 @@ export default {
   methods: {
     async validateReview() {
       try {
-        const response = await axios.post(
+        await axios.post(
           `${import.meta.env.VITE_SERVER_HOST}/api/review/validate-review`,
           {
             bookingCode: this.$route.query.bc,
@@ -71,7 +71,7 @@ export default {
           this.toast.error('Please fill in all the required fields')
           return
         }
-        const response = await axios.post(
+        await axios.post(
           `${import.meta.env.VITE_SERVER_HOST}/api/review/post-review`,
           {
             hotelId: this.$route.query.hid,
