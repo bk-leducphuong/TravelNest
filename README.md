@@ -1,5 +1,7 @@
 # TravelNest - Hotel booking website
-![TravelNest Preview](https://i.imgur.com/Hs0HHXP.png)
+<p align="center">
+<img src="https://github.com/bk-leducphuong/TravelNest/blob/master/client/src/assets/images/logo.png" width="300" title="Login With Custom URL">
+</p>
 
 Welcome to the **TravelNest** - Hotel booking website. This platform allows users to book accommodations, post properties, leave reviews, and more. It provides an intuitive interface for guests and property owners, ensuring a seamless booking experience.
 This project was inspired by [booking.com](https://booking.com)
@@ -9,6 +11,7 @@ This project was inspired by [booking.com](https://booking.com)
 ## Features
 
 ### For Guests
+![TravelNest Preview](https://github.com/bk-leducphuong/TravelNest/blob/master/client/src/assets/images/booking_website.png)
 - **Browse Hotels**: Search and filter hotels by location, price, amenities, and more.
 - **Make Reservations**: Book rooms with real-time availability.
 - **Review Hotels**: Leave feedback and rate services for hotels you've stayed at.
@@ -17,6 +20,7 @@ This project was inspired by [booking.com](https://booking.com)
 - **Switch languages**: Support 2 languages: Vietnamese and English 
 
 ### For Hotel Owners
+![TravelNest Preview](https://github.com/bk-leducphuong/TravelNest/blob/master/client/src/assets/images/admin_booking_website.png)
 - **List Properties**: Add property details, photos, and room availability.
 - **Manage Bookings**: View and manage reservations for your property.
 - **Respond to Reviews**: Reply to guest reviews to improve engagement and feedback.
