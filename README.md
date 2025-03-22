@@ -38,7 +38,7 @@ This project was inspired by [booking.com](https://booking.com)
 - **Frontend**: Vuejs
 - **Backend**: Node.js, Express.js
 - **Database**: MySQL
-- **Cache**: Redis
+- **Cache**: Redis Cloud
 - **Payment & Payout**: Stripe
 - **Map**: Leaflet
 - **Authentication**: Session based authentication
@@ -46,7 +46,7 @@ This project was inspired by [booking.com](https://booking.com)
 - **Email validation**: abstractapi
 - **SMS**: infobip
 - **Realtime notification**: SocketIO
-- **AI Features**: 
+- **Cloud storage**: Cloudinary 
 - **Hosting**: 
 
 ---
