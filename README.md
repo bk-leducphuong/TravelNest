@@ -1,4 +1,5 @@
 # TravelNest - Hotel booking website
+![TravelNest Preview](https://i.imgur.com/Hs0HHXP.png)
 
 Welcome to the **TravelNest** - Hotel booking website. This platform allows users to book accommodations, post properties, leave reviews, and more. It provides an intuitive interface for guests and property owners, ensuring a seamless booking experience.
 This project was inspired by [booking.com](https://booking.com)
