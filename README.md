@@ -54,6 +54,23 @@ This project was inspired by [booking.com](https://booking.com)
    git clone https://github.com/bk-leducphuong/Booking-webite.git
    cd hotel-booking-website
 
+## Run with Docker
+1. **Build and Run with Docker Compose**
+   ```bash
+   docker-compose up --build
+   ```
+
+2. **Access the Application**
+   - Frontend: http://localhost:5173
+   - Backend: http://localhost:3000
+
+3. **Stop the Containers**
+   ```bash
+   docker-compose down
+   ```
+
+Note: Make sure Docker and Docker Compose are installed on your system.
+
 ## Backend Setup
 
 The backend is built with Node.js and uses MySQL as the database.
@@ -88,4 +105,6 @@ stripe listen --forward-to http://localhost:3000/stripe/webhook
 
 ## Scrape data (for test)
 Document comming soon...
+
+
 

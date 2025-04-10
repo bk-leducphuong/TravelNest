@@ -1,7 +1,6 @@
 node_modules
-.env
-.env.development
-.env.production
+.env.*
+/client/.env.production
 
 # gitignore for Vue client
 # Logs

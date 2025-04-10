@@ -48,9 +48,7 @@ export default {
               <i class="fa fa-angle-down" aria-hidden="true" style="margin-right: 10px;" v-if="this.isRoomAvailabilitySelected"></i>
             </div>
             <div class="child-item-container" v-if="this.isRoomAvailabilitySelected">
-              <li class="child-item">
-                <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/room-availability/availability-calendar`)">Availability calendar</li>
-              </li>
+              <li class="child-item" @click="this.$router.push(`/admin/${hotelId}/room-availability/availability-calendar`)">Availability calendar</li>
             </div>
           </div>
           <!-- Bookings -->

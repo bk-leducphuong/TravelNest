@@ -55,7 +55,7 @@ export default {
           this.fail = true
         }
       }catch(error) {
-        erorrHandler(error)
+        errorHandler(error)
         this.fail = true
       }   
     }
@@ -133,10 +133,10 @@ export default {
                 .join(' ')
             }}
           </div>
-          <p v-for="room in getBookingInformation.rooms" :key="room.roomId">
+          <div v-for="room in getBookingInformation.rooms" :key="room.roomId">
             <div style="font-weight: 500;">Booked rooms:</div>
             <span>{{ room.roomName }} x {{ room.quantity }}</span>
-          </p>
+          </div>
         </div>
       </div>
       <div class="line-break"></div>
