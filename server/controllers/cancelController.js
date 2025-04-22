@@ -1,8 +1,15 @@
 require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const connection = require("../config/db");
-const { promisify } = require("util");
 const { getIO } = require("../config/socket");
+const sequelize = require("../config/db");
+const { Op, Sequelize, DataTypes } = require("sequelize");
+const Users = require("../models/users")(sequelize, DataTypes);
+const Notifications = require("../models/notifications")(sequelize, DataTypes);
+const UserNotifications = require("../models/user_notifications")(
+  sequelize,
+  DataTypes
+);
+const Transactions = require("../models/transactions")(sequelize, DataTypes);
 
 // Promisify MySQL connection.query method
 const queryAsync = promisify(connection.query).bind(connection);
@@ -26,11 +33,11 @@ const sendCancelBookingNotification = async (bookingInformation) => {
     const { name: hotelName, hotel_id: hotelId } = hotel;
 
     // get buyer name
-    const buyerQuery = `
-    SELECT username FROM users WHERE user_id = ?
-  `;
-    const buyer = await queryAsync(buyerQuery, [buyerId]);
-    const buyerName = buyer[0].username;
+    const buyer = await Users.findOne({
+      where: { user_id: buyerId },
+      attributes: ["username"],
+    });
+    const buyerName = buyer.username;
 
     // get total number of rooms
     let totalRooms = 0;
@@ -51,17 +58,14 @@ const sendCancelBookingNotification = async (bookingInformation) => {
       isRead: 0,
     };
 
-    const notificationQuery = `
-      INSERT INTO notifications (sender_id, reciever_id, notification_type, message, is_read)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    const { insertId: notificationId } = await queryAsync(notificationQuery, [
-      adminNotification.senderId,
-      adminNotification.recieverId,
-      adminNotification.notificationType,
-      adminNotification.message,
-      adminNotification.isRead,
-    ]);
+    const notification = await Notifications.create({
+      sender_id: adminNotification.senderId,
+      reciever_id: adminNotification.recieverId,
+      notification_type: adminNotification.notificationType,
+      message: adminNotification.message,
+      is_read: adminNotification.isRead,
+    });
+    const notificationId = notification.notification_id;
 
     io.to(`owner_${adminNotification.recieverId}`).emit("newNotification", {
       notification_id: notificationId,
@@ -80,20 +84,14 @@ const sendCancelBookingNotification = async (bookingInformation) => {
       isRead: 0,
     };
 
-    const userNotificationQuery = `
-      INSERT INTO user_notifications (sender_id, reciever_id, notification_type, message, is_read)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    const { insertId: userNotificationId } = await queryAsync(
-      userNotificationQuery,
-      [
-        userNotification.senderId,
-        userNotification.recieverId,
-        userNotification.notificationType,
-        userNotification.message,
-        userNotification.isRead,
-      ]
-    );
+    const userNotificationResult = await UserNotifications.create({
+      sender_id: userNotification.senderId,
+      reciever_id: userNotification.recieverId,
+      notification_type: userNotification.notificationType,
+      message: userNotification.message,
+      is_read: userNotification.isRead,
+    });
+    const userNotificationId = userNotificationResult.notification_id;
 
     io.to(`user_${buyerId}`).emit("newNotification", {
       notification_id: userNotificationId,
@@ -119,11 +117,12 @@ const handleCancel = async (req, res) => {
   }
 
   try {
-    const query =
-      "SELECT charge_id, amount FROM transactions WHERE booking_code = ?";
-    const result = await queryAsync(query, [bookingInformation.booking_code]);
-    const chargeId = result[0].charge_id;
-    const amount = parseInt(result[0].amount);
+    const transaction = await Transactions.findOne({
+      where: { booking_code: bookingInformation.booking_code },
+      attributes: ['charge_id', 'amount']
+    });
+    const chargeId = transaction.charge_id;
+    const amount = parseInt(transaction.amount);
 
     const refund = await stripe.refunds.create({
       charge: chargeId,

@@ -1,15 +1,18 @@
-const connection = require("../config/db");
-const { promisify } = require("util");
-
-const queryAsync = promisify(connection.query).bind(connection);
+const sequelize = require('../config/db');
+const { Sequelize, Op, DataTypes } = require('sequelize');
+const UserNotifications = require('../models/user_notifications')(sequelize, DataTypes);
 
 const getNotifications = async (req, res) => {
   try {
-    const userId = req.session.user.user_id
-    const query =  "SELECT * FROM user_notifications WHERE reciever_id = ? ORDER BY created_at DESC";
+    const userId = req.session.user.user_id;
+    const notifications = await UserNotifications.findAll({
+      where: {
+        reciever_id: userId
+      },
+      order: [['created_at', 'DESC']]
+    });
     
-    const notifications = await queryAsync(query, [userId]);
-    res.json({ notifications: notifications });
+    res.json({ notifications });
   } catch (error) {
     console.error("Error fetching notifications:", error);
     res.status(500).send({ error: "Failed to fetch notifications." });
@@ -18,9 +21,16 @@ const getNotifications = async (req, res) => {
 
 const markAllNotificationAsRead = async (req, res) => {
   try {
-    const userId = req.session.user.user_id
-    const query = "UPDATE user_notifications SET is_read = 1 WHERE notification_id > 0 AND reciever_id = ?";
-    await queryAsync(query, [userId]);
+    const userId = req.session.user.user_id;
+    await UserNotifications.update(
+      { is_read: true },
+      {
+        where: {
+          reciever_id: userId,
+          notification_id: { [Op.gt]: 0 }
+        }
+      }
+    );
 
     res.json({ success: true, message: "Notification marked as read." });
   } catch (error) {
@@ -32,8 +42,14 @@ const markAllNotificationAsRead = async (req, res) => {
 const markNotificationAsRead = async (req, res) => {
   try {
     const { notificationId } = req.body;
-    const query = "UPDATE user_notifications SET is_read = 1 WHERE notification_id = ?";
-    await queryAsync(query, [notificationId]);
+    await UserNotifications.update(
+      { is_read: true },
+      {
+        where: {
+          notification_id: notificationId
+        }
+      }
+    );
 
     res.json({ success: true, message: "Notification marked as read." });
   } catch (error) {

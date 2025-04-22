@@ -1,9 +1,9 @@
-const connection = require("../config/db");
-const { promisify } = require("util");
-const { post } = require("../routes/reviewRoutes");
-
-// Promisify MySQL connection.query method
-const queryAsync = promisify(connection.query).bind(connection);
+const sequelize = require('../config/db');
+const { Sequelize, Op, DataTypes } = require('sequelize');
+const Reviews = require('../models/reviews')(sequelize, DataTypes);
+const ReviewCriterias = require('../models/review_criterias')(sequelize, DataTypes);
+const Hotels = require('../models/hotels')(sequelize, DataTypes);
+const Bookings = require('../models/bookings')(sequelize, DataTypes);
 
 const validateReview = async (req, res) => {
   try {
@@ -14,11 +14,17 @@ const validateReview = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Missing bookingCode" });
     }
-    const query = `
-      SELECT booking_code FROM bookings WHERE booking_code = ? AND buyer_id = ? AND hotel_id = ? AND status = 'completed'
-    `;
-    const booking = await queryAsync(query, [bookingCode, buyerId, hotelId]);
-    if (booking.length === 0) {
+
+    const booking = await Bookings.findOne({
+      where: {
+        booking_code: bookingCode,
+        buyer_id: buyerId,
+        hotel_id: hotelId,
+        status: 'completed'
+      }
+    });
+
+    if (!booking) {
       return res
         .status(404)
         .json({ success: false, message: "Booking not found" });
@@ -38,33 +44,31 @@ const checkAlreadyReviewed = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Missing bookingCode" });
     }
-    const query = `
-      SELECT * FROM reviews WHERE booking_code = ? AND hotel_id = ?
-    `;
-    const reviewCount = await queryAsync(query, [bookingCode, hotelId]);
-    if (reviewCount[0]) {
-      // get review criteria
-      const criteria = await queryAsync(
-        `SELECT criteria_name, score FROM review_criterias WHERE review_id = ?`,
-        [reviewCount[0].review_id]
-      );
-      const review = {
-        review_id: reviewCount[0].review_id,
-        rating: reviewCount[0].rating,
-        comment: reviewCount[0].comment,
-        created_at: reviewCount[0].created_at,
-        reply: reviewCount[0].reply,
-        number_of_likes: reviewCount[0].number_of_likes,
-        number_of_dislikes: reviewCount[0].number_of_dislikes,
-        review_criteria: criteria
-      };
-      return res
-        .status(200)
-        .json({ success: true, review: review });
-    }else {
-      return res
-        .status(200)
-        .json({ success: false });
+
+    const review = await Reviews.findOne({
+      where: { booking_code: bookingCode, hotel_id: hotelId },
+      include: [{
+        model: ReviewCriterias,
+        attributes: ['criteria_name', 'score']
+      }]
+    });
+
+    if (review) {
+      return res.status(200).json({ 
+        success: true, 
+        review: {
+          review_id: review.review_id,
+          rating: review.rating,
+          comment: review.comment,
+          created_at: review.created_at,
+          reply: review.reply,
+          number_of_likes: review.number_of_likes,
+          number_of_dislikes: review.number_of_dislikes,
+          review_criteria: review.ReviewCriterias
+        }
+      });
+    } else {
+      return res.status(200).json({ success: false });
     }
   } catch (error) {
     console.error(error);
@@ -75,52 +79,37 @@ const checkAlreadyReviewed = async (req, res) => {
 const postReview = async (req, res) => {
   try {
     const userId = req.session.user.user_id;
-    const { hotelId, overallRating, comment, reviewCriteria, bookingCode } =
-      req.body;
-    if (
-      !userId ||
-      !hotelId ||
-      !overallRating ||
-      !comment ||
-      !reviewCriteria ||
-      !bookingCode
-    ) {
+    const { hotelId, overallRating, comment, reviewCriteria, bookingCode } = req.body;
+    
+    if (!userId || !hotelId || !overallRating || !comment || !reviewCriteria || !bookingCode) {
       return res
         .status(400)
         .json({ success: false, message: "Missing required fields" });
     }
 
-    const query = `
-      INSERT INTO reviews (user_id, hotel_id, rating, comment, booking_code)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    const { insertId: reviewId } = await queryAsync(query, [
-      userId,
-      hotelId,
-      overallRating,
-      comment,
-      bookingCode,
-    ]);
+    const review = await Reviews.create({
+      user_id: userId,
+      hotel_id: hotelId,
+      rating: overallRating,
+      comment: comment,
+      booking_code: bookingCode
+    });
 
-    // insert review criteria
-    for (const criteria of reviewCriteria) {
-      if (criteria.value) {
-        const query = `
-        INSERT INTO review_criterias (review_id, criteria_name, score)
-        VALUES (?, ?, ?)
-      `;
-        await queryAsync(query, [
-          reviewId,
-          criteria.name,
-          criteria.value,
-        ]);
-      }
-    }
+    const criteriaPromises = reviewCriteria
+      .filter(criteria => criteria.value)
+      .map(criteria => 
+        ReviewCriterias.create({
+          review_id: review.review_id,
+          criteria_name: criteria.name,
+          score: criteria.value
+        })
+      );
 
-    res
-      .status(201)
-      .json({ success: true, message: "Review posted successfully" });
+    await Promise.all(criteriaPromises);
+
+    res.status(201).json({ success: true, message: "Review posted successfully" });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -128,25 +117,25 @@ const postReview = async (req, res) => {
 const getAllReviews = async (req, res) => {
   try {
     const userId = req.session.user.user_id;
-    // get all completed bookings of user
-    const bookingQuery = `SELECT DISTINCT hotel_id, booking_code FROM bookings WHERE buyer_id = ? AND status = 'completed'`;
-    const bookings = await queryAsync(bookingQuery, [userId]);
 
-    for (const booking of bookings) {
-      // get hotel name
-      const hotelQuery = `SELECT hotel_id, name, image_urls FROM hotels WHERE hotel_id = ?`;
-      const hotel = await queryAsync(hotelQuery, [booking.hotel_id]);
-      booking.hotel = hotel[0];
-      // get review
-      const reviewQuery = `
-        SELECT review_id, rating, comment, created_at, reply, number_of_likes, number_of_dislikes
-        FROM reviews 
-        WHERE booking_code = ?;
-      `;
-
-      const review = await queryAsync(reviewQuery, [booking.booking_code]);
-      booking.review = review;
-    }
+    const bookings = await Bookings.findAll({
+      where: {
+        buyer_id: userId,
+        status: 'completed'
+      },
+      attributes: ['hotel_id', 'booking_code'],
+      include: [
+        {
+          model: Hotels,
+          attributes: ['hotel_id', 'name', 'image_urls']
+        },
+        {
+          model: Reviews,
+          attributes: ['review_id', 'rating', 'comment', 'created_at', 'reply', 'number_of_likes', 'number_of_dislikes']
+        }
+      ],
+      group: ['hotel_id', 'booking_code']
+    });
 
     res.status(200).json({ reviews: bookings });
   } catch (error) {
