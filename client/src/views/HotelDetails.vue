@@ -141,7 +141,7 @@ export default {
         this.reviews = response.data.reviews
         this.reviewCriterias = response.data.reviewCriterias
         this.nearbyPlaces = response.data.nearbyPlaces
-        this.hotelImages = JSON.parse(response.data.hotel.image_urls)
+        this.hotelImages = JSON.parse(this.hotel.image_urls)
       } catch (error) {
         errorHandler(error)
       }

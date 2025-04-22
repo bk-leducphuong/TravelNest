@@ -1,3 +1,5 @@
+const sequelize = require('../config/db');
+
 var DataTypes = require("sequelize").DataTypes;
 var _bookings = require("./bookings");
 var _fees = require("./fees");
@@ -38,56 +40,56 @@ function initModels(sequelize) {
   var users = _users(sequelize, DataTypes);
   var viewed_hotels = _viewed_hotels(sequelize, DataTypes);
 
-  bookings.belongsTo(hotels, { as: "hotel", foreignKey: "hotel_id"});
-  hotels.hasMany(bookings, { as: "bookings", foreignKey: "hotel_id"});
-  invoices.belongsTo(hotels, { as: "hotel", foreignKey: "hotel_id"});
-  hotels.hasMany(invoices, { as: "invoices", foreignKey: "hotel_id"});
-  nearby_places.belongsTo(hotels, { as: "hotel", foreignKey: "hotel_id"});
-  hotels.hasMany(nearby_places, { as: "nearby_places", foreignKey: "hotel_id"});
-  notifications.belongsTo(hotels, { as: "reciever", foreignKey: "reciever_id"});
-  hotels.hasMany(notifications, { as: "notifications", foreignKey: "reciever_id"});
-  refunds.belongsTo(hotels, { as: "hotel", foreignKey: "hotel_id"});
-  hotels.hasMany(refunds, { as: "refunds", foreignKey: "hotel_id"});
-  reviews.belongsTo(hotels, { as: "hotel", foreignKey: "hotel_id"});
-  hotels.hasMany(reviews, { as: "reviews", foreignKey: "hotel_id"});
-  rooms.belongsTo(hotels, { as: "hotel", foreignKey: "hotel_id"});
-  hotels.hasMany(rooms, { as: "rooms", foreignKey: "hotel_id"});
-  saved_hotels.belongsTo(hotels, { as: "hotel", foreignKey: "hotel_id"});
-  hotels.hasMany(saved_hotels, { as: "saved_hotels", foreignKey: "hotel_id"});
-  transactions.belongsTo(hotels, { as: "hotel", foreignKey: "hotel_id"});
-  hotels.hasMany(transactions, { as: "transactions", foreignKey: "hotel_id"});
-  viewed_hotels.belongsTo(hotels, { as: "hotel", foreignKey: "hotel_id"});
-  hotels.hasMany(viewed_hotels, { as: "viewed_hotels", foreignKey: "hotel_id"});
-  review_criterias.belongsTo(reviews, { as: "review", foreignKey: "review_id"});
-  reviews.hasMany(review_criterias, { as: "review_criteria", foreignKey: "review_id"});
-  bookings.belongsTo(rooms, { as: "room", foreignKey: "room_id"});
-  rooms.hasMany(bookings, { as: "bookings", foreignKey: "room_id"});
-  room_inventory.belongsTo(rooms, { as: "room", foreignKey: "room_id"});
-  rooms.hasMany(room_inventory, { as: "room_inventories", foreignKey: "room_id"});
-  fees.belongsTo(transactions, { as: "transaction", foreignKey: "transaction_id"});
-  transactions.hasMany(fees, { as: "fees", foreignKey: "transaction_id"});
-  invoices.belongsTo(transactions, { as: "transaction", foreignKey: "transaction_id"});
-  transactions.hasMany(invoices, { as: "invoices", foreignKey: "transaction_id"});
-  payments.belongsTo(transactions, { as: "transaction", foreignKey: "transaction_id"});
-  transactions.hasMany(payments, { as: "payments", foreignKey: "transaction_id"});
-  refunds.belongsTo(transactions, { as: "transaction", foreignKey: "transaction_id"});
-  transactions.hasMany(refunds, { as: "refunds", foreignKey: "transaction_id"});
-  bookings.belongsTo(users, { as: "buyer", foreignKey: "buyer_id"});
-  users.hasMany(bookings, { as: "bookings", foreignKey: "buyer_id"});
-  hotels.belongsTo(users, { as: "owner", foreignKey: "owner_id"});
-  users.hasMany(hotels, { as: "hotels", foreignKey: "owner_id"});
-  notifications.belongsTo(users, { as: "sender", foreignKey: "sender_id"});
-  users.hasMany(notifications, { as: "notifications", foreignKey: "sender_id"});
-  refunds.belongsTo(users, { as: "buyer", foreignKey: "buyer_id"});
-  users.hasMany(refunds, { as: "refunds", foreignKey: "buyer_id"});
-  reviews.belongsTo(users, { as: "user", foreignKey: "user_id"});
-  users.hasMany(reviews, { as: "reviews", foreignKey: "user_id"});
-  saved_hotels.belongsTo(users, { as: "user", foreignKey: "user_id"});
-  users.hasMany(saved_hotels, { as: "saved_hotels", foreignKey: "user_id"});
-  user_notifications.belongsTo(users, { as: "reciever", foreignKey: "reciever_id"});
-  users.hasMany(user_notifications, { as: "user_notifications", foreignKey: "reciever_id"});
-  viewed_hotels.belongsTo(users, { as: "user", foreignKey: "user_id"});
-  users.hasMany(viewed_hotels, { as: "viewed_hotels", foreignKey: "user_id"});
+  bookings.belongsTo(hotels, { foreignKey: "hotel_id"});
+  hotels.hasMany(bookings, { foreignKey: "hotel_id"});
+  invoices.belongsTo(hotels, { foreignKey: "hotel_id"});
+  hotels.hasMany(invoices, {foreignKey: "hotel_id"});
+  nearby_places.belongsTo(hotels, { foreignKey: "hotel_id"});
+  hotels.hasMany(nearby_places, { foreignKey: "hotel_id"});
+  notifications.belongsTo(hotels, { foreignKey: "reciever_id"});
+  hotels.hasMany(notifications, {  foreignKey: "reciever_id"});
+  refunds.belongsTo(hotels, { foreignKey: "hotel_id"});
+  hotels.hasMany(refunds, { foreignKey: "hotel_id"});
+  reviews.belongsTo(hotels, { foreignKey: "hotel_id"});
+  hotels.hasMany(reviews, { foreignKey: "hotel_id"});
+  rooms.belongsTo(hotels, { foreignKey: "hotel_id"});
+  hotels.hasMany(rooms, { foreignKey: "hotel_id"});
+  saved_hotels.belongsTo(hotels, { foreignKey: "hotel_id"});
+  hotels.hasMany(saved_hotels, { foreignKey: "hotel_id"});
+  transactions.belongsTo(hotels, { foreignKey: "hotel_id"});
+  hotels.hasMany(transactions, { foreignKey: "hotel_id"});
+  viewed_hotels.belongsTo(hotels, { foreignKey: "hotel_id"});
+  hotels.hasMany(viewed_hotels, { foreignKey: "hotel_id"});
+  review_criterias.belongsTo(reviews, { foreignKey: "review_id"});
+  reviews.hasMany(review_criterias, { foreignKey: "review_id"});
+  bookings.belongsTo(rooms, { foreignKey: "room_id"});
+  rooms.hasMany(bookings, { foreignKey: "room_id"});
+  room_inventory.belongsTo(rooms, { foreignKey: "room_id"});
+  rooms.hasMany(room_inventory, { foreignKey: "room_id"});
+  fees.belongsTo(transactions, { foreignKey: "transaction_id"});
+  transactions.hasMany(fees, { foreignKey: "transaction_id"});
+  invoices.belongsTo(transactions, { foreignKey: "transaction_id"});
+  transactions.hasMany(invoices, { foreignKey: "transaction_id"});
+  payments.belongsTo(transactions, { foreignKey: "transaction_id"});
+  transactions.hasMany(payments, { foreignKey: "transaction_id"});
+  refunds.belongsTo(transactions, { foreignKey: "transaction_id"});
+  transactions.hasMany(refunds, { foreignKey: "transaction_id"});
+  bookings.belongsTo(users, { foreignKey: "buyer_id"});
+  users.hasMany(bookings, { foreignKey: "buyer_id"});
+  hotels.belongsTo(users, { foreignKey: "owner_id"});
+  users.hasMany(hotels, { foreignKey: "owner_id"});
+  notifications.belongsTo(users, { foreignKey: "sender_id"});
+  users.hasMany(notifications, { foreignKey: "sender_id"});
+  refunds.belongsTo(users, { foreignKey: "buyer_id"});
+  users.hasMany(refunds, { foreignKey: "buyer_id"});
+  reviews.belongsTo(users, { foreignKey: "user_id"});
+  users.hasMany(reviews, { foreignKey: "user_id"});
+  saved_hotels.belongsTo(users, { foreignKey: "user_id"});
+  users.hasMany(saved_hotels, { foreignKey: "user_id"});
+  user_notifications.belongsTo(users, { foreignKey: "reciever_id"});
+  users.hasMany(user_notifications, { foreignKey: "reciever_id"});
+  viewed_hotels.belongsTo(users, { foreignKey: "user_id"});
+  users.hasMany(viewed_hotels, { foreignKey: "user_id"});
 
   return {
     bookings,
@@ -110,6 +112,26 @@ function initModels(sequelize) {
     viewed_hotels,
   };
 }
-module.exports = initModels;
-module.exports.initModels = initModels;
-module.exports.default = initModels;
+
+const {bookings: Bookings, fees: Fees, hotels: Hotels, invoices: Invoices, nearby_places: NearbyPlaces, notifications: Notifications, payments: Payments, refunds: Refunds, review_criterias: ReviewCriterias, reviews: Reviews, room_inventory: RoomInventories, rooms: Rooms, saved_hotels: SavedHotels, search_logs: SearchLogs, transactions: Transactions, user_notifications: UserNotifications, users: Users, viewed_hotels: ViewedHotels} = initModels(sequelize);
+
+module.exports = {
+  Bookings,
+  Fees,
+  Hotels,
+  Invoices,
+  NearbyPlaces,
+  Notifications,
+  Payments,
+  Refunds,
+  ReviewCriterias,
+  Reviews,
+  RoomInventories,
+  Rooms,
+  SavedHotels,
+  SearchLogs,
+  Transactions,
+  UserNotifications,
+  Users,
+  ViewedHotels,
+};

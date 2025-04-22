@@ -2,12 +2,10 @@ const bcrypt = require("bcryptjs");
 const passport = require("passport");
 const crypto = require("crypto");
 const redisClient = require("../config/redis");
-const nodemailer = require("nodemailer"); // Dùng để gửi email
 const transporter = require("../config/nodemailer");
 const fs = require("fs");
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/db.js");
-const User = require("../models/users.js")(sequelize, DataTypes);
+const { Users } = require("../models/init-models.js");
+const { Op } = require("sequelize");
 require("dotenv").config();
 const { Infobip, AuthType } = require("@infobip-api/sdk");
 
@@ -72,7 +70,7 @@ const checkEmail = async (req, res) => {
     }
 
     // Query the database to find the user
-    const user = await User.findOne({
+    const user = await Users.findOne({
       where: {
         email: email,
         user_role: userRole,
@@ -113,11 +111,11 @@ const loginUser = async (req, res) => {
         .json({ success: false, message: "Please provide email and password" });
     }
 
-    const user = await User.findOne({
+    const user = await Users.findOne({
       where: {
         email: email,
         user_role: userRole,
-      }
+      },
     });
 
     if (!user) {
@@ -154,11 +152,11 @@ const registerUser = async (req, res) => {
   try {
     const { email, password, userRole } = req.body;
 
-    const existingUser = await User.findOne({
+    const existingUser = await Users.findOne({
       where: {
         email: email,
         user_role: userRole,
-      }
+      },
     });
 
     if (existingUser) {
@@ -169,12 +167,13 @@ const registerUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await User.create({
+    const newUser = await Users.create({
       email: email,
       username: email.split("@")[0],
       password_hash: hashedPassword,
       user_role: userRole,
-      profile_picture_url: "http://localhost:3000/uploads/users/avatars/default_avatar.png",
+      profile_picture_url:
+        "http://localhost:3000/uploads/users/avatars/default_avatar.png",
     });
 
     req.session.user = {
@@ -220,7 +219,7 @@ const googleCallback = async (req, res) => {
     const displayName = profile.displayName;
 
     // Tìm người dùng trong cơ sở dữ liệu dựa trên email
-    const user = await User.findOne({
+    const user = await Users.findOne({
       where: {
         email: email,
         user_role: "customer",
@@ -232,7 +231,7 @@ const googleCallback = async (req, res) => {
       // Nếu người dùng đã tồn tại
       userId = user.user_id;
     } else {
-      const newUser = await User.create({
+      const newUser = await Users.create({
         email: email,
         username: displayName,
         user_role: "customer",
@@ -269,11 +268,11 @@ const loginAdmin = async (req, res) => {
         .json({ success: false, message: "Please provide email and password" });
     }
 
-    const user = await User.findOne({
+    const user = await Users.findOne({
       where: {
         email: email,
         user_role: userRole,
-      }
+      },
     });
 
     if (!user) {
@@ -308,16 +307,14 @@ const loginAdmin = async (req, res) => {
 // Convert admin registration to use Sequelize
 const registerAdmin = async (req, res) => {
   try {
-    const { email, password, userRole, firstName, lastName, phoneNumber } = req.body;
+    const { email, password, userRole, firstName, lastName, phoneNumber } =
+      req.body;
 
-    const existingUser = await User.findOne({
+    const existingUser = await Users.findOne({
       where: {
-        [Op.or]: [
-          { email: email },
-          { phone_number: phoneNumber }
-        ],
-        user_role: userRole
-      }
+        [Op.or]: [{ email: email }, { phone_number: phoneNumber }],
+        user_role: userRole,
+      },
     });
 
     if (existingUser) {
@@ -329,13 +326,14 @@ const registerAdmin = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const username = lastName + " " + firstName;
 
-    const newUser = await User.create({
+    const newUser = await URLSearchParams.create({
       email: email,
       username: username,
       password_hash: hashedPassword,
       user_role: userRole,
       phone_number: phoneNumber,
-      profile_picture_url: "http://localhost:3000/uploads/users/avatars/default_avatar.png",
+      profile_picture_url:
+        "http://localhost:3000/uploads/users/avatars/default_avatar.png",
     });
 
     req.session.user = {
@@ -384,7 +382,7 @@ const sendSmsOtp = async (req, res) => {
     const otp = Math.floor(1000 + Math.random() * 9000); // Generate a random 6-digit OTP
     const message = `Your OTP is ${otp}. It expires in 10 minutes.`;
 
-    const response = await inforbip.channels.sms.send({
+    await inforbip.channels.sms.send({
       messages: [
         {
           from: "447491163443", // Sender ID (set this in your Infobip account)
@@ -437,7 +435,7 @@ const forgotPassword = async (req, res) => {
   const { email, userRole } = req.body;
 
   try {
-    const user = await User.findOne({
+    const user = await Users.findOne({
       where: {
         email: email,
         user_role: userRole,
@@ -501,7 +499,7 @@ const resetPassword = async (req, res) => {
   try {
     const otpKey = `otp:${email}:${userRole}`;
     const storedOtp = await redisClient.get(otpKey);
-    
+
     if (!storedOtp || storedOtp !== otp) {
       return res
         .status(400)
@@ -510,13 +508,13 @@ const resetPassword = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    const [updatedRows] = await User.update(
+    const [updatedRows] = await Users.update(
       { password_hash: hashedPassword },
       {
         where: {
           email: email,
           user_role: userRole,
-        }
+        },
       }
     );
 

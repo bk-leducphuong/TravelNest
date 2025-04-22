@@ -1,18 +1,7 @@
 require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { getIO } = require("../config/socket");
-const sequelize = require("../config/db");
-const { Op, Sequelize, DataTypes } = require("sequelize");
-const Users = require("../models/users")(sequelize, DataTypes);
-const Notifications = require("../models/notifications")(sequelize, DataTypes);
-const UserNotifications = require("../models/user_notifications")(
-  sequelize,
-  DataTypes
-);
-const Transactions = require("../models/transactions")(sequelize, DataTypes);
-
-// Promisify MySQL connection.query method
-const queryAsync = promisify(connection.query).bind(connection);
+const {Users, Notifications, UserNotifications, Transactions} = require("../models/init-models");
 
 const sendCancelBookingNotification = async (bookingInformation) => {
   try {

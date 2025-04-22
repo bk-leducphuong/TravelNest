@@ -7,11 +7,9 @@ require("dotenv").config({
 
 const express = require("express");
 const cors = require("cors");
-const { v4: uuidv4 } = require("uuid");
 const RedisStore = require("connect-redis").default;
 const redisClient = require("./config/redis"); // connect to redis cloud
 const session = require("express-session");
-const bcrypt = require("bcryptjs");
 const passport = require("passport");
 const bodyParser = require("body-parser");
 require("./config/passportConfig.js");
@@ -19,12 +17,11 @@ const http = require("http");
 const { webhookController } = require("./controllers/webhookController.js");
 const limiter = require("./middlewares/rateLimiter.js");
 const sequelize = require("./config/db.js"); // Import the Sequelize instance
-const initModels = require("./models/init-models.js"); // Import the initModels function
+require("./models/init-models.js"); // Initialize models
 
 const app = express();
 
 // Connect to the database
-initModels(sequelize); // Initialize models with Sequelize instance
 sequelize
   .sync({ force: false }) // Sync the models with the database (force: true will drop the table if it exists)
   .then(() => {
@@ -84,7 +81,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 /******************************************* SOCKET IO **********************************************/
-const { init, getIO } = require("./config/socket.js"); // Import socket config
+const { init } = require("./config/socket.js"); // Import socket config
 // Create HTTP server
 const server = http.createServer(app);
 // Initialize Socket.IO using the server

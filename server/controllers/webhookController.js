@@ -1,48 +1,26 @@
 require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const connection = require("../config/db");
-const { promisify } = require("util");
 const transporter = require("../config/nodemailer");
-const { init, getIO } = require("../config/socket");
-const { v4: uuidv4 } = require("uuid");
-const { send } = require("process");
-const path = require("path");
+const { getIO } = require("../config/socket");
 const fs = require("fs");
-
-// Promisify MySQL connection.query method
-const queryAsync = promisify(connection.query).bind(connection);
+const {
+  Transactions,
+  Bookings,
+  Invoices,
+  Payments,
+  Refunds,
+  RoomInventories,
+  Users,
+  Notifications,
+  UserNotifications,
+} = require("../models/init-models.js");
 
 /******************************************* Utility Functions **********************************************/
-async function getSellerId(paymentIntent) {
-  try {
-    const sellerQuery = "SELECT owner_id FROM hotels WHERE hotel_id = ?";
-    const hotelId = paymentIntent.metadata.hotel_id; // Lấy từ metadata của Payment Intent
-    const sellerResult = await queryAsync(sellerQuery, [hotelId]);
-    const sellerId = sellerResult[0]?.owner_id;
-    return sellerId;
-  } catch (error) {
-    console.error(error);
-  }
-}
-
 async function getTransactionId(paymentIntentId) {
-  const query =
-    "SELECT transaction_id FROM transactions WHERE payment_intent_id = ?";
-  const result = await queryAsync(query, [paymentIntentId]);
-  return result[0]?.transaction_id || null;
-}
-
-function convertDateStringToDate(dateString) {
-  const dateParts = dateString.match(/(\d{2}\/\d{2}\/\d{4})/g);
-  if (dateParts && dateParts.length === 2) {
-    const [startDateStr, endDateStr] = dateParts;
-
-    // Chuyển đổi chuỗi sang đối tượng Date
-    const startDate = new Date(startDateStr.split("/").reverse().join("-")); // YYYY-MM-DD
-    const endDate = new Date(endDateStr.split("/").reverse().join("-"));
-
-    return { startDate, endDate };
-  }
+  const transaction = await Transactions.findOne({
+    where: { payment_intent_id: paymentIntentId },
+  });
+  return transaction.transaction_id;
 }
 
 /******************************************* Storing Bookings **********************************************/
@@ -50,7 +28,6 @@ const storeBooking = async (paymentIntent) => {
   const {
     hotel_id: hotelId,
     buyer_id: buyerId,
-    seller_id: seller_id,
     booked_rooms,
     check_in_date: checkInDate,
     check_out_date: checkOutDate,
@@ -60,24 +37,18 @@ const storeBooking = async (paymentIntent) => {
 
   const bookedRooms = JSON.parse(booked_rooms);
   bookedRooms.forEach(async (bookedRoom) => {
-    // Insert a new booking with status "pending"
-    const bookingQuery = `
-    INSERT INTO bookings (buyer_id, check_in_date, check_out_date, total_price, status, number_of_guests, quantity, hotel_id, room_id, booking_code)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-
-    const { insertId: bookingId } = await queryAsync(bookingQuery, [
-      buyerId,
-      checkInDate,
-      checkOutDate,
-      paymentIntent.amount, // price for all booked rooms
-      "confirmed",
-      numberOfGuests,
-      bookedRoom.roomQuantity,
-      hotelId,
-      bookedRoom.room_id,
-      bookingCode,
-    ]);
+    await Bookings.create({
+      buyer_id: buyerId,
+      check_in_date: checkInDate,
+      check_out_date: checkOutDate,
+      total_price: paymentIntent.amount, // price for all booked rooms
+      status: "confirmed",
+      number_of_guests: numberOfGuests,
+      quantity: bookedRoom.roomQuantity,
+      hotel_id: hotelId,
+      room_id: bookedRoom.room_id,
+      booking_code: bookingCode,
+    });
   });
 };
 
@@ -86,19 +57,14 @@ const storeInvoice = async (paymentIntent) => {
     paymentIntent.metadata;
 
   const transactionId = await getTransactionId(paymentIntent.id);
-
-  const invoiceQuery = `
-      INSERT INTO invoices (transaction_id, hotel_id ,status, amount, created_at, booking_code)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
-  await queryAsync(invoiceQuery, [
-    transactionId,
-    hotelId,
-    "unavailable",
-    paymentIntent.amount,
-    new Date(),
-    bookingCode,
-  ]);
+  await Invoices.create({
+    transaction_id: transactionId,
+    hotel_id: hotelId,
+    status: "unavailable",
+    amount: paymentIntent.amount,
+    created_at: new Date(),
+    booking_code: bookingCode,
+  });
 };
 
 /******************************************* Storing Payment and Transaction events **********************************************/
@@ -118,32 +84,24 @@ const handlePaymentIntentCreated = async (paymentIntent) => {
 
     const currency = paymentIntent.currency.toUpperCase();
 
-    const transactionQuery = `
-      INSERT INTO Transactions (buyer_id, hotel_id, amount, currency, status, transaction_type, payment_intent_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `;
-    const { insertId: transactionId } = await queryAsync(transactionQuery, [
-      buyerId,
-      hotelId,
-      paymentIntent.amount,
-      currency,
-      "pending",
-      "booking_payment",
-      paymentIntent.id,
-    ]);
+    await Transactions.create({
+      buyer_id: buyerId,
+      hotel_id: hotelId,
+      amount: paymentIntent.amount,
+      currency: currency,
+      status: "pending",
+      transaction_type: "booking_payment",
+      payment_intent_id: paymentIntent.id,
+    });
 
-    const paymentQuery = `
-      INSERT INTO Payments (transaction_id, payment_method, payment_status, amount, currency, paid_at)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    await queryAsync(paymentQuery, [
-      transactionId,
-      paymentMethod ? paymentMethod.type : "unknown",
-      "pending",
-      paymentIntent.amount,
-      currency,
-      new Date(),
-    ]);
+    await Payments.create({
+      transaction_id: transactionId,
+      payment_method: paymentMethod ? paymentMethod.type : "unknown",
+      payment_status: "pending",
+      amount: paymentIntent.amount,
+      currency: currency,
+      paid_at: new Date(),
+    });
   } catch (error) {
     console.error("Error handling payment intent created:", error);
     throw error;
@@ -159,34 +117,21 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
       ? await stripe.paymentMethods.retrieve(paymentMethodId)
       : null;
 
-    const checkTransactionQuery = `
-      SELECT transaction_id FROM Transactions WHERE payment_intent_id = ?
-    `;
-    const transactionExists = await queryAsync(checkTransactionQuery, [
-      paymentIntent.id,
-    ]);
+    const transaction = await Transactions.findOne({
+      where: { payment_intent_id: paymentIntent.id },
+    });
 
-    if (transactionExists.length > 0) {
-      const transactionId = transactionExists[0].transaction_id;
+    if (transaction) {
+      const transactionId = transaction.transaction_id;
 
-      const updateTransactionQuery = `
-        UPDATE Transactions SET status = ?, charge_id = ?, booking_code = ? WHERE transaction_id = ?
-      `;
-      await queryAsync(updateTransactionQuery, [
-        "completed",
-        chargeId,
-        bookingCode,
-        transactionId,
-      ]);
-
-      const updatePaymentQuery = `
-        UPDATE Payments SET payment_status = ?, payment_method = ? WHERE transaction_id = ?
-      `;
-      await queryAsync(updatePaymentQuery, [
-        "success",
-        paymentMethod ? paymentMethod.type : "unknown",
-        transactionId,
-      ]);
+      await Transactions.update(
+        { status: "completed", charge_id: chargeId, booking_code: bookingCode },
+        { where: { transaction_id: transactionId } }
+      );
+      await Payments.update(
+        { payment_status: "success", payment_method: paymentMethod.type },
+        { where: { transaction_id: transactionId } }
+      );
     } else {
       console.error(
         "Transaction not found for payment intent:",
@@ -209,32 +154,24 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
 
     const currency = paymentIntent.currency.toUpperCase();
 
-    const transactionQuery = `
-      INSERT INTO Transactions (buyer_id, hotel_id, amount, currency, status, transaction_type, payment_intent_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `;
-    const { insertId: transactionId } = await queryAsync(transactionQuery, [
-      buyerId,
-      hotelId,
-      paymentIntent.amount,
-      currency,
-      "failed",
-      "booking_payment",
-      paymentIntent.id,
-    ]);
+    const transaction = await Transactions.create({
+      buyer_id: buyerId,
+      hotel_id: hotelId,
+      amount: paymentIntent.amount,
+      currency: currency,
+      status: "failed",
+      transaction_type: "booking_payment",
+      payment_intent_id: paymentIntent.id,
+    });
 
-    const paymentQuery = `
-      INSERT INTO Payments (transaction_id, payment_method, payment_status, amount, currency, paid_at)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    await queryAsync(paymentQuery, [
-      transactionId,
-      paymentMethod ? paymentMethod.type : "unknown",
-      "failed",
-      paymentIntent.amount,
-      currency,
-      new Date(),
-    ]);
+    await Payments.create({
+      transaction_id: transaction.transaction_id,
+      payment_method: paymentMethod ? paymentMethod.type : "unknown",
+      payment_status: "failed",
+      amount: paymentIntent.amount,
+      currency: currency,
+      paid_at: new Date(),
+    });
   } catch (error) {
     console.error("Error handling payment intent created:", error);
     throw error;
@@ -256,53 +193,44 @@ const handleRefundIntentSucceeded = async (chargeRefunded) => {
     const chargeId = chargeRefunded.id;
     const amount = chargeRefunded.amount;
 
-    const transactionQuery = `
-      SELECT transaction_id FROM Transactions WHERE charge_id = ?
-    `;
-    const transaction = await queryAsync(transactionQuery, [chargeId]);
+    const transaction = await Transactions.findOne({
+      where: { charge_id: chargeId },
+    });
 
-    // store refund
-    const refundQuery = `
-      INSERT INTO refunds ( buyer_id, hotel_id, transaction_id , amount,completed_at,status)
-      VALUES (?, ?, ?, ?, ?,?)
-    `;
-    await queryAsync(refundQuery, [
-      buyerId,
-      hotelId,
-      transaction[0].transaction_id,
-      amount,
-      new Date(),
-      "completed",
-    ]);
+    await Refunds.update({
+      buyer_id: buyerId,
+      hotel_id: hotelId,
+      transaction_id: transaction.transaction_id,
+      amount: amount,
+      completed_at: new Date(),
+      status: "completed",
+    });
 
     // update booking status
-    const updateBookingQuery = `
-      UPDATE bookings
-      SET status = ?
-      WHERE booking_code = ?
-    `;
-    await queryAsync(updateBookingQuery, ["cancelled", bookingCode]);
+    await Bookings.update(
+      { status: "cancelled" },
+      { where: { booking_code: bookingCode } }
+    );
 
     // delete invoice
-    const updateInvoiceQuery = `
-      DELETE FROM invoices where transaction_id = ?
-    `;
-    await queryAsync(updateInvoiceQuery, [transaction[0].transaction_id]);
+    await Invoices.destroy({
+      where: { transaction_id: transaction.transaction_id },
+    });
 
     // update number of reserved rooms
     const bookedRoomsArray = JSON.parse(bookedRooms);
     for (const bookedRoom of bookedRoomsArray) {
-      const roomQuery = `
-        UPDATE room_inventory
-        SET total_reserved = total_reserved - ?
-        WHERE room_id = ? AND date BETWEEN ? AND ? ;
-      `;
-      await queryAsync(roomQuery, [
-        bookedRoom.roomQuantity,
-        bookedRoom.room_id,
-        checkInDate,
-        checkOutDate,
-      ]);
+      await RoomInventories.update(
+        { total_reserved: totalReserved - bookedRoom.roomQuantity },
+        {
+          where: {
+            room_id: bookedRoom.room_id,
+            date: {
+              [Op.between]: [checkInDate, checkOutDate],
+            },
+          },
+        }
+      );
     }
   } catch (error) {
     console.error("Refund failed:", error);
@@ -364,18 +292,14 @@ async function storeAdminNotification(notification) {
   const { senderId, recieverId, notificationType, message, isRead } =
     notification;
   try {
-    const notificationQuery = `
-      INSERT INTO notifications (sender_id, reciever_id, notification_type, message, is_read)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    const { insertId: notificationId } = await queryAsync(notificationQuery, [
-      senderId,
-      recieverId,
-      notificationType,
-      message,
-      isRead,
-    ]);
-    return notificationId;
+    const notification = await Notifications.create({
+      sender_id: senderId,
+      reciever_id: recieverId,
+      notification_type: notificationType,
+      message: message,
+      is_read: isRead,
+    });
+    return notification.notification_id;
   } catch (error) {
     console.error("Error storing notification:", error);
     throw error;
@@ -386,18 +310,14 @@ async function storeUserNotification(notification) {
   const { senderId, recieverId, notificationType, message, isRead } =
     notification;
   try {
-    const notificationQuery = `
-      INSERT INTO user_notifications (sender_id, reciever_id, notification_type, message, is_read)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    const { insertId: notificationId } = await queryAsync(notificationQuery, [
-      senderId,
-      recieverId,
-      notificationType,
-      message,
-      isRead,
-    ]);
-    return notificationId;
+    const userNotification = await UserNotifications.create({
+      sender_id: senderId,
+      reciever_id: recieverId,
+      notification_type: notificationType,
+      message: message,
+      is_read: isRead,
+    });
+    return userNotification.notification_id;
   } catch (error) {
     console.error("Error storing notification:", error);
     throw error;
@@ -418,11 +338,10 @@ async function sendNewBookingNotification(paymentIntent) {
     } = paymentIntent.metadata;
 
     // get buyer name
-    const buyerQuery = `
-    SELECT username FROM users WHERE user_id = ?
-  `;
-    const buyer = await queryAsync(buyerQuery, [buyerId]);
-    const buyerName = buyer[0].username;
+    const buyer = await Users.findOne({
+      where: { user_id: buyerId },
+    });
+    const buyerName = buyer.username;
     // get total number of rooms
     let totalRooms = 0;
     JSON.parse(booked_rooms).forEach((bookedRoom) => {
@@ -444,13 +363,16 @@ async function sendNewBookingNotification(paymentIntent) {
 
     const adminNotificationId = await storeAdminNotification(adminNotification);
 
-    io.to(`owner_${adminNotification.recieverId}`).emit("newAdminNotification", {
-      notification_id: adminNotificationId,
-      notification_type: adminNotification.notificationType,
-      message: adminNotification.message,
-      is_read: adminNotification.isRead,
-      sender_id: adminNotification.senderId,
-    });
+    io.to(`owner_${adminNotification.recieverId}`).emit(
+      "newAdminNotification",
+      {
+        notification_id: adminNotificationId,
+        notification_type: adminNotification.notificationType,
+        message: adminNotification.message,
+        is_read: adminNotification.isRead,
+        sender_id: adminNotification.senderId,
+      }
+    );
 
     // send new booking notification for user who book the reservation
     const userNotification = {
@@ -504,17 +426,17 @@ const updateRoomInventory = async (paymentIntent) => {
   } = paymentIntent.metadata;
   const bookedRoomsArray = JSON.parse(bookedRooms);
   for (const bookedRoom of bookedRoomsArray) {
-    const roomQuery = `
-      UPDATE room_inventory
-      SET total_reserved = total_reserved + ?
-      WHERE room_id = ? AND date BETWEEN ? AND ? ;
-    `;
-    await queryAsync(roomQuery, [
-      bookedRoom.roomQuantity,
-      bookedRoom.room_id,
-      checkInDate,
-      checkOutDate,
-    ]);
+    await RoomInventories.update(
+      { total_reserved: totalReserved + bookedRoom.roomQuantity },
+      {
+        where: {
+          room_id: bookedRoom.room_id,
+          date: {
+            [Op.between]: [checkInDate, checkOutDate],
+          },
+        },
+      }
+    );
   }
 };
 
@@ -528,13 +450,10 @@ const handlePayoutEvent = async (payout, status) => {
     const transactionID = payout.metadata.transaction_id;
 
     // update status of invoice
-    const updateInvoiceQuery = `
-      UPDATE invoices
-      SET status = ?, updated_at = NOW()
-      WHERE transaction_id = ?
-    `;
-    await queryAsync(updateInvoiceQuery, ["done", transactionID]);
-    // await queryAsync(updateInvoiceQuery, ['done', transactionId]);
+    await Invoices.update(
+      { status: "done", updated_at: new Date() },
+      { where: { transaction_id: transactionID } }
+    );
     if (status === "failed") {
       console.error(`Payout failed for payoutId: ${payoutId}`);
       // Optional: Add any retry logic or notifications for failure

@@ -1,17 +1,15 @@
-const sequelize = require('../config/db');
-const { Sequelize, Op, DataTypes } = require('sequelize');
-const UserNotifications = require('../models/user_notifications')(sequelize, DataTypes);
+const { UserNotifications } = require("../models/init-models");
 
 const getNotifications = async (req, res) => {
   try {
     const userId = req.session.user.user_id;
     const notifications = await UserNotifications.findAll({
       where: {
-        reciever_id: userId
+        reciever_id: userId,
       },
-      order: [['created_at', 'DESC']]
+      order: [["created_at", "DESC"]],
     });
-    
+
     res.json({ notifications });
   } catch (error) {
     console.error("Error fetching notifications:", error);
@@ -27,8 +25,8 @@ const markAllNotificationAsRead = async (req, res) => {
       {
         where: {
           reciever_id: userId,
-          notification_id: { [Op.gt]: 0 }
-        }
+          notification_id: { [Op.gt]: 0 },
+        },
       }
     );
 
@@ -46,8 +44,8 @@ const markNotificationAsRead = async (req, res) => {
       { is_read: true },
       {
         where: {
-          notification_id: notificationId
-        }
+          notification_id: notificationId,
+        },
       }
     );
 
@@ -58,4 +56,8 @@ const markNotificationAsRead = async (req, res) => {
   }
 };
 
-module.exports = { getNotifications, markAllNotificationAsRead, markNotificationAsRead };
+module.exports = {
+  getNotifications,
+  markAllNotificationAsRead,
+  markNotificationAsRead,
+};

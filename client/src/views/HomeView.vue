@@ -109,7 +109,7 @@ export default {
               { withCredentials: true }
             )
             this.$router.push({ name: 'HotelDetails', params: { hotel_id: hotel_id } })
-          }catch (error) {
+          } catch (error) {
             errorHandler(error)
           }
         }
@@ -121,9 +121,12 @@ export default {
     async loadNearbyHotels() {
       try {
         this.isNearByHotelsLoading = true
-        const response = await axios.post(`${import.meta.env.VITE_SERVER_HOST}/api/home/nearby-hotels`, {
-          location: this.getUserLocation
-        })
+        const response = await axios.post(
+          `${import.meta.env.VITE_SERVER_HOST}/api/home/nearby-hotels`,
+          {
+            location: this.getUserLocation
+          }
+        )
         this.nearbyHotels = response.data.hotels
         this.noNearbyHotelsFound = this.nearbyHotels.length === 0 ? true : false
       } catch (error) {
@@ -136,11 +139,14 @@ export default {
     async loadRecentSearches() {
       if (this.isUserAuthenticated) {
         try {
-          const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST}/api/home/recent-searchs`, {
-            withCredentials: true
-          })
+          const response = await axios.get(
+            `${import.meta.env.VITE_SERVER_HOST}/api/home/recent-searchs`,
+            {
+              withCredentials: true
+            }
+          )
           this.recentSearches = response.data
-        }catch (error) {
+        } catch (error) {
           errorHandler(error)
         }
       } else {
@@ -161,9 +167,10 @@ export default {
               withCredentials: true
             }
           )
-
-          this.viewedHotels = response.data.hotels.reverse()
-        }catch (error) {
+          if (response.data.hotels && response.data.hotels.length > 0) {
+            this.viewedHotels = response.data.hotels.reverse()
+          }
+        } catch (error) {
           errorHandler(error)
         }
       } else {
@@ -176,7 +183,7 @@ export default {
           )
 
           this.viewedHotels = response.data.hotels.reverse()
-        }catch (error) {
+        } catch (error) {
           errorHandler(error)
         }
       }
@@ -186,7 +193,9 @@ export default {
     async loadPopularPlaces() {
       try {
         this.isPopularPlacesLoading = true
-        const response = await axios.get(`${import.meta.env.VITE_SERVER_HOST}/api/home/popular-places`)
+        const response = await axios.get(
+          `${import.meta.env.VITE_SERVER_HOST}/api/home/popular-places`
+        )
 
         this.popularPlaces = response.data.popular_places
 
@@ -274,7 +283,7 @@ export default {
         }
       },
       immediate: true // Ensures the watcher runs immediately when the component is created
-    },
+    }
   },
   mounted() {
     if (!this.isUserAuthenticated) {
@@ -282,10 +291,10 @@ export default {
       if (!isNewUser) {
         localStorage.setItem('isNewUser', 'true')
         this.isNewUserPopupOpen = true
-      }else {
+      } else {
         localStorage.setItem('isNewUser', 'false')
       }
-    }else {
+    } else {
       localStorage.setItem('isNewUser', 'false')
     }
     this.loadRecentSearches()
@@ -366,7 +375,11 @@ export default {
             @click="redirectToHotelDetails(hotel)"
           >
             <div class="hotel-image">
-              <img v-if="hotel.image_urls" :src="JSON.parse(hotel.image_urls)[0]" :alt="hotel.name"/>
+              <img
+                v-if="hotel.image_urls"
+                :src="JSON.parse(hotel.image_urls)[0]"
+                :alt="hotel.name"
+              />
               <img :src="serverHost() + '/uploads/hotels/no-image.png'" alt="hotel image" v-else />
               <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
@@ -422,7 +435,11 @@ export default {
             @click="redirectToHotelDetails(hotel)"
           >
             <div class="hotel-image">
-              <img v-if="hotel.image_urls" :src="JSON.parse(hotel.image_urls)[0]" :alt="hotel.name" />
+              <img
+                v-if="hotel.image_urls"
+                :src="JSON.parse(hotel.image_urls)[0]"
+                :alt="hotel.name"
+              />
               <img v-else :src="serverHost() + '/uploads/hotels/no-image.png'" :alt="hotel.name" />
               <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>

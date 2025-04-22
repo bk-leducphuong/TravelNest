@@ -1,11 +1,5 @@
-const sequelize = require("../config/db");
-const { Op, Sequelize, DataTypes } = require("sequelize");
-const Hotels = require("../models/hotels")(sequelize, DataTypes);
-const Bookings = require("../models/bookings")(sequelize, DataTypes);
-const Reviews = require("../models/reviews")(sequelize, DataTypes);
-const ViewedHotels = require("../models/viewed_hotels")(sequelize, DataTypes);
-const SavedHotels = require("../models/saved_hotels")(sequelize, DataTypes);
-const SearchLogs = require("../models/search_logs")(sequelize, DataTypes);
+const { Op, Sequelize } = require("sequelize");
+const {Hotels, Bookings, Reviews, ViewedHotels, SavedHotels, SearchLogs} = require("../models/init-models");
 const redisClient = require("../config/redis");
 
 const postRecentViewedHotels = async (req, res) => {

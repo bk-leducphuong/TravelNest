@@ -1,11 +1,7 @@
 const sharp = require("sharp");
 const path = require("path");
 const fs = require("fs");
-const sequelize = require("../config/db");
-const { DataTypes, Op, Sequelize } = require("sequelize");
-const Hotels = require("../models/hotels")(sequelize, DataTypes);
-const Rooms = require("../models/rooms")(sequelize, DataTypes);
-const RoomInventory = require("../models/room_inventory")(sequelize, DataTypes);
+const {Rooms, Hotels, RoomInventories} = require("../models/init-models");
 
 const postJoinFormData = async (req, res) => {
   const owner_id = req.session.user.user_id;
@@ -51,7 +47,7 @@ const postJoinFormData = async (req, res) => {
       };
     });
 
-    await RoomInventory.bulkCreate(inventoryEntries);
+    await RoomInventories.bulkCreate(inventoryEntries);
 
     res.json({
       hotel_id: hotel.id,

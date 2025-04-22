@@ -1,8 +1,6 @@
 const sequelize = require("../config/db");
-const { Op, Sequelize, DataTypes } = require("sequelize");
-const Bookings = require("../models/bookings")(sequelize, DataTypes);
-const Hotels = require("../models/hotels")(sequelize, DataTypes);
-const Rooms = require("../models/rooms")(sequelize, DataTypes);
+const { Op } = require("sequelize");
+const {Bookings, Hotels, Rooms} = require("../models/init-models");
 
 const getAllBookings = async (req, res) => {
   try {
