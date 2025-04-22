@@ -1,13 +1,13 @@
-const connection = require("../config/db");
 const bcrypt = require("bcryptjs");
-const { promisify } = require("util");
 const passport = require("passport");
 const crypto = require("crypto");
 const redisClient = require("../config/redis");
 const nodemailer = require("nodemailer"); // Dùng để gửi email
 const transporter = require("../config/nodemailer");
-const fs = require('fs')
-
+const fs = require("fs");
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/db.js");
+const User = require("../models/users.js")(sequelize, DataTypes);
 require("dotenv").config();
 const { Infobip, AuthType } = require("@infobip-api/sdk");
 
@@ -16,9 +16,6 @@ const {
   validateEmail,
   validateEmailDomain,
 } = require("../utils/emailValidation.js");
-
-// Promisify MySQL connection.query method
-const queryAsync = promisify(connection.query).bind(connection);
 
 /******************************* For customer ***************************/
 // Check authentication
@@ -75,10 +72,14 @@ const checkEmail = async (req, res) => {
     }
 
     // Query the database to find the user
-    const query = "SELECT * FROM users WHERE email = ? AND user_role = ?";
-    const results = await queryAsync(query, [email, userRole]);
+    const user = await User.findOne({
+      where: {
+        email: email,
+        user_role: userRole,
+      },
+    });
 
-    if (results.length > 0) {
+    if (user) {
       // Email exists then show login page
       return res.status(200).json({ exists: true });
     } else {
@@ -101,47 +102,42 @@ const checkEmail = async (req, res) => {
   }
 };
 
-// Login function using MySQL
+// Login function using Sequelize
 const loginUser = async (req, res) => {
   try {
     const { email, password, userRole } = req.body;
 
-    // Validate input
     if (!email || !password) {
       return res
         .status(400)
         .json({ success: false, message: "Please provide email and password" });
     }
 
-    // Query the database to find the user
-    const query = "SELECT * FROM users WHERE email = ? AND user_role = ?";
-    const results = await queryAsync(query, [email, userRole]);
+    const user = await User.findOne({
+      where: {
+        email: email,
+        user_role: userRole,
+      }
+    });
 
-    if (results.length === 0) {
-      // User not found
+    if (!user) {
       return res
         .status(401)
         .json({ success: false, message: "Invalid email or password" });
     }
 
-    const user = results[0];
-
-    // Compare provided password with the hashed password stored in the database
     const isMatch = await bcrypt.compare(password, user.password_hash);
-
     if (!isMatch) {
       return res
         .status(401)
         .json({ success: false, message: "Invalid email or password" });
     }
 
-    // Create session if password matches
     req.session.user = {
       user_id: user.user_id,
       userRole: user.user_role,
     };
 
-    // Respond with success message
     res.json({
       success: true,
       userId: user.user_id,
@@ -153,46 +149,42 @@ const loginUser = async (req, res) => {
   }
 };
 
-// register new user
+// register new user using Sequelize
 const registerUser = async (req, res) => {
   try {
     const { email, password, userRole } = req.body;
 
-    // Check if user already exists
-    const existingUserQuery =
-      "SELECT * FROM users WHERE email = ? AND user_role = ?";
-    const existingUser = await queryAsync(existingUserQuery, [email, userRole]);
+    const existingUser = await User.findOne({
+      where: {
+        email: email,
+        user_role: userRole,
+      }
+    });
 
-    if (existingUser.length > 0) {
+    if (existingUser) {
       return res
         .status(400)
         .json({ success: false, message: "User already exists" });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert new user into the database
-    const insertQuery =
-      "INSERT INTO users (email, username, password_hash, user_role, profile_picture_url) VALUES (?, ?, ?, ?, ?)";
-    const result = await queryAsync(insertQuery, [
-      email,
-      email.split("@")[0],
-      hashedPassword,
-      userRole,
-      "http://localhost:3000/uploads/users/avatars/default_avatar.png", // default avatar
-    ]);
+    const newUser = await User.create({
+      email: email,
+      username: email.split("@")[0],
+      password_hash: hashedPassword,
+      user_role: userRole,
+      profile_picture_url: "http://localhost:3000/uploads/users/avatars/default_avatar.png",
+    });
 
-    // Create session with user ID from the insert result
     req.session.user = {
-      user_id: result.insertId, // Get the user ID from the result of the insert query
+      user_id: newUser.user_id,
       userRole: userRole,
     };
 
-    // Send success response
     res.status(201).json({
       success: true,
-      userId: result.insertId,
+      userId: newUser.user_id,
       message: "User registered successfully",
     });
   } catch (error) {
@@ -225,33 +217,29 @@ const googleCallback = async (req, res) => {
 
     const profile = req.user;
     const email = profile.emails[0].value;
-    // console.log(email);
     const displayName = profile.displayName;
 
     // Tìm người dùng trong cơ sở dữ liệu dựa trên email
-    const existingUserQuery =
-      "SELECT * FROM users WHERE email = ? AND user_role = ?";
-    const existingUser = await queryAsync(existingUserQuery, [
-      email,
-      "customer",
-    ]);
+    const user = await User.findOne({
+      where: {
+        email: email,
+        user_role: "customer",
+      },
+    });
 
     let userId;
-
-    if (existingUser.length > 0) {
+    if (user) {
       // Nếu người dùng đã tồn tại
-      userId = existingUser[0].user_id;
+      userId = user.user_id;
     } else {
-      // Nếu người dùng chưa tồn tại, tạo người dùng mới
-      const insertQuery =
-        "INSERT INTO users ( email,username, user_role, profile_picture_url) VALUES (?, ?, ?, ?)";
-      const result = await queryAsync(insertQuery, [
-        email,
-        displayName,
-        "customer",
-        "http://localhost:3000/uploads/users/avatars/default_avatar.png", // default avatar
-      ]);
-      userId = result.insertId;
+      const newUser = await User.create({
+        email: email,
+        username: displayName,
+        user_role: "customer",
+        profile_picture_url:
+          "http://localhost:3000/uploads/users/avatars/default_avatar.png", // default avatar
+      });
+      userId = newUser.user_id;
     }
 
     // Tạo session cho người dùng
@@ -270,46 +258,42 @@ const googleCallback = async (req, res) => {
 };
 
 /******************************* For partner/admin ***************************/
+// Convert admin login to use Sequelize
 const loginAdmin = async (req, res) => {
   try {
     const { email, password, userRole } = req.body;
 
-    // Validate input
     if (!email || !password) {
       return res
         .status(400)
         .json({ success: false, message: "Please provide email and password" });
     }
 
-    // Query the database to find the user
-    const query = "SELECT * FROM users WHERE email = ? AND user_role = ?";
-    const results = await queryAsync(query, [email, userRole]);
+    const user = await User.findOne({
+      where: {
+        email: email,
+        user_role: userRole,
+      }
+    });
 
-    if (results.length === 0) {
-      // User not found
+    if (!user) {
       return res
         .status(401)
         .json({ success: false, message: "Invalid email or password" });
     }
 
-    const user = results[0];
-
-    // Compare provided password with the hashed password stored in the database
     const isMatch = await bcrypt.compare(password, user.password_hash);
-
     if (!isMatch) {
       return res
         .status(401)
         .json({ success: false, message: "Invalid email or password" });
     }
 
-    // Create session if password matches
     req.session.user = {
       user_id: user.user_id,
       userRole: user.user_role,
     };
 
-    // Respond with success message
     res.json({
       success: true,
       userId: user.user_id,
@@ -321,52 +305,47 @@ const loginAdmin = async (req, res) => {
   }
 };
 
+// Convert admin registration to use Sequelize
 const registerAdmin = async (req, res) => {
   try {
-    const { email, password, userRole, firstName, lastName, phoneNumber } =
-      req.body;
+    const { email, password, userRole, firstName, lastName, phoneNumber } = req.body;
 
-    // Check if user already exists
-    const existingUserQuery =
-      "SELECT * FROM users WHERE email = ? AND user_role = ? AND phone_number = ?";
-    const existingUser = await queryAsync(existingUserQuery, [
-      email,
-      userRole,
-      phoneNumber,
-    ]);
+    const existingUser = await User.findOne({
+      where: {
+        [Op.or]: [
+          { email: email },
+          { phone_number: phoneNumber }
+        ],
+        user_role: userRole
+      }
+    });
 
-    if (existingUser.length > 0) {
+    if (existingUser) {
       return res
         .status(400)
         .json({ success: false, message: "User already exists" });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const username = lastName + " " + firstName;
-    // Insert new user into the database
-    const insertQuery =
-      "INSERT INTO users (email, username, password_hash, user_role, phone_number, profile_picture_url) VALUES (?, ? , ?, ?, ?, ?)";
-    const result = await queryAsync(insertQuery, [
-      email,
-      username,
-      hashedPassword,
-      userRole,
-      phoneNumber,
-      "http://localhost:3000/uploads/users/avatars/default_avatar.png", // default avatar
-    ]);
 
-    // Create session with user ID from the insert result
+    const newUser = await User.create({
+      email: email,
+      username: username,
+      password_hash: hashedPassword,
+      user_role: userRole,
+      phone_number: phoneNumber,
+      profile_picture_url: "http://localhost:3000/uploads/users/avatars/default_avatar.png",
+    });
+
     req.session.user = {
-      user_id: result.insertId, // Get the user ID from the result of the insert query
+      user_id: newUser.user_id,
       userRole: userRole,
     };
 
-    // Send success response
     res.status(201).json({
       success: true,
-      userId: result.insertId,
+      userId: newUser.user_id,
       message: "User registered successfully",
     });
   } catch (error) {
@@ -382,7 +361,7 @@ const sendSmsOtp = async (req, res) => {
       res.status(400).json({ success: false, message: "Missing phone number" });
     }
 
-     // Giới hạn số lần gửi OTP
+    // Giới hạn số lần gửi OTP
     const attemptsKey = `sms-otp-attempts:${phoneNumber}:${userRole}`;
     const attempts = parseInt(await redisClient.get(attemptsKey)) || 0;
 
@@ -421,7 +400,7 @@ const sendSmsOtp = async (req, res) => {
 
     // Store the OTP in Redis
     await redisClient.set(`sms-otp:${phoneNumber}`, otp, `EX`, 600); // Set OTP expiration time to 10 minutes
-    
+
     res.status(200).json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
     console.error("Error sending SMS:", error.response?.data || error.message);
@@ -431,13 +410,15 @@ const sendSmsOtp = async (req, res) => {
 
 const verifySmsOtp = async (req, res) => {
   try {
-    const {phoneNumber, otp} = req.body;
+    const { phoneNumber, otp } = req.body;
 
     const otpFromRedis = await redisClient.get(`sms-otp:${phoneNumber}`);
     if (otpFromRedis === otp) {
       // Remove the OTP from Redis
       await redisClient.del(`sms-otp:${phoneNumber}`);
-      res.status(200).json({ success: true, message: "OTP verified successfully" });
+      res
+        .status(200)
+        .json({ success: true, message: "OTP verified successfully" });
     } else {
       res.status(400).json({ success: false, message: "Invalid OTP" });
     }
@@ -456,11 +437,12 @@ const forgotPassword = async (req, res) => {
   const { email, userRole } = req.body;
 
   try {
-    // Kiểm tra email và userRole có tồn tại
-    const [user] = await queryAsync(
-      "SELECT user_id FROM users WHERE email = ? AND user_role = ?",
-      [email, userRole]
-    );
+    const user = await User.findOne({
+      where: {
+        email: email,
+        user_role: userRole,
+      },
+    });
     if (!user) {
       return res
         .status(404)
@@ -487,13 +469,12 @@ const forgotPassword = async (req, res) => {
     const otpKey = `otp:${email}:${userRole}`;
     await redisClient.set(otpKey, otp, "EX", 300);
 
-     // Load the email template
+    // Load the email template
     const templatePath = "./email-templates/otpVerification.html";
     let emailTemplate = fs.readFileSync(templatePath, "utf8");
 
     // Replace placeholders with actual booking details
-    emailTemplate = emailTemplate
-      .replace("{{otp}}", otp)
+    emailTemplate = emailTemplate.replace("{{otp}}", otp);
 
     // Email options
     const mailOptions = {
@@ -513,29 +494,36 @@ const forgotPassword = async (req, res) => {
   }
 };
 
+// Convert password reset to use Sequelize
 const resetPassword = async (req, res) => {
   const { email, userRole, otp, newPassword } = req.body;
 
   try {
-    // Lấy OTP từ Redis
     const otpKey = `otp:${email}:${userRole}`;
     const storedOtp = await redisClient.get(otpKey);
+    
     if (!storedOtp || storedOtp !== otp) {
       return res
         .status(400)
         .json({ message: "OTP không hợp lệ hoặc đã hết hạn" });
     }
 
-    // Mã hóa mật khẩu mới
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Cập nhật mật khẩu mới trong database
-    await queryAsync(
-      "UPDATE users SET password_hash = ? WHERE email = ? AND user_role = ?",
-      [hashedPassword, email, userRole]
+    const [updatedRows] = await User.update(
+      { password_hash: hashedPassword },
+      {
+        where: {
+          email: email,
+          user_role: userRole,
+        }
+      }
     );
 
-    // Xóa OTP khỏi Redis
+    if (updatedRows === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     await redisClient.del(otpKey);
 
     res.status(200).json({ message: "Mật khẩu đã được cập nhật thành công!" });
