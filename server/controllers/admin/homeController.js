@@ -1,18 +1,18 @@
-const connection = require("../../config/db");
-const { promisify } = require("util");
-
-const queryAsync = promisify(connection.query).bind(connection);
+const { Bookings, Invoices, Rooms, Users } = require("../../models/init-models.js");
+const { Op, Sequelize } = require("sequelize");
 
 const getTotalBookings = async (req, res) => {
   try {
     const { period, hotelId } = req.body;
-    const query = `SELECT COUNT(*) as total_bookings FROM bookings WHERE hotel_id = ? AND created_at BETWEEN ? AND ? `;
-    const results = await queryAsync(query, [
-      hotelId,
-      period.start,
-      period.end,
-    ]);
-    res.status(200).json({ totalBookings: results[0].total_bookings });
+    const bookings = await Bookings.findAll({
+      where: {
+        hotel_id: hotelId,
+        created_at: {
+          [Op.between]: [period.start, period.end],
+        },
+      },
+    });
+    res.status(200).json({ totalBookings: bookings.length });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -28,18 +28,25 @@ const getRevenueStats = async (req, res) => {
       return res.status(400).json({ message: "Invalid input parameters" });
     }
 
-    const query = `
-        SELECT SUM(amount) AS total_revenue
-        FROM invoices
-        WHERE hotel_id = ? AND created_at BETWEEN ? AND ?
-      `;
-    const results = await queryAsync(query, [
-      hotelId,
-      period.start,
-      period.end,
-    ]);
+    const revenue = await Bookings.update(
+      {
+        status: Sequelize.literal(`CASE 
+      WHEN (CURRENT_DATE() BETWEEN check_in_date AND check_out_date) THEN 'checked in'
+      WHEN CURRENT_DATE() > check_out_date THEN 'completed'
+      ELSE status
+    END`),
+      },
+      {
+        where: {
+          hotel_id: hotelId,
+          status: {
+            [Op.ne]: "cancelled",
+          },
+        },
+      }
+    );
 
-    res.status(200).json({ revenueStats: results[0]?.total_revenue || 0 });
+    res.status(200).json({ revenueStats: revenue || 0 });
   } catch (error) {
     console.error("Error in getRevenueStats:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -55,18 +62,20 @@ const getDailyRevenueChart = async (req, res) => {
       return res.status(400).json({ message: "Invalid input parameters" });
     }
 
-    const query = `
-        SELECT DATE(created_at) AS date, SUM(amount) AS revenue
-        FROM invoices
-        WHERE hotel_id = ? AND created_at BETWEEN ? AND ?
-        GROUP BY DATE(created_at)
-        ORDER BY DATE(created_at) ASC
-      `;
-    const results = await queryAsync(query, [
-      hotelId,
-      period.start,
-      period.end,
-    ]);
+    const results = await Invoices.findAll({
+      attributes: [
+        [Sequelize.fn("DATE", Sequelize.col("created_at")), "date"],
+        [Sequelize.fn("SUM", Sequelize.col("amount")), "revenue"],
+      ],
+      where: {
+        hotel_id: hotelId,
+        created_at: {
+          [Op.between]: [period.start, period.end],
+        },
+      },
+      group: [Sequelize.fn("DATE", Sequelize.col("created_at"))],
+      order: [[Sequelize.fn("DATE", Sequelize.col("created_at")), "ASC"]],
+    });
 
     res.status(200).json({ dailyRevenueChart: results });
   } catch (error) {
@@ -84,21 +93,28 @@ const getRoomBooks = async (req, res) => {
       return res.status(400).json({ message: "Invalid input parameters" });
     }
 
-    const query = `
-        SELECT room_id, COUNT(*) AS book_count
-        FROM bookings
-        WHERE hotel_id = ? AND created_at BETWEEN ? AND ?
-        GROUP BY room_id
-      `;
-    const roomSales = await queryAsync(query, [
-      hotelId,
-      period.start,
-      period.end,
-    ]);
-    const roomQuery = `SELECT room_name FROM rooms WHERE room_id = ?`;
+    const roomSales = await Bookings.findAll({
+      attributes: [
+        "room_id",
+        [Sequelize.fn("COUNT", Sequelize.col("*")), "book_count"],
+      ],
+      where: {
+        hotel_id: hotelId,
+        created_at: {
+          [Op.between]: [period.start, period.end],
+        },
+      },
+      group: ["room_id"],
+      raw: true,
+    });
+
     for (const roomSale of roomSales) {
-      const roomName = await queryAsync(roomQuery, [roomSale.room_id]);
-      roomSale.roomName = roomName[0].room_name;
+      const room = await Rooms.findOne({
+        where: {
+          room_id: roomSale.room_id,
+        },
+      });
+      roomSale.roomName = room.room_name;
     }
     res.status(200).json({ roomSales: roomSales });
   } catch (error) {
@@ -116,28 +132,36 @@ const getNewCustomers = async (req, res) => {
       return res.status(400).json({ message: "Invalid input parameters" });
     }
 
-    const query = `
-          SELECT DISTINCT u.username, u.email, u.profile_picture_url
-          FROM bookings b1
-          join users u on b1.buyer_id = u.user_id
-          WHERE hotel_id = ?
-            AND status IN ('confirmed', 'checked in', 'completed') 
-            AND b1.created_at BETWEEN ? AND ? 
-            AND buyer_id NOT IN (
-                SELECT DISTINCT buyer_id
-                FROM bookings b2
-                WHERE hotel_id = ?
-                  AND status IN ('confirmed', 'checked in', 'completed')
-                  AND created_at < ?
-            )`;
-    const results = await queryAsync(query, [
-      hotelId,
-      period.start,
-      period.end,
-      hotelId,
-      period.start,
-    ]);
-    res.status(200).json({ newCustomers: results });
+    const newCustomers = await Users.findAll({
+  attributes: ['username', 'email', 'profile_picture_url'],
+  distinct: true,
+  include: [{
+    model: Bookings,
+    as: 'bookings',
+    attributes: [],
+    required: true,
+    where: {
+      hotel_id: hotelId,
+      status: {
+        [Op.in]: ['confirmed', 'checked in', 'completed']
+      },
+      created_at: {
+        [Op.between]: [period.start, period.end]
+      },
+      buyer_id: {
+        [Op.notIn]: Sequelize.literal(`
+          SELECT DISTINCT buyer_id 
+          FROM bookings 
+          WHERE hotel_id = ${hotelId}
+          AND status IN ('confirmed', 'checked in', 'completed')
+          AND created_at < '${period.start}'
+        `)
+      }
+    }
+  }],
+  raw: true
+});
+    res.status(200).json({ newCustomers: newCustomers});
   } catch (error) {
     console.error("Error in getNewCustomers:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -153,28 +177,19 @@ const calculateWeeklyChange = async (req, res) => {
       return res.status(400).json({ message: "Invalid input parameters" });
     }
 
-    const currentQuery = `
-        SELECT SUM(amount) AS revenue
-        FROM invoices
-        WHERE hotel_id = ? AND created_at BETWEEN ? AND ?
-      `;
-    const previousQuery = `
-        SELECT SUM(amount) AS revenue
-        FROM invoices
-        WHERE hotel_id = ? AND created_at BETWEEN ? AND ?
-      `;
+    const currentRevenue = await Invoices.sum('amount', {
+      where: {
+        hotel_id: hotelId,
+        [Op.between]: [currentWeek.start, currentWeek.end]
+      }
+    })
+    const previousRevenue = await Invoices.sum('amount', {
+      where: {
+        hotel_id: hotelId,
+        [Op.between]: [previousWeek.start, previousWeek.end]
+      }
+    })
 
-    const [currentResults, previousResults] = await Promise.all([
-      queryAsync(currentQuery, [hotelId, currentWeek.start, currentWeek.end]),
-      queryAsync(previousQuery, [
-        hotelId,
-        previousWeek.start,
-        previousWeek.end,
-      ]),
-    ]);
-
-    const currentRevenue = currentResults[0]?.revenue || 0;
-    const previousRevenue = previousResults[0]?.revenue || 0;
     const change = previousRevenue
       ? ((currentRevenue - previousRevenue) / previousRevenue) * 100
       : 0;

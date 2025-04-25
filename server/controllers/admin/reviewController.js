@@ -1,8 +1,8 @@
-const connection = require("../../config/db");
-const { promisify } = require("util");
-
-// Promisify MySQL connection.query method
-const queryAsync = promisify(connection.query).bind(connection);
+const {
+  Reviews,
+  Users,
+  ReviewCriterias,
+} = require("../../models/init-models.js");
 
 const getAllReviews = async (req, res) => {
   try {
@@ -12,24 +12,21 @@ const getAllReviews = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Missing hotelId" });
     }
-    const reviews = await queryAsync(
-      `SELECT * FROM reviews WHERE hotel_id = ?`,
-      [hotelId]
-    );
+    const reviews = await Reviews.findAll({
+      where: { hotel_id: hotelId },
+    });
 
     for (const review of reviews) {
-      // get user name and email for each review
-      const user = await queryAsync(
-        `SELECT username, email FROM users WHERE user_id = ?`,
-        [review.user_id]
-      );
-      review.user_name = user[0].username;
-      review.user_email = user[0].email;
+      const user = await Users.findOne({
+        where: { user_id: review.user_id },
+      });
+      review.user_name = user.username;
+      review.user_email = user.email;
       // get reivew criteria
-      const criteria = await queryAsync(
-        `SELECT criteria_name, score FROM review_criterias WHERE review_id = ?`,
-        [review.review_id]
-      );
+      const criteria = await ReviewCriterias.findAll({
+        where: { review_id: review.review_id },
+        attributes: ["criteria_name", "score"],
+      });
       review.review_criteria = criteria;
     }
 
@@ -47,11 +44,12 @@ const postReview = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Missing required fields" });
     }
-    const query = `
-      INSERT INTO reviews (user_id, hotel_id, rating, comment)
-      VALUES (?, ?, ?, ?)
-    `;
-    await queryAsync(query, [userId, hotelId, rating, comment]);
+    await Reviews.update({
+      user_id: userId,
+      hotel_id: hotelId,
+      rating: rating,
+      comment: comment,
+    });
     res
       .status(201)
       .json({ success: true, message: "Review posted successfully" });
@@ -68,10 +66,16 @@ const replyToReview = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Missing required fields" });
     }
-    const query = `
-      UPDATE reviews SET reply = ? WHERE review_id = ?
-    `;
-    await queryAsync(query, [reply, reviewId]);
+    await Reviews.update(
+      {
+        reply: reply,
+      },
+      {
+        where: {
+          review_id: reviewId,
+        },
+      }
+    );
     res
       .status(201)
       .json({ success: true, message: "Reply posted successfully" });

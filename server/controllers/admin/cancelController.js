@@ -1,32 +1,32 @@
-const connection = require("../../config/db");
-const { promisify } = require("util");
+const {
+  UserNotifications,
+  Transactions,
+} = require("../../models/init-models.js");
+
 const transporter = require("../../config/nodemailer");
 const { init, getIO } = require("../../config/socket");
 const fs = require("fs");
 require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
-// Promisify MySQL connection.query method
-const queryAsync = promisify(connection.query).bind(connection);
-
 // send email to who booked the reservation
 const sendCancelEmail = async (bookingInformation, hotelInformation) => {
   try {
     const {
-        booking_code: bookingCode,
-        buyer_id: buyerId,
-        rooms,
-        checkInDate,
-        checkOutDate,
-        numberOfGuests,
-        bookedOn,
-        totalPrice,
-        bookerInformation,
+      booking_code: bookingCode,
+      buyer_id: buyerId,
+      rooms,
+      checkInDate,
+      checkOutDate,
+      numberOfGuests,
+      bookedOn,
+      totalPrice,
+      bookerInformation,
     } = bookingInformation;
 
-    let bookedRoom = ''
-    rooms.forEach(room => {
-        bookedRoom += room.roomInformation.room_name + ', '
+    let bookedRoom = "";
+    rooms.forEach((room) => {
+      bookedRoom += room.roomInformation.room_name + ", ";
     });
     // Load the email template
     const templatePath = "./email-templates/cancelBooking.html";
@@ -40,7 +40,7 @@ const sendCancelEmail = async (bookingInformation, hotelInformation) => {
       .replace("{{checkInDate}}", checkInDate)
       .replace("{{checkOutDate}}", checkOutDate)
       .replace("{{numberOfGuests}}", numberOfGuests)
-      .replace("{{bookedRooms}}", bookedRoom)
+      .replace("{{bookedRooms}}", bookedRoom);
 
     // Email options
     const mailOptions = {
@@ -57,50 +57,45 @@ const sendCancelEmail = async (bookingInformation, hotelInformation) => {
   }
 };
 
-const sendCancelBookingNotification = async (bookingInformation, hotelInformation) => {
+const sendCancelBookingNotification = async (
+  bookingInformation,
+  hotelInformation
+) => {
   const io = getIO();
 
   const {
-        booking_code: bookingCode,
-        buyer_id: buyerId,
-        rooms,
-        checkInDate,
-        checkOutDate,
-        numberOfGuests,
-        bookedOn,
-        totalPrice,
-        bookerInformation,
-    } = bookingInformation;
+    booking_code: bookingCode,
+    buyer_id: buyerId,
+    rooms,
+    checkInDate,
+    checkOutDate,
+    numberOfGuests,
+    bookedOn,
+    totalPrice,
+    bookerInformation,
+  } = bookingInformation;
 
-  const {
-    hotel_id: hotelId,
-    name: hotelName,
-  } = hotelInformation
+  const { hotel_id: hotelId, name: hotelName } = hotelInformation;
 
   // create notification
   const notification = {
     senderId: hotelId,
-    recieverId: buyerId, 
+    recieverId: buyerId,
     notificationType: "cancel booking",
     message: `Cancel booking: ${hotelName} has cancelled your booking with booking code is ${bookingCode}.`,
     isRead: 0,
   };
 
-  // store notification
-  const notificationQuery = `
-      INSERT INTO user_notifications (sender_id, reciever_id, notification_type, message, is_read)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    const { insertId: notificationId } = await queryAsync(notificationQuery, [
-      notification.senderId,
-      notification.recieverId,
-      notification.notificationType,
-      notification.message,
-      notification.isRead,
-    ]);
+  const newNotification = await UserNotifications.create({
+    sender_id: notification.senderId,
+    reciever_id: notification.recieverId,
+    notification_type: notification.notificationType,
+    message: notification.message,
+    is_read: notification.isRead,
+  });
 
   io.to(`user_${notification.recieverId}`).emit("newNotification", {
-    notification_id: notificationId,
+    notification_id: newNotification.notification_id,
     notification_type: notification.notificationType,
     message: notification.message,
     is_read: notification.isRead,
@@ -116,7 +111,6 @@ const sendCancelBookingNotification = async (bookingInformation, hotelInformatio
   // });
 };
 
-
 const handleCancel = async (req, res) => {
   try {
     const { bookingInformation, hotelInformation } = req.body;
@@ -129,11 +123,12 @@ const handleCancel = async (req, res) => {
 
     const bookingCode = bookingInformation.booking_code;
 
-    const query =
-      "SELECT charge_id, amount FROM transactions WHERE booking_code = ?";
-    const result = await queryAsync(query, [bookingCode]);
-    const chargeId = result[0].charge_id;
-    const amount = parseInt(result[0].amount);
+    const transaction = await Transactions.findOne({
+      where: { booking_code: bookingCode },
+      attributes: ["charge_id", "amount"],
+    });
+    const chargeId = transaction.charge_id;
+    const amount = parseInt(transaction.amount);
 
     const refund = await stripe.refunds.create({
       charge: chargeId,
