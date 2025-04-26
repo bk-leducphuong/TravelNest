@@ -270,9 +270,6 @@ export default {
       const checkOutDate = new Date(checkOutDateString)
       const timeDifference = checkOutDate - checkInDate
       return timeDifference / (1000 * 60 * 60 * 24) + 1
-    },
-    serverHost() {
-      return import.meta.env.VITE_SERVER_HOST
     }
   },
   watch: {
@@ -326,7 +323,7 @@ export default {
           >
             <div class="search-image">
               <img
-                :src="serverHost() + '/vietnam_city/' + search.location + '.jpg'"
+                :src="'assets/vietnam_city/' + search.location + '.jpg'"
                 :alt="search.location"
               />
             </div>
@@ -380,7 +377,7 @@ export default {
                 :src="JSON.parse(hotel.image_urls)[0]"
                 :alt="hotel.name"
               />
-              <img :src="serverHost() + '/uploads/hotels/no-image.png'" alt="hotel image" v-else />
+              <img :src="'assets/hotels/no-image.png'" alt="hotel image" v-else />
               <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
@@ -440,7 +437,7 @@ export default {
                 :src="JSON.parse(hotel.image_urls)[0]"
                 :alt="hotel.name"
               />
-              <img v-else :src="serverHost() + '/uploads/hotels/no-image.png'" :alt="hotel.name" />
+              <img v-else :src="'/assets/hotels/no-image.png'" :alt="hotel.name" />
               <SavedHotelIcon :hotelId="hotel.hotel_id" />
             </div>
             <div class="hotel-content">
@@ -501,10 +498,7 @@ export default {
             })
           "
         >
-          <img
-            :src="serverHost() + '/vietnam_city/' + place.location + '.jpg'"
-            :alt="place.location"
-          />
+          <img :src="'assets/vietnam_city/' + place.location + '.jpg'" :alt="place.location" />
         </div>
       </div>
       <div
@@ -516,10 +510,7 @@ export default {
           v-for="(place, index) in popularPlaces.slice(2, 5)"
           :key="index"
         >
-          <img
-            :src="serverHost() + '/vietnam_city/' + place.location + '.jpg'"
-            :alt="place.location"
-          />
+          <img :src="'assets/vietnam_city/' + place.location + '.jpg'" :alt="place.location" />
         </div>
       </div>
     </div>

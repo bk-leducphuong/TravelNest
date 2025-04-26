@@ -7,7 +7,7 @@ module.exports = {
   init: (server) => {
     io = new Server(server, {
       cors: {
-        origin: "http://localhost:5173",
+        origin: process.env.CLIENT_HOST || "*",
       },
     });
 
@@ -19,9 +19,9 @@ module.exports = {
       });
 
       socket.on("joinUserRoom", (userId) => {
-        const roomName = `user_${userId}`
-        socket.join(roomName)
-      })
+        const roomName = `user_${userId}`;
+        socket.join(roomName);
+      });
 
       socket.on("disconnect", () => {
         console.log("Client disconnected:", socket.id);

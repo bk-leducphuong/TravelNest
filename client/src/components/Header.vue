@@ -10,17 +10,16 @@
           <ul>
             <li><strong>VND</strong></li>
             <li @click="openLanguagePopup()">
-              <img
+              <!-- <img
                 v-if="getUserLanguage"
                 :src="`https://flagcdn.com/w40/${getUserLanguage.split('-')[1].toLowerCase()}.png`"
                 style="width: 20px; height: 20px"
                 alt="Vietnam"
-              />
+              /> -->
               <img
                 src="https://flagcdn.com/w40/us.png"
                 style="width: 20px; height: 20px"
                 alt="English"
-                v-else
               />
             </li>
             <li><i class="fa-regular fa-circle-question"></i></li>
