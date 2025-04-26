@@ -1,6 +1,12 @@
 const path = require("path");
 const fs = require("fs");
 const mysql = require("mysql2/promise");
+require("dotenv").config({
+  path:
+    process.env.NODE_ENV === "production"
+      ? ".env.production"
+      : ".env.development",
+});
 
 const CONFIG = {
   host: process.env.DB_HOST || "localhost",
