@@ -4,9 +4,9 @@ const crypto = require("crypto");
 const redisClient = require("../config/redis");
 const transporter = require("../config/nodemailer");
 const fs = require("fs");
-const { Users } = require("../models/init-models.js");
+const { getModels } = require("../models/init-models.js");
+const { Users } = getModels();
 const { Op } = require("sequelize");
-require("dotenv").config();
 const { Infobip, AuthType } = require("@infobip-api/sdk");
 
 const {

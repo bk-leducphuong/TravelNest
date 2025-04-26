@@ -1,6 +1,7 @@
 const sequelize = require("../config/db");
 const { Op } = require("sequelize");
-const {Bookings, Hotels, Rooms} = require("../models/init-models");
+const { getModels } = require("../models/init-models.js");
+const { Bookings, Hotels, Rooms } = getModels();
 
 const getAllBookings = async (req, res) => {
   try {
@@ -34,7 +35,7 @@ const getAllBookings = async (req, res) => {
       const hotelInformation = await Hotels.findOne({
         where: { hotel_id: hotelId },
         attributes: ["hotel_id", "name", "city", "image_urls"],
-      })
+      });
       booking.hotel = hotelInformation;
 
       const roomId = booking.room_id;

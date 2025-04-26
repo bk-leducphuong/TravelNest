@@ -1,9 +1,5 @@
-const {
-  Reviews,
-  ReviewCriterias,
-  Hotels,
-  Bookings,
-} = require("../models/init-models");
+const { getModels } = require("../models/init-models.js");
+const { Reviews, ReviewCriterias, Hotels, Bookings } = getModels();
 
 const validateReview = async (req, res) => {
   try {

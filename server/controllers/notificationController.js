@@ -1,4 +1,5 @@
-const { UserNotifications } = require("../models/init-models");
+const { getModels } = require("../models/init-models.js");
+const { UserNotifications } = getModels();
 
 const getNotifications = async (req, res) => {
   try {

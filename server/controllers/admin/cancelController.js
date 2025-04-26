@@ -1,12 +1,9 @@
-const {
-  UserNotifications,
-  Transactions,
-} = require("../../models/init-models.js");
+const { getModels } = require("../../models/init-models.js");
+const { UserNotifications, Transactions } = getModels();
 
 const transporter = require("../../config/nodemailer");
 const { init, getIO } = require("../../config/socket");
 const fs = require("fs");
-require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // send email to who booked the reservation

@@ -1,16 +1,8 @@
 const sharp = require("sharp");
 const cloudinary = require("../../config/cloudinaryConfig");
-require("dotenv").config({
-  path:
-    process.env.NODE_ENV === "production"
-      ? ".env.production"
-      : ".env.development",
-});
-const {
-  Rooms,
-  RoomInventories,
-  Hotels,
-} = require("../../models/init-models.js");
+
+const { getModels } = require("../../models/init-models.js");
+const { Rooms, RoomInventories, Hotels } = getModels();
 
 const getAllRooms = async (req, res) => {
   try {

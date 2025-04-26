@@ -1,4 +1,3 @@
-require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const handlePayment = async (req, res) => {
@@ -20,14 +19,14 @@ const handlePayment = async (req, res) => {
         booked_rooms: JSON.stringify(bookingDetails.bookedRooms),
         check_in_date: bookingDetails.checkInDate,
         check_out_date: bookingDetails.checkOutDate,
-        number_of_guests: bookingDetails.numberOfGuests
+        number_of_guests: bookingDetails.numberOfGuests,
       },
     });
     // store chargeId into transaction
 
     res.json({ clientSecret: paymentIntent.client_secret });
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res.status(400).json({ error: err.message });
   }
 };

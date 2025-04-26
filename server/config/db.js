@@ -1,10 +1,4 @@
 const { Sequelize } = require("sequelize");
-require("dotenv").config({
-  path:
-    process.env.NODE_ENV === "production"
-      ? ".env.production"
-      : ".env.development",
-});
 
 // Create a Sequelize instance for ORM
 const sequelize = new Sequelize(
@@ -28,17 +22,5 @@ const sequelize = new Sequelize(
     },
   }
 );
-
-// Test the connection
-async function testConnection() {
-  try {
-    await sequelize.authenticate();
-    console.log("Connection to database established successfully.");
-  } catch (error) {
-    console.error("Unable to connect to the database:", error);
-  }
-}
-
-testConnection();
 
 module.exports = sequelize;

@@ -1,7 +1,8 @@
 const sharp = require("sharp");
 const bcrypt = require("bcryptjs");
 const cloudinary = require("../config/cloudinaryConfig");
-const { Hotels, SavedHotels, Users } = require("../models/init-models");
+const { getModels } = require("../models/init-models.js");
+const { Hotels, SavedHotels, Users } = getModels();
 
 const getUserInformation = async (req, res) => {
   try {

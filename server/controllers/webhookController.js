@@ -1,8 +1,8 @@
-require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const transporter = require("../config/nodemailer");
 const { getIO } = require("../config/socket");
 const fs = require("fs");
+const { getModels } = require("../models/init-models.js");
 const {
   Transactions,
   Bookings,
@@ -13,7 +13,7 @@ const {
   Users,
   Notifications,
   UserNotifications,
-} = require("../models/init-models.js");
+} = getModels();
 
 /******************************************* Utility Functions **********************************************/
 async function getTransactionId(paymentIntentId) {

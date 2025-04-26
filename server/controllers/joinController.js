@@ -1,7 +1,8 @@
 const sharp = require("sharp");
 const path = require("path");
 const fs = require("fs");
-const {Rooms, Hotels, RoomInventories} = require("../models/init-models");
+const { getModels } = require("../models/init-models.js");
+const { Rooms, Hotels, RoomInventories } = getModels();
 
 const postJoinFormData = async (req, res) => {
   const owner_id = req.session.user.user_id;
@@ -21,7 +22,7 @@ const postJoinFormData = async (req, res) => {
       check_out_time: `${joinFormData.checkOutFrom}-${joinFormData.checkOutTo}`,
       hotel_amenities: JSON.stringify(joinFormData.services),
       created_at: new Date(),
-      updated_at: new Date()
+      updated_at: new Date(),
     });
 
     // Create room using Sequelize
@@ -30,7 +31,7 @@ const postJoinFormData = async (req, res) => {
       max_guests: joinFormData.roomDetails.numberOfGuests,
       hotel_id: hotel.id,
       created_at: new Date(),
-      updated_at: new Date()
+      updated_at: new Date(),
     });
 
     // Create room inventory entries
@@ -43,7 +44,7 @@ const postJoinFormData = async (req, res) => {
         total_inventory: joinFormData.roomDetails.numberOfRooms,
         total_reserved: 0,
         price_per_night: 0,
-        status: "open"
+        status: "open",
       };
     });
 
@@ -53,14 +54,13 @@ const postJoinFormData = async (req, res) => {
       hotel_id: hotel.id,
       room_id: room.id,
       success: true,
-      message: "Join form submitted successfully"
+      message: "Join form submitted successfully",
     });
-
   } catch (err) {
     console.error("Error while processing join form:", err);
     res.status(500).json({
       success: false,
-      message: "Server error while processing join form"
+      message: "Server error while processing join form",
     });
   }
 };
@@ -72,7 +72,7 @@ const postPhotos = async (req, res) => {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "No files uploaded"
+        message: "No files uploaded",
       });
     }
 
@@ -82,35 +82,42 @@ const postPhotos = async (req, res) => {
     }
 
     try {
-      fs.mkdirSync(path.join(uploadDir, hotel_id, room_id), { recursive: true });
+      fs.mkdirSync(path.join(uploadDir, hotel_id, room_id), {
+        recursive: true,
+      });
     } catch (err) {
       console.error("Error creating directories:", err);
       return res.status(500).json({
         success: false,
-        message: "Server error while creating directories"
+        message: "Server error while creating directories",
       });
     }
 
     const processedFiles = await Promise.all(
       req.files.map(async (file) => {
-        const timestamp = new Date().toISOString().replace(/[^a-zA-Z0-9_\\-]/g, "-");
+        const timestamp = new Date()
+          .toISOString()
+          .replace(/[^a-zA-Z0-9_\\-]/g, "-");
         const avifFilename = `${timestamp}.avif`;
-        const outputPath = path.join(uploadDir, hotel_id, room_id, avifFilename);
+        const outputPath = path.join(
+          uploadDir,
+          hotel_id,
+          room_id,
+          avifFilename
+        );
 
-        await sharp(file.buffer)
-          .avif({ quality: 50 })
-          .toFile(outputPath);
+        await sharp(file.buffer).avif({ quality: 50 }).toFile(outputPath);
 
         return {
           originalName: file.originalname,
           avifName: avifFilename,
-          path: `http://localhost:3000/uploads/hotels/${hotel_id}/${room_id}/${avifFilename}`
+          path: `http://localhost:3000/uploads/hotels/${hotel_id}/${room_id}/${avifFilename}`,
         };
       })
     );
 
     // Update room with image URLs using Sequelize
-    const image_urls = processedFiles.map(file => file.path);
+    const image_urls = processedFiles.map((file) => file.path);
     await Rooms.update(
       { image_urls: JSON.stringify(image_urls) },
       { where: { room_id } }
@@ -119,14 +126,13 @@ const postPhotos = async (req, res) => {
     res.json({
       success: true,
       message: "Files uploaded and converted successfully",
-      files: processedFiles
+      files: processedFiles,
     });
-
   } catch (error) {
     console.error("Error processing images:", error);
     res.status(500).json({
       success: false,
-      message: "Server error while processing images"
+      message: "Server error while processing images",
     });
   }
 };

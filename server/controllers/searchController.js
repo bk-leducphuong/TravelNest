@@ -1,8 +1,5 @@
-const {
-  Rooms,
-  RoomInventories,
-  SearchLogs,
-} = require("../models/init-models");
+const { getModels } = require("../models/init-models.js");
+const { Rooms, RoomInventories, SearchLogs } = getModels();
 const { Op, Sequelize } = require("sequelize");
 const sequelize = require("../config/db"); // Adjust the path as necessary
 

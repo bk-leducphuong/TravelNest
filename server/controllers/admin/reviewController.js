@@ -1,8 +1,5 @@
-const {
-  Reviews,
-  Users,
-  ReviewCriterias,
-} = require("../../models/init-models.js");
+const { getModels } = require("../../models/init-models.js");
+const { Reviews, Users, ReviewCriterias } = getModels();
 
 const getAllReviews = async (req, res) => {
   try {

@@ -1,7 +1,7 @@
-require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { getIO } = require("../config/socket");
-const {Users, Notifications, UserNotifications, Transactions} = require("../models/init-models");
+const { getModels } = require("../models/init-models.js");
+const { Users, Notifications, UserNotifications, Transactions } = getModels();
 
 const sendCancelBookingNotification = async (bookingInformation) => {
   try {
@@ -108,7 +108,7 @@ const handleCancel = async (req, res) => {
   try {
     const transaction = await Transactions.findOne({
       where: { booking_code: bookingInformation.booking_code },
-      attributes: ['charge_id', 'amount']
+      attributes: ["charge_id", "amount"],
     });
     const chargeId = transaction.charge_id;
     const amount = parseInt(transaction.amount);

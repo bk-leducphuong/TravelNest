@@ -1,4 +1,5 @@
-const { Bookings, Invoices, Rooms, Users } = require("../../models/init-models.js");
+const { getModels } = require("../../models/init-models.js");
+const { Bookings, Invoices, Rooms, Users } = getModels();
 const { Op, Sequelize } = require("sequelize");
 
 const getTotalBookings = async (req, res) => {
@@ -133,35 +134,37 @@ const getNewCustomers = async (req, res) => {
     }
 
     const newCustomers = await Users.findAll({
-  attributes: ['username', 'email', 'profile_picture_url'],
-  distinct: true,
-  include: [{
-    model: Bookings,
-    as: 'bookings',
-    attributes: [],
-    required: true,
-    where: {
-      hotel_id: hotelId,
-      status: {
-        [Op.in]: ['confirmed', 'checked in', 'completed']
-      },
-      created_at: {
-        [Op.between]: [period.start, period.end]
-      },
-      buyer_id: {
-        [Op.notIn]: Sequelize.literal(`
+      attributes: ["username", "email", "profile_picture_url"],
+      distinct: true,
+      include: [
+        {
+          model: Bookings,
+          as: "bookings",
+          attributes: [],
+          required: true,
+          where: {
+            hotel_id: hotelId,
+            status: {
+              [Op.in]: ["confirmed", "checked in", "completed"],
+            },
+            created_at: {
+              [Op.between]: [period.start, period.end],
+            },
+            buyer_id: {
+              [Op.notIn]: Sequelize.literal(`
           SELECT DISTINCT buyer_id 
           FROM bookings 
           WHERE hotel_id = ${hotelId}
           AND status IN ('confirmed', 'checked in', 'completed')
           AND created_at < '${period.start}'
-        `)
-      }
-    }
-  }],
-  raw: true
-});
-    res.status(200).json({ newCustomers: newCustomers});
+        `),
+            },
+          },
+        },
+      ],
+      raw: true,
+    });
+    res.status(200).json({ newCustomers: newCustomers });
   } catch (error) {
     console.error("Error in getNewCustomers:", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -177,18 +180,18 @@ const calculateWeeklyChange = async (req, res) => {
       return res.status(400).json({ message: "Invalid input parameters" });
     }
 
-    const currentRevenue = await Invoices.sum('amount', {
+    const currentRevenue = await Invoices.sum("amount", {
       where: {
         hotel_id: hotelId,
-        [Op.between]: [currentWeek.start, currentWeek.end]
-      }
-    })
-    const previousRevenue = await Invoices.sum('amount', {
+        [Op.between]: [currentWeek.start, currentWeek.end],
+      },
+    });
+    const previousRevenue = await Invoices.sum("amount", {
       where: {
         hotel_id: hotelId,
-        [Op.between]: [previousWeek.start, previousWeek.end]
-      }
-    })
+        [Op.between]: [previousWeek.start, previousWeek.end],
+      },
+    });
 
     const change = previousRevenue
       ? ((currentRevenue - previousRevenue) / previousRevenue) * 100

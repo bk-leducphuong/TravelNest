@@ -1,5 +1,7 @@
 const { Op, Sequelize } = require("sequelize");
-const {Hotels, Bookings, Reviews, ViewedHotels, SavedHotels, SearchLogs} = require("../models/init-models");
+const { getModels } = require("../models/init-models.js");
+const { Hotels, Bookings, Reviews, ViewedHotels, SavedHotels, SearchLogs } =
+  getModels();
 const redisClient = require("../config/redis");
 
 const postRecentViewedHotels = async (req, res) => {
@@ -17,23 +19,23 @@ const postRecentViewedHotels = async (req, res) => {
     await ViewedHotels.destroy({
       where: {
         user_id: userId,
-        hotel_id: hotelId
-      }
+        hotel_id: hotelId,
+      },
     });
 
     // Count existing views
     const count = await ViewedHotels.count({
       where: {
-        user_id: userId
-      }
+        user_id: userId,
+      },
     });
 
     // If count >= 10, delete oldest view
     if (count >= 10) {
       await ViewedHotels.destroy({
         where: { user_id: userId },
-        order: [['viewed_at', 'ASC']],
-        limit: 1
+        order: [["viewed_at", "ASC"]],
+        limit: 1,
       });
     }
 
@@ -41,12 +43,12 @@ const postRecentViewedHotels = async (req, res) => {
     await ViewedHotels.create({
       user_id: userId,
       hotel_id: hotelId,
-      viewed_at: Sequelize.literal('CURRENT_TIMESTAMP')
+      viewed_at: Sequelize.literal("CURRENT_TIMESTAMP"),
     });
 
-    res.status(201).json({ 
-      success: true, 
-      message: "Hotel view recorded successfully" 
+    res.status(201).json({
+      success: true,
+      message: "Hotel view recorded successfully",
     });
   } catch (error) {
     console.log(error);
@@ -55,15 +57,31 @@ const postRecentViewedHotels = async (req, res) => {
 };
 
 const getRecentViewedHotelInformation = async (hotelIdArray) => {
-  const hotels = await Hotels.findAll({
-    where: {
-      hotel_id: {
-        [Op.in]: hotelIdArray
-      }
-    },
-    attributes: ['hotel_id', 'name', 'overall_rating', 'address', 'image_urls', 'city']
-  });
-  return hotels;
+  try {
+    if (!hotelIdArray || hotelIdArray.length === 0) {
+      return [];
+    } else {
+      const hotels = await Hotels.findAll({
+        where: {
+          hotel_id: {
+            [Op.in]: hotelIdArray,
+          },
+        },
+        attributes: [
+          "hotel_id",
+          "name",
+          "overall_rating",
+          "address",
+          "image_urls",
+          "city",
+        ],
+      });
+      return hotels;
+    }
+  } catch (error) {
+    console.error("Error getting recently viewed hotels:", error);
+    return [];
+  }
 };
 
 // get recent viewed hotels
@@ -75,8 +93,8 @@ const getRecentViewedHotels = async (req, res) => {
 
       const results = await ViewedHotels.findAll({
         where: { user_id: userId },
-        attributes: ['hotel_id'],
-        limit: 10
+        attributes: ["hotel_id"],
+        limit: 10,
       });
 
       if (results.length === 0) {
@@ -85,7 +103,7 @@ const getRecentViewedHotels = async (req, res) => {
           .json({ success: false, message: "No recent viewed hotels" });
       }
 
-      const hotelIdArray = results.map(result => result.hotel_id);
+      const hotelIdArray = results.map((result) => result.hotel_id);
       hotels = await getRecentViewedHotelInformation(hotelIdArray);
     } else {
       const { hotelIdArray } = req.body;
@@ -106,11 +124,18 @@ const getRecentSearchs = async (req, res) => {
     const searches = await SearchLogs.findAll({
       where: { user_id: userId },
       attributes: [
-        'search_id', 'location', 'check_in_date', 'check_out_date',
-        'adults', 'children', 'rooms', 'search_time', 'number_of_days'
+        "search_id",
+        "location",
+        "check_in_date",
+        "check_out_date",
+        "adults",
+        "children",
+        "rooms",
+        "search_time",
+        "number_of_days",
       ],
-      order: [['search_time', 'DESC']],
-      limit: 10
+      order: [["search_time", "DESC"]],
+      limit: 10,
     });
 
     if (searches.length < 0) {
@@ -128,14 +153,18 @@ const removeRecentSearch = async (req, res) => {
     const { search_id } = req.body;
 
     if (!search_id) {
-      return res.status(400).json({ success: false, message: "Missing search_id" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing search_id" });
     }
 
     await SearchLogs.destroy({
-      where: { search_id }
+      where: { search_id },
     });
 
-    res.status(200).json({ success: true, message: "Search removed successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "Search removed successfully" });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -154,13 +183,10 @@ const getPopularPlaces = async (req, res) => {
 
     // If cache miss, query the database using Sequelize
     const results = await SearchLogs.findAll({
-      attributes: [
-        'location',
-        [Sequelize.fn('COUNT', '*'), 'search_count']
-      ],
-      group: ['location'],
-      order: [[Sequelize.fn('COUNT', '*'), 'DESC']],
-      limit: 5
+      attributes: ["location", [Sequelize.fn("COUNT", "*"), "search_count"]],
+      group: ["location"],
+      order: [[Sequelize.fn("COUNT", "*"), "DESC"]],
+      limit: 5,
     });
 
     if (results.length === 0) {
@@ -194,7 +220,7 @@ const getNearByHotels = async (req, res) => {
         message: "Longitude and latitude are required.",
       });
     }
-    
+
     const { latitude, longitude } = location;
     const searchRadius = 6; // 6km radius
 
@@ -209,10 +235,10 @@ const getNearByHotels = async (req, res) => {
 
     const results = await Hotels.findAll({
       attributes: {
-        include: [[distanceFormula, 'distance']]
+        include: [[distanceFormula, "distance"]],
       },
       having: Sequelize.literal(`distance < ${searchRadius}`),
-      order: [[Sequelize.literal('distance'), 'ASC']]
+      order: [[Sequelize.literal("distance"), "ASC"]],
     });
 
     if (results.length === 0) {
@@ -234,45 +260,50 @@ const getTopRatedHotels = async (req, res) => {
   try {
     const topHotels = await Hotels.findAll({
       attributes: [
-        'hotel_id',
-        'name',
-        'address',
-        'city',
-        'overall_rating',
-        'image_urls',
-        'hotel_class',
-        [Sequelize.fn('COUNT', Sequelize.col('reviews.review_id')), 'review_count']
+        "hotel_id",
+        "name",
+        "address",
+        "city",
+        "overall_rating",
+        "image_urls",
+        "hotel_class",
+        [
+          Sequelize.fn("COUNT", Sequelize.col("reviews.review_id")),
+          "review_count",
+        ],
       ],
-      include: [{
-        model: Reviews,
-        attributes: [],
-        required: false
-      }],
+      include: [
+        {
+          model: Reviews,
+          attributes: [],
+          required: false,
+        },
+      ],
       where: {
         overall_rating: {
-          [Op.gte]: 4
-        }
+          [Op.gte]: 4,
+        },
       },
       group: [
-        'hotel_id',
-        'name',
-        'address',
-        'city',
-        'overall_rating',
-        'image_urls',
-        'hotel_class'
+        "hotel_id",
+        "name",
+        "address",
+        "city",
+        "overall_rating",
+        "image_urls",
+        "hotel_class",
       ],
-      having: Sequelize.literal('COUNT(reviews.review_id) >= 5'),
+      having: Sequelize.literal("COUNT(reviews.review_id) >= 5"),
       order: [
-        ['overall_rating', 'DESC'],
-        [Sequelize.literal('review_count'), 'DESC']
+        ["overall_rating", "DESC"],
+        [Sequelize.literal("review_count"), "DESC"],
       ],
-      limit: 10
+      limit: 10,
     });
 
     res.json(topHotels);
   } catch (error) {
-    console.error('Error getting top rated hotels:', error);
+    console.error("Error getting top rated hotels:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -282,26 +313,28 @@ const getRecentlyViewedHotels = async (req, res) => {
     const userId = req.session.user.user_id;
 
     const recentlyViewed = await ViewedHotels.findAll({
-      include: [{
-        model: Hotels,
-        attributes: [
-          'hotel_id',
-          'name',
-          'address',
-          'city',
-          'overall_rating',
-          'image_urls',
-          'hotel_class'
-        ]
-      }],
+      include: [
+        {
+          model: Hotels,
+          attributes: [
+            "hotel_id",
+            "name",
+            "address",
+            "city",
+            "overall_rating",
+            "image_urls",
+            "hotel_class",
+          ],
+        },
+      ],
       where: { user_id: userId },
-      order: [['viewed_at', 'DESC']],
-      limit: 10
+      order: [["viewed_at", "DESC"]],
+      limit: 10,
     });
 
-    res.json(recentlyViewed.map(view => view.Hotel));
+    res.json(recentlyViewed.map((view) => view.Hotel));
   } catch (error) {
-    console.error('Error getting recently viewed hotels:', error);
+    console.error("Error getting recently viewed hotels:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -311,25 +344,27 @@ const getSavedHotels = async (req, res) => {
     const userId = req.session.user.user_id;
 
     const savedHotels = await SavedHotels.findAll({
-      include: [{
-        model: Hotels,
-        attributes: [
-          'hotel_id',
-          'name',
-          'address',
-          'city',
-          'overall_rating',
-          'image_urls',
-          'hotel_class'
-        ]
-      }],
+      include: [
+        {
+          model: Hotels,
+          attributes: [
+            "hotel_id",
+            "name",
+            "address",
+            "city",
+            "overall_rating",
+            "image_urls",
+            "hotel_class",
+          ],
+        },
+      ],
       where: { user_id: userId },
-      order: [['saved_at', 'DESC']]
+      order: [["saved_at", "DESC"]],
     });
 
-    res.json(savedHotels.map(saved => saved.Hotel));
+    res.json(savedHotels.map((saved) => saved.Hotel));
   } catch (error) {
-    console.error('Error getting saved hotels:', error);
+    console.error("Error getting saved hotels:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -338,22 +373,22 @@ const getPopularDestinations = async (req, res) => {
   try {
     const popularDestinations = await Hotels.findAll({
       attributes: [
-        'city',
-        [Sequelize.fn('COUNT', Sequelize.col('hotel_id')), 'hotel_count'],
-        [Sequelize.fn('AVG', Sequelize.col('overall_rating')), 'avg_rating']
+        "city",
+        [Sequelize.fn("COUNT", Sequelize.col("hotel_id")), "hotel_count"],
+        [Sequelize.fn("AVG", Sequelize.col("overall_rating")), "avg_rating"],
       ],
-      group: ['city'],
-      having: Sequelize.literal('COUNT(hotel_id) >= 5'),
+      group: ["city"],
+      having: Sequelize.literal("COUNT(hotel_id) >= 5"),
       order: [
-        [Sequelize.literal('hotel_count'), 'DESC'],
-        [Sequelize.literal('avg_rating'), 'DESC']
+        [Sequelize.literal("hotel_count"), "DESC"],
+        [Sequelize.literal("avg_rating"), "DESC"],
       ],
-      limit: 10
+      limit: 10,
     });
 
     res.json(popularDestinations);
   } catch (error) {
-    console.error('Error getting popular destinations:', error);
+    console.error("Error getting popular destinations:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -363,53 +398,60 @@ const getTrendingHotels = async (req, res) => {
     // Get trending hotels based on views and bookings in the last 30 days
     const trendingHotels = await Hotels.findAll({
       attributes: [
-        'hotel_id',
-        'name',
-        'address',
-        'city',
-        'overall_rating',
-        'image_urls',
-        'hotel_class',
-        [Sequelize.fn('COUNT', Sequelize.col('viewed_hotels.view_id')), 'view_count'],
-        [Sequelize.fn('COUNT', Sequelize.col('bookings.booking_id')), 'booking_count']
+        "hotel_id",
+        "name",
+        "address",
+        "city",
+        "overall_rating",
+        "image_urls",
+        "hotel_class",
+        [
+          Sequelize.fn("COUNT", Sequelize.col("viewed_hotels.view_id")),
+          "view_count",
+        ],
+        [
+          Sequelize.fn("COUNT", Sequelize.col("bookings.booking_id")),
+          "booking_count",
+        ],
       ],
-      include: [{
-        model: ViewedHotels,
-        attributes: [],
-        required: false,
-        where: {
-          viewed_at: {
-            [Op.gte]: Sequelize.literal('NOW() - INTERVAL \'30 days\'')
-          }
-        }
-      }, {
-        model: Bookings,
-        attributes: [],
-        required: false,
-        where: {
-          booking_date: {
-            [Op.gte]: Sequelize.literal('NOW() - INTERVAL \'30 days\'')
-          }
-        }
-      }],
+      include: [
+        {
+          model: ViewedHotels,
+          attributes: [],
+          required: false,
+          where: {
+            viewed_at: {
+              [Op.gte]: Sequelize.literal("NOW() - INTERVAL '30 days'"),
+            },
+          },
+        },
+        {
+          model: Bookings,
+          attributes: [],
+          required: false,
+          where: {
+            booking_date: {
+              [Op.gte]: Sequelize.literal("NOW() - INTERVAL '30 days'"),
+            },
+          },
+        },
+      ],
       group: [
-        'hotel_id',
-        'name',
-        'address',
-        'city',
-        'overall_rating',
-        'image_urls',
-        'hotel_class'
+        "hotel_id",
+        "name",
+        "address",
+        "city",
+        "overall_rating",
+        "image_urls",
+        "hotel_class",
       ],
-      order: [
-        [Sequelize.literal('(view_count + booking_count * 2)'), 'DESC']
-      ],
-      limit: 10
+      order: [[Sequelize.literal("(view_count + booking_count * 2)"), "DESC"]],
+      limit: 10,
     });
 
     res.json(trendingHotels);
   } catch (error) {
-    console.error('Error getting trending hotels:', error);
+    console.error("Error getting trending hotels:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -425,5 +467,5 @@ module.exports = {
   getRecentlyViewedHotels,
   getSavedHotels,
   getPopularDestinations,
-  getTrendingHotels
+  getTrendingHotels,
 };

@@ -1,5 +1,7 @@
-const { Notifications } = require("../../models/init-models.js");
+const { getModels } = require("../../models/init-models.js");
+const { Notifications } = getModels();
 const { Op } = require("sequelize");
+
 const getNotifications = async (req, res) => {
   try {
     const { hotelId } = req.body;

@@ -1,6 +1,6 @@
-require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { Users, Invoices, Bookings } = require("../../models/init-models.js");
+const { getModels } = require("../../models/init-models.js");
+const { Users, Invoices, Bookings } = getModels();
 const { Sequelize, Op } = require("sequelize");
 
 /************************************************* Create connect account *************************************************/
