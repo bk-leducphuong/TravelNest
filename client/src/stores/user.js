@@ -1,13 +1,12 @@
 // store/user.js
 import axios from 'axios'
-import i18n from '@/config/i18n'
 
 export default {
   namespaced: true,
   state: {
     userInformation: null,
     userLocation: null,
-    userLanguage: null, // vi-VN
+    userLanguage: null // vi-VN
   },
   mutations: {
     setUserLocation(state, location) {
@@ -49,7 +48,7 @@ export default {
       return state.userInformation
     },
     getUserLanguage(state) {
-      return state.userLanguage
+      return state.userLanguage || 'en-US'
     }
   }
 }

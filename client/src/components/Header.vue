@@ -11,20 +11,35 @@
             <li><strong>VND</strong></li>
             <li @click="openLanguagePopup()">
               <img
+                v-if="getUserLanguage"
                 :src="`https://flagcdn.com/w40/${getUserLanguage.split('-')[1].toLowerCase()}.png`"
                 style="width: 20px; height: 20px"
                 alt="Vietnam"
               />
+              <img
+                src="https://flagcdn.com/w40/us.png"
+                style="width: 20px; height: 20px"
+                alt="English"
+                v-else
+              />
             </li>
             <li><i class="fa-regular fa-circle-question"></i></li>
-            <li style="position: relative" @click="openNotificationPopup()" v-click-outside="hideNotficationPopup">
+            <li
+              style="position: relative"
+              @click="openNotificationPopup()"
+              v-click-outside="hideNotficationPopup"
+            >
               <span class="notification-badge" v-if="numberOfNewNotifications > 0">{{
                 numberOfNewNotifications
               }}</span>
               <i class="fa-regular fa-bell"></i>
             </li>
             <li>
-              <span><a @click="this.$router.push('/join')">{{ $t('userHeader.postProperty') }}</a></span>
+              <span
+                ><a @click="this.$router.push('/join')">{{
+                  $t('userHeader.postProperty')
+                }}</a></span
+              >
             </li>
             <li v-if="!this.isUserAuthenticated">
               <a @click="this.$router.push('/login')" class="login" style="margin-right: 5px"
@@ -166,7 +181,9 @@
               </div>
             </div>
             <div class="selector-item">
-              <span>{{ $t('userHeader.guestInputPlaceholder_2') }} <small>(0 - 17 tuổi)</small></span>
+              <span
+                >{{ $t('userHeader.guestInputPlaceholder_2') }} <small>(0 - 17 tuổi)</small></span
+              >
               <div class="counter">
                 <button class="decrement" @click="updateGuests('children', 'decrement')">-</button>
                 <span>{{ children }}</span>
@@ -185,7 +202,9 @@
         </div>
 
         <!-- Search button -->
-        <button class="search-button" @click="submitSearch">{{ $t('userHeader.searchButton') }}</button>
+        <button class="search-button" @click="submitSearch">
+          {{ $t('userHeader.searchButton') }}
+        </button>
       </div>
     </div>
   </div>
@@ -195,11 +214,11 @@
 import axios from 'axios'
 import flatpickr from 'flatpickr'
 import 'flatpickr/dist/flatpickr.css'
-import { mapActions, mapState, mapGetters } from 'vuex'
+import { mapGetters } from 'vuex'
 import AccountMenu from './user/AccountMenu.vue'
 import LanguageSwitch from './LanguageSwitch.vue'
 import socket from '@/services/socket'
-import {useToast} from 'vue-toastification'
+import { useToast } from 'vue-toastification'
 
 export default {
   setup() {
@@ -265,7 +284,7 @@ export default {
         this.calculateNumberOfDays(this.checkInDate, this.checkOutDate)
       }
     },
-     notifications(newValue) {
+    notifications(newValue) {
       this.calculateNumerOfNewNotifications()
     }
   },
@@ -274,7 +293,14 @@ export default {
     ...mapGetters('search', ['getSearchData']),
     ...mapGetters('user', ['getUserLanguage']),
     guestDetails() {
-      return `${this.adults} ` + this.$t('userHeader.guestInputPlaceholder_1') + ` · ${this.children} ` + this.$t('userHeader.guestInputPlaceholder_2') + ` · ${this.rooms}` + this.$t('userHeader.guestInputPlaceholder_3')
+      return (
+        `${this.adults} ` +
+        this.$t('userHeader.guestInputPlaceholder_1') +
+        ` · ${this.children} ` +
+        this.$t('userHeader.guestInputPlaceholder_2') +
+        ` · ${this.rooms}` +
+        this.$t('userHeader.guestInputPlaceholder_3')
+      )
     }
   },
   methods: {
@@ -385,18 +411,15 @@ export default {
         })
         this.numberOfNewNotifications = 0
 
-        await axios.get(
-          `${import.meta.env.VITE_SERVER_HOST}/api/notifications/mark-all-as-read`,
-          {
-            withCredentials: true
-          }
-        )
+        await axios.get(`${import.meta.env.VITE_SERVER_HOST}/api/notifications/mark-all-as-read`, {
+          withCredentials: true
+        })
       } catch (error) {
         this.toast.error('Error marking notifications as read')
         console.error(error)
       }
     },
-     hideNotficationPopup() {
+    hideNotficationPopup() {
       this.isNotificationPopupVisible = false
       if (this.haveNewNotifications) {
         this.haveNewNotifications = false
@@ -404,9 +427,10 @@ export default {
     },
     openNotificationPopup() {
       this.isNotificationPopupVisible = !this.isNotificationPopupVisible
-    },
+    }
   },
   async mounted() {
+    console.log(this.getUserLanguage)
     if (this.isUserAuthenticated) {
       await this.getNotifiactions()
       this.joinRoom()
@@ -420,15 +444,20 @@ export default {
 
         if (new Date(this.getSearchData.checkInDate).getTime() < new Date().getTime()) {
           checkInDate = new Date().toLocaleDateString('vi-VN')
-        } 
+        }
         if (new Date(this.getSearchData.checkOutDate).getTime() < new Date().getTime()) {
-          checkOutDate = new Date(new Date().getTime() + (1000 * 60 * 60 * 24)).toLocaleDateString('vi-VN')
+          checkOutDate = new Date(new Date().getTime() + 1000 * 60 * 60 * 24).toLocaleDateString(
+            'vi-VN'
+          )
         }
 
         this.dateRange =
-          this.$t('userHeader.dateInputPlaceholder_1') + ' ' +
-          checkInDate + ' ' +
-          this.$t('userHeader.dateInputPlaceholder_2') + ' ' +
+          this.$t('userHeader.dateInputPlaceholder_1') +
+          ' ' +
+          checkInDate +
+          ' ' +
+          this.$t('userHeader.dateInputPlaceholder_2') +
+          ' ' +
           checkOutDate
       }
       this.children = this.getSearchData.children
@@ -854,5 +883,4 @@ body {
   border-radius: 4px;
   transition: all 0.3s ease;
 }
-
 </style>
