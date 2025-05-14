@@ -4,18 +4,22 @@ services:
   server:
     build:
       context: ./server
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       args:
-        - NODE_ENV=production
+        - NODE_ENV=development
     ports:
       - "3000:3000"
+    environment:
+      - DB_HOST=mysql
+      - DB_PASSWORD=1
+      - REDIS_HOST=redis
     volumes:
       - ./server:/usr/src/app
       - /usr/src/app/node_modules
     command: [
       "sh",
       "-c",
-      "npm run seed && npm start"
+      "npm run seed && npm run dev"
     ]
     depends_on:
       - mysql
@@ -26,9 +30,9 @@ services:
   client:
     build:
       context: ./client
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       args: 
-        - NODE_ENV=production
+        - NODE_ENV=development
     ports:
       - "5173:5173"
     volumes:

@@ -270,6 +270,9 @@ export default {
       const checkOutDate = new Date(checkOutDateString)
       const timeDifference = checkOutDate - checkInDate
       return timeDifference / (1000 * 60 * 60 * 24) + 1
+    },
+    getCityImage(location) {
+      return import(`'@/assets/vietnam_city/${location}.jpg`)
     }
   },
   watch: {
@@ -510,7 +513,7 @@ export default {
           v-for="(place, index) in popularPlaces.slice(2, 5)"
           :key="index"
         >
-          <img :src="'assets/vietnam_city/' + place.location + '.jpg'" :alt="place.location" />
+          <img :ref="place.location" :src="getCityImage(place.location)" :alt="place.location" />
         </div>
       </div>
     </div>
