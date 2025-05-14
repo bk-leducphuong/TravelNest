@@ -18,7 +18,7 @@ jobs:
 
       - name: Run Docker Compose
         run: |
-          docker-compose up --build -d
+          docker compose up -d
 
       - name: Wait for services to be healthy
         run: |
@@ -35,4 +35,4 @@ jobs:
 
       - name: Shut down Docker Compose
         if: always()
-        run: docker-compose down
+        run: docker compose down
