@@ -1,21 +1,9 @@
 ### Auth API Test Requests
-
-
 ### RESTful API endpoints following RESTful standards
-
-
 ### 
-
-
 ### Prerequisites:
-
-
 ### 1. Make sure the server is running (default: http://localhost:3000)
-
-
 ### 2. Session cookies are automatically handled by REST Client
-
-
 ### 3. Update variables below with your test data
 
 @baseUrl = http://localhost:3000
@@ -34,22 +22,14 @@
 
 
 ### 
-
-
 ### SESSION RESOURCE
-
-
 ### 
 
-
 ### GET /api/auth/session
-
-
 ### Check authentication status
 
 GET {{baseUrl}}/api/auth/session HTTP/1.1
 Content-Type: {{contentType}}
-
 
 ### 
 
