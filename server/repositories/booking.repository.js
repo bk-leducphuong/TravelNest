@@ -6,7 +6,7 @@ const {
   Refunds,
 } = require('../models/index.js');
 const { Op } = require('sequelize');
-const sequelize = require('../config/db.js');
+const sequelize = require('../config/database.config');
 
 /**
  * Booking Repository - Contains all database operations for bookings

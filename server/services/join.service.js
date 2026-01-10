@@ -1,5 +1,5 @@
 const joinRepository = require('../repositories/join.repository');
-const cloudinary = require('../config/cloudinaryConfig');
+const cloudinary = require('../config/cloudinary.config');
 const sharp = require('sharp');
 const ApiError = require('../utils/ApiError');
 
@@ -173,9 +173,7 @@ class JoinService {
     const uploadPromises = imageBuffers.map(async (buffer, index) => {
       try {
         // Compress image to AVIF using sharp
-        const avifBuffer = await sharp(buffer)
-          .avif({ quality: 50 })
-          .toBuffer();
+        const avifBuffer = await sharp(buffer).avif({ quality: 50 }).toBuffer();
 
         // Upload to Cloudinary
         return new Promise((resolve, reject) => {

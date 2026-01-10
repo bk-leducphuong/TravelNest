@@ -31,35 +31,42 @@ const longitudeSchema = Joi.number().min(-180).max(180).messages({
   'number.min': 'Longitude must be between -180 and 180',
   'number.max': 'Longitude must be between -180 and 180',
 });
-
 /**
  * GET /api/home/recent-viewed-hotels
  * Get recent viewed hotels
  */
+
 exports.getRecentViewedHotels = {
   query: Joi.object({
     hotelIds: Joi.alternatives()
       .try(
+        // Case 1: hotelIds is a JSON string
         Joi.string().custom((value, helpers) => {
+          let parsed;
+
           try {
-            const parsed = JSON.parse(value);
-            if (!Array.isArray(parsed)) {
-              return helpers.error('any.custom', {
-                message: 'hotelIds must be a JSON array',
-              });
-            }
-            // Validate each hotel ID
-            const hotelIdSchema = Joi.number().integer().positive();
-            for (const id of parsed) {
-              const { error } = hotelIdSchema.validate(id);
-              if (error) {
-                return helpers.error('any.custom', {
-                  message: `Invalid hotel ID: ${error.message}`,
-                });
-              }
-            }
-            return parsed;
-          }),
+            parsed = JSON.parse(value);
+          } catch {
+            return helpers.error('any.invalid');
+          }
+
+          if (!Array.isArray(parsed)) {
+            return helpers.error('array.base');
+          }
+
+          const { error } = Joi.array()
+            .items(hotelIdSchema)
+            .min(1)
+            .validate(parsed);
+
+          if (error) {
+            return helpers.error('any.invalid');
+          }
+
+          return parsed; // normalized value
+        }),
+
+        // Case 2: hotelIds is already an array
         Joi.array().items(hotelIdSchema).min(1)
       )
       .optional(),

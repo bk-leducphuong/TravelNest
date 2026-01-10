@@ -7,10 +7,10 @@ const initServer = async () => {
   });
 
   // Initialize logger
-  const logger = require('./config/logger.js');
+  const logger = require('./config/logger.config');
 
   // Database connection
-  const sequelize = require('./config/databse.config');
+  const sequelize = require('./config/database.config');
   await sequelize.authenticate();
   require('./models/index.js');
   logger.info('Database connected successfully');

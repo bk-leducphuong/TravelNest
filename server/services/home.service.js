@@ -1,5 +1,5 @@
 const homeRepository = require('../repositories/home.repository');
-const redisClient = require('../config/redis');
+const redisClient = require('../config/redis.config');
 const ApiError = require('../utils/ApiError');
 
 /**
@@ -38,9 +38,7 @@ class HomeService {
 
     // Get hotel information
     const hotels = await homeRepository.findHotelsByIds(hotelIdArray);
-    return hotels.map((hotel) =>
-      hotel.toJSON ? hotel.toJSON() : hotel
-    );
+    return hotels.map((hotel) => (hotel.toJSON ? hotel.toJSON() : hotel));
   }
 
   /**
@@ -73,9 +71,7 @@ class HomeService {
    */
   async getRecentSearches(userId, limit = 10) {
     const searches = await homeRepository.findSearchLogsByUserId(userId, limit);
-    return searches.map((search) =>
-      search.toJSON ? search.toJSON() : search
-    );
+    return searches.map((search) => (search.toJSON ? search.toJSON() : search));
   }
 
   /**
@@ -118,11 +114,9 @@ class HomeService {
     }));
 
     // Store in Redis with 24 hour TTL
-    await redisClient.set(
-      cacheKey,
-      JSON.stringify(popularPlaces),
-      { EX: 60 * 60 * 24 }
-    );
+    await redisClient.set(cacheKey, JSON.stringify(popularPlaces), {
+      EX: 60 * 60 * 24,
+    });
 
     return popularPlaces;
   }
@@ -188,15 +182,15 @@ class HomeService {
    * @returns {Promise<Array>} Array of hotel details
    */
   async getRecentlyViewedHotels(userId, limit = 10) {
-    const viewedHotels = await homeRepository.findRecentlyViewedHotelsWithDetails(
-      userId,
-      limit
-    );
+    const viewedHotels =
+      await homeRepository.findRecentlyViewedHotelsWithDetails(userId, limit);
 
-    return viewedHotels.map((view) => {
-      const hotel = view.hotels || view.Hotel;
-      return hotel ? (hotel.toJSON ? hotel.toJSON() : hotel) : null;
-    }).filter(Boolean);
+    return viewedHotels
+      .map((view) => {
+        const hotel = view.hotels || view.Hotel;
+        return hotel ? (hotel.toJSON ? hotel.toJSON() : hotel) : null;
+      })
+      .filter(Boolean);
   }
 
   /**

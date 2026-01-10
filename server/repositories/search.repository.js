@@ -6,7 +6,7 @@ const {
 } = require('../models/index.js');
 const { Op } = require('sequelize');
 const { Sequelize } = require('sequelize');
-const sequelize = require('../config/db.js');
+const sequelize = require('../config/database.config.js');
 
 /**
  * Search Repository - Contains all database operations for search
@@ -71,10 +71,7 @@ class SearchRepository {
   async getLowestPriceForHotel(hotelId, checkInDate, checkOutDate) {
     const result = await RoomInventories.findOne({
       attributes: [
-        [
-          Sequelize.fn('SUM', Sequelize.col('price_per_night')),
-          'total_price',
-        ],
+        [Sequelize.fn('SUM', Sequelize.col('price_per_night')), 'total_price'],
       ],
       include: [
         {
