@@ -1,0 +1,219 @@
+# RESTFUL API DESIGN RULES (v1.0)
+
+## 1. RESOURCE NAMING
+- Resources MUST be nouns.
+- Resources MUST be plural.
+- Resource names MUST be lowercase.
+- Hyphens MAY be used; underscores MUST NOT be used.
+
+VALID:
+- /users
+- /user-roles
+
+INVALID:
+- /getUsers
+- /create_user
+
+---
+
+## 2. RESOURCE STRUCTURE
+- Root resources MUST be at most 2 levels deep.
+- Relationships MUST be expressed using nesting OR query parameters.
+
+VALID:
+- /users/{id}/roles
+- /users?role=ADMIN
+
+INVALID:
+- /companies/{id}/departments/{id}/teams/{id}/users
+
+---
+
+## 3. HTTP METHOD USAGE
+- GET MUST NOT modify server state.
+- POST MUST create a new resource.
+- PUT MUST fully replace a resource.
+- PATCH MUST partially update a resource.
+- DELETE MUST remove a resource or mark it deleted.
+
+| METHOD | COLLECTION | SINGLE RESOURCE |
+|------|-----------|----------------|
+| GET | List | Retrieve |
+| POST | Create | ❌ |
+| PUT | ❌ | Replace |
+| PATCH | ❌ | Update |
+| DELETE | ❌ | Delete |
+
+---
+
+## 4. HTTP STATUS CODES
+- 200 MUST be returned on successful GET or PATCH.
+- 201 MUST be returned on successful POST.
+- 204 MUST be returned on successful DELETE.
+- 400 MUST be returned for malformed requests.
+- 401 MUST be returned for unauthenticated requests.
+- 403 MUST be returned for unauthorized requests.
+- 404 MUST be returned if resource does not exist.
+- 409 MUST be returned for conflicts.
+- 500 MUST NOT expose internal error details.
+
+---
+
+## 5. REQUEST FORMAT
+- Content-Type MUST be application/json.
+- Accept MUST be application/json.
+- Request bodies MUST be validated using a schema.
+- Unknown fields MUST be rejected.
+
+---
+
+## 6. RESPONSE FORMAT
+- Responses MUST be JSON.
+- Root response MUST NOT include raw arrays.
+- Data MUST be wrapped inside a "data" field.
+
+VALID:
+{
+  "data": {...}
+}
+
+INVALID:
+[
+  {...}
+]
+
+---
+
+## 7. ERROR RESPONSE FORMAT
+- Errors MUST be returned using a single "error" object.
+- Error responses MUST include:
+  - code
+  - message
+- Validation errors MUST include field-level errors.
+
+FORMAT:
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human readable message",
+    "fields": {}
+  }
+}
+
+---
+
+## 8. USER RESOURCE SCHEMA
+- id MUST be a UUID string.
+- email MUST be unique and valid.
+- password MUST NEVER be returned.
+- createdAt and updatedAt MUST be ISO-8601 strings.
+
+---
+
+## 9. PAGINATION
+- Pagination MUST be supported for collection endpoints.
+- Default limit MUST be 20.
+- Maximum limit MUST NOT exceed 100.
+
+FORMAT:
+{
+  "data": [],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 0
+  }
+}
+
+---
+
+## 10. FILTERING & SORTING
+- Filtering MUST use query parameters.
+- Sorting MUST use "sort=field,order".
+- order MUST be "asc" or "desc".
+
+VALID:
+- /users?role=ADMIN&sort=createdAt,desc
+
+---
+
+## 11. VERSIONING
+- API MUST be versioned in URL.
+- Version prefix MUST be "/api/v{number}".
+
+VALID:
+- /api/v1/users
+
+---
+
+## 12. AUTHENTICATION
+- Authentication MUST use Bearer token.
+- Authorization header MUST follow format:
+  Authorization: Bearer <token>
+
+---
+
+## 13. AUTHORIZATION
+- Role-based access control MUST be enforced.
+- Users MUST NOT access resources they do not own unless authorized.
+
+---
+
+## 14. IDEMPOTENCY
+- GET, PUT, DELETE MUST be idempotent.
+- POST SHOULD support Idempotency-Key header.
+
+---
+
+## 15. SECURITY
+- HTTPS MUST be enforced.
+- Input MUST be sanitized.
+- Rate limiting MUST be applied.
+- Stack traces MUST NOT be returned.
+
+---
+
+## 16. SOFT DELETE
+- Resources SHOULD support soft deletion.
+- deletedAt MUST be null or ISO-8601 timestamp.
+- Soft-deleted resources MUST NOT appear in list results.
+
+---
+
+## 17. LOGGING
+- Each request MUST have a correlation ID.
+- Correlation ID header name MUST be "X-Request-Id".
+- Logs MUST include:
+  - method
+  - path
+  - status code
+  - execution time
+  - user id (if available)
+
+---
+
+## 18. DOCUMENTATION
+- OpenAPI specification MUST exist.
+- Every endpoint MUST define:
+  - request schema
+  - response schema
+  - error responses
+
+---
+
+## 19. HEALTH CHECK
+- Service MUST expose:
+  GET /health
+- Health endpoint MUST NOT require authentication.
+
+---
+
+## 20. DEPRECATED BEHAVIOR
+- Verb-based URLs MUST NOT be used.
+- Business actions MUST NOT be exposed as endpoints.
+- Database models MUST NOT be returned directly.
+
+---
+
+## END OF RULES
+

@@ -22,24 +22,24 @@ const initServer = async () => {
   const app = express();
 
   // Allow nginx proxy'
-  app.set("trust proxy", 1);
+  // app.set("trust proxy", 1);
 
   // stripe webhook endpoint
-  const { webhookController } = require("./controllers/webhookController.js"); // inside webhookController I have print "hello 2"
-  app.post(
-    "/stripe/webhook",
-    bodyParser.raw({ type: "application/json" }),
-    webhookController
-  );
+  // const { webhookController } = require("./controllers/webhookController.js"); // inside webhookController I have print "hello 2"
+  // app.post(
+  //   "/stripe/webhook",
+  //   bodyParser.raw({ type: "application/json" }),
+  //   webhookController,
+  // );
 
   app.use(express.static("public"));
   app.use(
     cors({
       origin: process.env.CLIENT_HOST,
-      methods: ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+      methods: ["GET", "POST", "OPTIONS", "PUT", "DELETE", "PATCH"],
       allowedHeaders: ["Content-Type", "Authorization"],
       credentials: true,
-    })
+    }),
   );
   app.use(bodyParser.json({ limit: "50mb" })); // create application/json parser
   app.use(bodyParser.urlencoded({ limit: "50mb", extended: false })); // create application/x-www-form-urlencoded parser
@@ -56,14 +56,14 @@ const initServer = async () => {
         httpOnly: true, // Protects against XSS attacks
         secure: process.env.NODE_ENV === "production", // Set to true if you're using HTTPS
       },
-    })
+    }),
   );
 
   // Khởi tạo passport
-  const passport = require("passport");
-  require("./config/passportConfig.js");
-  app.use(passport.initialize());
-  app.use(passport.session());
+  // const passport = require("passport");
+  // require("./config/passportConfig.js");
+  // app.use(passport.initialize());
+  // app.use(passport.session());
 
   // Socket io
   const http = require("http");
@@ -82,7 +82,7 @@ const initServer = async () => {
   const homeRoutes = require("./routes/homeRoutes");
   const joinRoutes = require("./routes/joinRoutes");
   const paymentRoutes = require("./routes/paymentRoutes.js");
-  const userRoutes = require("./routes/userRoutes.js");
+  const userRoutes = require("./routes/user.routes.js");
   const reviewRoutes = require("./routes/reviewRoutes.js");
   const cancelRoutes = require("./routes/cancelRoutes.js");
   const bookingRoutes = require("./routes/bookingRoutes.js");
