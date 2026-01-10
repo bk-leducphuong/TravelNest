@@ -2,84 +2,49 @@ const bcrypt = require("bcryptjs");
 const sharp = require("sharp");
 const cloudinary = require("../config/cloudinaryConfig");
 const userRepository = require("../repositories/user.repository");
+const ApiError = require("../utils/ApiError");
 
 /**
  * User Service - Contains main business logic
+ * Follows RESTful API standards
  */
 
 class UserService {
   /**
    * Get user information
+   * @param {number} userId - User ID
+   * @returns {Promise<Object>} User information
    */
   async getUserInformation(userId) {
     const user = await userRepository.findById(userId);
     if (!user) {
-      throw new Error("User not found");
+      throw new ApiError(404, "USER_NOT_FOUND", "User not found");
     }
     return user;
   }
 
   /**
-   * Update user name
+   * Update user (partial update)
+   * @param {number} userId - User ID
+   * @param {Object} updateData - Fields to update
+   * @returns {Promise<void>}
    */
-  async updateName(userId, name) {
-    await userRepository.updateById(userId, { full_name: name });
-  }
+  async updateUser(userId, updateData) {
+    // Validate user exists
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw new ApiError(404, "USER_NOT_FOUND", "User not found");
+    }
 
-  /**
-   * Update user display name (username)
-   */
-  async updateDisplayName(userId, displayName) {
-    await userRepository.updateById(userId, { username: displayName });
-  }
+    // If email is being updated, check for uniqueness
+    if (updateData.email) {
+      const existingUser = await userRepository.findByEmail(updateData.email);
+      if (existingUser && existingUser.user_id !== userId) {
+        throw new ApiError(409, "EMAIL_ALREADY_IN_USE", "Email already in use");
+      }
+    }
 
-  /**
-   * Update user email
-   */
-  async updateEmail(userId, email) {
-    await userRepository.updateById(userId, { email });
-  }
-
-  /**
-   * Update user phone number
-   */
-  async updatePhoneNumber(userId, phoneNumber) {
-    await userRepository.updateById(userId, { phone_number: phoneNumber });
-  }
-
-  /**
-   * Update user date of birth
-   */
-  async updateDateOfBirth(userId, dateOfBirth) {
-    await userRepository.updateById(userId, { date_of_birth: dateOfBirth });
-  }
-
-  /**
-   * Update user address
-   */
-  async updateAddress(userId, address) {
-    await userRepository.updateById(userId, { address });
-  }
-
-  /**
-   * Update user nationality
-   */
-  async updateNationality(userId, nationality) {
-    await userRepository.updateById(userId, { nationality });
-  }
-
-  /**
-   * Update user country
-   */
-  async updateCountry(userId, country) {
-    await userRepository.updateById(userId, { country });
-  }
-
-  /**
-   * Update user gender
-   */
-  async updateGender(userId, gender) {
-    await userRepository.updateById(userId, { gender });
+    await userRepository.updateById(userId, updateData);
   }
 
   /**
@@ -90,9 +55,7 @@ class UserService {
    */
   async updateAvatar(userId, fileBuffer) {
     // Compress image to AVIF using sharp
-    const avifBuffer = await sharp(fileBuffer)
-      .avif({ quality: 50 })
-      .toBuffer();
+    const avifBuffer = await sharp(fileBuffer).avif({ quality: 50 }).toBuffer();
 
     // Upload the AVIF image buffer to Cloudinary
     return new Promise((resolve, reject) => {
@@ -104,7 +67,13 @@ class UserService {
           },
           async (error, result) => {
             if (error) {
-              reject(new Error("Failed to upload image to Cloudinary"));
+              reject(
+                new ApiError(
+                  500,
+                  "UPLOAD_FAILED",
+                  "Failed to upload image to Cloudinary",
+                ),
+              );
               return;
             }
 
@@ -114,43 +83,66 @@ class UserService {
             });
 
             resolve(profilePictureUrl);
-          }
+          },
         )
         .end(avifBuffer);
     });
   }
 
   /**
-   * Get favorite hotels with hotel information
+   * Get favorite hotels with pagination
+   * @param {number} userId - User ID
+   * @param {number} page - Page number (default: 1)
+   * @param {number} limit - Items per page (default: 20, max: 100)
+   * @returns {Promise<Object>} Hotels with pagination metadata
    */
-  async getFavoriteHotels(userId) {
-    const favoriteHotels = await userRepository.findFavoriteHotelsByUserId(
-      userId
-    );
+  async getFavoriteHotels(userId, page = 1, limit = 20) {
+    const offset = (page - 1) * limit;
 
+    // Get favorite hotels with pagination
+    const { count, rows: favoriteHotels } =
+      await userRepository.findFavoriteHotelsByUserIdPaginated(
+        userId,
+        limit,
+        offset,
+      );
+
+    // Get hotel information for each favorite
     const hotelsWithInfo = await Promise.all(
       favoriteHotels.map(async (hotel) => {
         const hotelInformation = await userRepository.findHotelById(
-          hotel.hotel_id
+          hotel.hotel_id,
         );
         return {
           ...hotel.toJSON(),
           hotelInformation,
         };
-      })
+      }),
     );
 
-    return hotelsWithInfo;
+    return {
+      hotels: hotelsWithInfo,
+      page,
+      limit,
+      total: count,
+    };
   }
 
   /**
    * Add favorite hotel
+   * @param {number} userId - User ID
+   * @param {number} hotelId - Hotel ID
+   * @returns {Promise<void>}
    */
   async addFavoriteHotel(userId, hotelId) {
     // Check if hotel is already saved
     const hotelIsSaved = await userRepository.findSavedHotel(userId, hotelId);
     if (hotelIsSaved) {
-      return; // Already saved, no need to add again
+      throw new ApiError(
+        409,
+        "HOTEL_ALREADY_FAVORITE",
+        "Hotel already in favorites",
+      );
     }
 
     await userRepository.createSavedHotel(userId, hotelId);
@@ -158,6 +150,9 @@ class UserService {
 
   /**
    * Remove favorite hotel
+   * @param {number} userId - User ID
+   * @param {number} hotelId - Hotel ID
+   * @returns {Promise<void>}
    */
   async removeFavoriteHotel(userId, hotelId) {
     await userRepository.deleteSavedHotel(userId, hotelId);
@@ -165,6 +160,9 @@ class UserService {
 
   /**
    * Check if hotel is favorite
+   * @param {number} userId - User ID
+   * @param {number} hotelId - Hotel ID
+   * @returns {Promise<boolean>}
    */
   async checkFavoriteHotel(userId, hotelId) {
     const savedHotel = await userRepository.findSavedHotel(userId, hotelId);
@@ -173,18 +171,22 @@ class UserService {
 
   /**
    * Reset user password
+   * @param {number} userId - User ID
+   * @param {string} oldPassword - Current password
+   * @param {string} newPassword - New password
+   * @returns {Promise<void>}
    */
   async resetPassword(userId, oldPassword, newPassword) {
     // Get user with password hash
     const user = await userRepository.findByIdWithPassword(userId);
     if (!user) {
-      throw new Error("User not found");
+      throw new ApiError(404, "USER_NOT_FOUND", "User not found");
     }
 
     // Verify old password
     const isMatch = await bcrypt.compare(oldPassword, user.password_hash);
     if (!isMatch) {
-      throw new Error("Old password is incorrect");
+      throw new ApiError(401, "INVALID_PASSWORD", "Old password is incorrect");
     }
 
     // Hash new password

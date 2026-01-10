@@ -40,6 +40,16 @@ class UserRepository {
   }
 
   /**
+   * Find user by email
+   */
+  async findByEmail(email) {
+    return await Users.findOne({
+      where: { email },
+      attributes: ["user_id", "email"],
+    });
+  }
+
+  /**
    * Update user field by ID
    */
   async updateById(userId, updateData) {
@@ -55,6 +65,18 @@ class UserRepository {
     return await SavedHotels.findAll({
       where: { user_id: userId },
       attributes: ["hotel_id"],
+    });
+  }
+
+  /**
+   * Find favorite hotels for a user with pagination
+   */
+  async findFavoriteHotelsByUserIdPaginated(userId, limit, offset) {
+    return await SavedHotels.findAndCountAll({
+      where: { user_id: userId },
+      attributes: ["hotel_id"],
+      limit,
+      offset,
     });
   }
 

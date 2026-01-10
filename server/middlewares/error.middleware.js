@@ -18,12 +18,18 @@ module.exports = (err, req, res, next) => {
     err.message,
   );
 
-  res.status(apiError.statusCode).json({
-    success: false,
+  // Format error response per RESTful standards
+  const errorResponse = {
     error: {
       code: apiError.code,
       message: apiError.message,
-      details: apiError.details,
     },
-  });
+  };
+
+  // Add fields if it's a validation error (details contains field-level errors)
+  if (apiError.details && Object.keys(apiError.details).length > 0) {
+    errorResponse.error.fields = apiError.details;
+  }
+
+  res.status(apiError.statusCode).json(errorResponse);
 };
