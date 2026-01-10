@@ -89,7 +89,7 @@ const initServer = async () => {
   const userRoutes = require('./routes/user.routes.js');
   const reviewRoutes = require('./routes/review.routes.js');
   // const cancelRoutes = require('./routes/cancelRoutes.js');
-  // const bookingRoutes = require('./routes/bookingRoutes.js');
+  const bookingRoutes = require('./routes/booking.routes.js');
   const userNotificationRoutes = require('./routes/notification.routes.js');
 
   app.use('/api/search', searchRoutes);
@@ -101,7 +101,7 @@ const initServer = async () => {
   // app.use('/api/cancel-bookings', cancelRoutes);
   app.use('/api/user', userRoutes);
   app.use('/api/reviews', reviewRoutes);
-  // app.use('/api/booking', bookingRoutes);
+  app.use('/api/bookings', bookingRoutes);
   app.use('/api/notifications', userNotificationRoutes);
 
   // Admin routes
