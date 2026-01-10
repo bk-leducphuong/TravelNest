@@ -1,7 +1,7 @@
-const authService = require('../services/auth.service');
-const logger = require('../config/logger');
-const asyncHandler = require('../utils/asyncHandler');
 const passport = require('passport');
+const authService = require('../services/auth.service');
+const logger = require('../config/logger.config');
+const asyncHandler = require('../utils/asyncHandler');
 const validate = require('../middlewares/validate.middleware');
 
 /**

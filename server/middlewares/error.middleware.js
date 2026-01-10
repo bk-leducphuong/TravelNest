@@ -1,5 +1,5 @@
 const ApiError = require('../utils/ApiError');
-const logger = require('../config/logger');
+const logger = require('../config/logger.config');
 
 module.exports = (err, req, res, next) => {
   let apiError = err;

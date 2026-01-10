@@ -10,7 +10,7 @@ const initServer = async () => {
   const logger = require('./config/logger.js');
 
   // Database connection
-  const sequelize = require('./config/db.js');
+  const sequelize = require('./config/databse.config');
   await sequelize.authenticate();
   require('./models/index.js');
   logger.info('Database connected successfully');
@@ -18,7 +18,7 @@ const initServer = async () => {
   const express = require('express');
   const cors = require('cors');
   const RedisStore = require('connect-redis').default;
-  const redisClient = require('./config/redis'); // connect to redis cloud
+  const redisClient = require('./config/redis.config'); // connect to redis cloud
   const session = require('express-session');
   const bodyParser = require('body-parser');
   const errorMiddleware = require('./middlewares/error.middleware.js');
@@ -65,18 +65,18 @@ const initServer = async () => {
 
   // Khởi tạo passport
   // const passport = require("passport");
-  // require("./config/passportConfig.js");
+  // require("./config/passport.config");
   // app.use(passport.initialize());
   // app.use(passport.session());
 
   // Socket io
   const http = require('http');
-  const { init } = require('./config/socket.js'); // Import socket config
+  const { init } = require('./config/socket.config'); // Import socket config
   const server = http.createServer(app);
   init(server);
 
   // Rate limiter
-  const limiter = require('./middlewares/rateLimiter.js');
+  const limiter = require('./middlewares/rate-limitter.middleware');
   app.use(limiter);
 
   // User Routes
@@ -88,7 +88,6 @@ const initServer = async () => {
   const paymentRoutes = require('./routes/payment.routes.js');
   const userRoutes = require('./routes/user.routes.js');
   const reviewRoutes = require('./routes/review.routes.js');
-  // const cancelRoutes = require('./routes/cancelRoutes.js');
   const bookingRoutes = require('./routes/booking.routes.js');
   const userNotificationRoutes = require('./routes/notification.routes.js');
 
@@ -98,30 +97,29 @@ const initServer = async () => {
   app.use('/api/auth', authRoutes); // Login route
   app.use('/api/join', joinRoutes); // Become a partner route
   app.use('/api/payments', paymentRoutes);
-  // app.use('/api/cancel-bookings', cancelRoutes);
   app.use('/api/user', userRoutes);
   app.use('/api/reviews', reviewRoutes);
   app.use('/api/bookings', bookingRoutes);
   app.use('/api/notifications', userNotificationRoutes);
 
   // Admin routes
-  const adminPayoutRoutes = require('./routes/admin/payoutRoutes.js');
-  const bookingsRoutes = require('./routes/admin/bookingsRoutes.js');
-  const hotelsManagementRoutes = require('./routes/admin/hotelsManagementRoutes.js');
-  const roomRoutes = require('./routes/admin/roomRoutes.js');
-  const adminReviewRoutes = require('./routes/admin/reviewRoutes.js');
-  const adminCancelRoutes = require('./routes/admin/cancelRoutes.js');
-  const adminNotificationRoutes = require('./routes/admin/notificationRoutes.js');
-  const adminHomeRoutes = require('./routes/admin/homeRoutes.js');
-
-  app.use('/api/admin/home', adminHomeRoutes);
-  app.use('/api/admin/notifications', adminNotificationRoutes);
-  app.use('/api/admin/hotels-management', hotelsManagementRoutes);
-  app.use('/api/admin/payout', adminPayoutRoutes);
-  app.use('/api/admin/bookings', bookingsRoutes);
-  app.use('/api/admin/room', roomRoutes);
-  app.use('/api/admin/review', adminReviewRoutes);
-  app.use('/api/admin/cancel-booking', adminCancelRoutes);
+  // const adminPayoutRoutes = require('./routes/admin/payoutRoutes.js');
+  // const bookingsRoutes = require('./routes/admin/bookingsRoutes.js');
+  // const hotelsManagementRoutes = require('./routes/admin/hotelsManagementRoutes.js');
+  // const roomRoutes = require('./routes/admin/roomRoutes.js');
+  // const adminReviewRoutes = require('./routes/admin/reviewRoutes.js');
+  // const adminCancelRoutes = require('./routes/admin/cancelRoutes.js');
+  // const adminNotificationRoutes = require('./routes/admin/notificationRoutes.js');
+  // const adminHomeRoutes = require('./routes/admin/homeRoutes.js');
+  //
+  // app.use('/api/admin/home', adminHomeRoutes);
+  // app.use('/api/admin/notifications', adminNotificationRoutes);
+  // app.use('/api/admin/hotels-management', hotelsManagementRoutes);
+  // app.use('/api/admin/payout', adminPayoutRoutes);
+  // app.use('/api/admin/bookings', bookingsRoutes);
+  // app.use('/api/admin/room', roomRoutes);
+  // app.use('/api/admin/review', adminReviewRoutes);
+  // app.use('/api/admin/cancel-booking', adminCancelRoutes);
 
   app.use(errorMiddleware);
 

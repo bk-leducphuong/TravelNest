@@ -15,7 +15,7 @@ const {
   getAllRoomAmenities,
   updateRoomAmenities,
 } = require('../../controllers/admin/roomsController');
-const upload = require('../../config/multer');
+const upload = require('../../config/multer.config');
 const { isAdminAuthenticated } = require('../../middlewares/sessionAuth');
 
 router.use(isAdminAuthenticated);

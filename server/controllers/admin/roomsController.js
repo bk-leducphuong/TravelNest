@@ -1,5 +1,5 @@
 const sharp = require('sharp');
-const cloudinary = require('../../config/cloudinaryConfig');
+const cloudinary = require('../../config/cloudinary.config');
 
 const { getModels } = require('../../models/init-models.js');
 const { Rooms, RoomInventories, Hotels } = getModels();

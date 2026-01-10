@@ -1,5 +1,5 @@
 const hotelService = require('../services/hotel.service');
-const logger = require('../config/logger');
+const logger = require('../config/logger.config');
 const asyncHandler = require('../utils/asyncHandler');
 
 /**
@@ -100,8 +100,8 @@ const checkRoomAvailability = asyncHandler(async (req, res) => {
   const parsedSelectedRooms = Array.isArray(selectedRooms)
     ? selectedRooms
     : typeof selectedRooms === 'string'
-    ? JSON.parse(selectedRooms)
-    : selectedRooms;
+      ? JSON.parse(selectedRooms)
+      : selectedRooms;
 
   const isAvailable = await hotelService.checkRoomAvailability(
     parseInt(hotelId, 10),

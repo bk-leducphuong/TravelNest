@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const sharp = require('sharp');
-const cloudinary = require('../config/cloudinaryConfig');
+const cloudinary = require('../config/cloudinary.config');
 const userRepository = require('../repositories/user.repository');
 const ApiError = require('../utils/ApiError');
 

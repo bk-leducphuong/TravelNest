@@ -4,7 +4,7 @@ const {
   uploadPhotos,
 } = require('../controllers/join.controller.js');
 const { isAdminAuthenticated } = require('../middlewares/auth.middleware');
-const upload = require('../config/multer');
+const upload = require('../config/multer.config');
 const validate = require('../middlewares/validate.middleware');
 const joinSchema = require('../validators/join.schema');
 const router = express.Router();

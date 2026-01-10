@@ -1,5 +1,5 @@
 const reviewService = require('../services/review.service');
-const logger = require('../config/logger');
+const logger = require('../config/logger.config');
 const asyncHandler = require('../utils/asyncHandler');
 
 /**
@@ -29,13 +29,10 @@ const getHotelReviews = asyncHandler(async (req, res) => {
   const { hotelId } = req.params;
   const { page, limit } = req.query;
 
-  const result = await reviewService.getHotelReviews(
-    parseInt(hotelId, 10),
-    {
-      page: page ? parseInt(page, 10) : 1,
-      limit: limit ? parseInt(limit, 10) : 20,
-    }
-  );
+  const result = await reviewService.getHotelReviews(parseInt(hotelId, 10), {
+    page: page ? parseInt(page, 10) : 1,
+    limit: limit ? parseInt(limit, 10) : 20,
+  });
 
   res.status(200).json({
     data: result.reviews,

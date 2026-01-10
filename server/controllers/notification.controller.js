@@ -1,5 +1,5 @@
 const notificationService = require('../services/notification.service');
-const logger = require('../config/logger');
+const logger = require('../config/logger.config');
 const asyncHandler = require('../utils/asyncHandler');
 
 /**
@@ -58,9 +58,8 @@ const markNotificationAsRead = asyncHandler(async (req, res) => {
 const markAllNotificationsAsRead = asyncHandler(async (req, res) => {
   const userId = req.session.user.user_id;
 
-  const updatedCount = await notificationService.markAllNotificationsAsRead(
-    userId
-  );
+  const updatedCount =
+    await notificationService.markAllNotificationsAsRead(userId);
 
   res.status(200).json({
     data: {

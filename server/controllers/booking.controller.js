@@ -1,5 +1,5 @@
 const bookingService = require('../services/booking.service');
-const logger = require('../config/logger');
+const logger = require('../config/logger.config');
 const asyncHandler = require('../utils/asyncHandler');
 
 /**

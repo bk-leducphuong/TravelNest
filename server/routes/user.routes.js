@@ -10,7 +10,7 @@ const {
   removeFavoriteHotel,
   checkFavoriteHotel,
 } = require('../controllers/user.controller.js');
-const upload = require('../config/multer');
+const upload = require('../config/multer.config');
 const validate = require('../middlewares/validate.middleware');
 const userSchema = require('../validators/user.schema');
 const router = express.Router();
