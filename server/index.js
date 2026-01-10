@@ -6,11 +6,15 @@ const initServer = async () => {
         : ".env.production",
   });
 
+  // Initialize logger
+  const logger = require("./config/logger.js");
+
   // Database connection
   const sequelize = require("./config/db.js");
   const { initialize } = require("./models/init-models.js");
   await sequelize.authenticate();
   await initialize(sequelize);
+  logger.info("Database connected successfully");
 
   const express = require("express");
   const cors = require("cors");
@@ -18,6 +22,7 @@ const initServer = async () => {
   const redisClient = require("./config/redis"); // connect to redis cloud
   const session = require("express-session");
   const bodyParser = require("body-parser");
+  const errorMiddleware = require("./middlewares/error.middleware.js");
 
   const app = express();
 
@@ -119,6 +124,8 @@ const initServer = async () => {
   app.use("/api/admin/review", adminReviewRoutes);
   app.use("/api/admin/cancel-booking", adminCancelRoutes);
 
+  app.use(errorMiddleware);
+
   // Default route
   app.get("/", (req, res) => {
     res.send("Welcome to the Hotel Booking API");
@@ -127,7 +134,7 @@ const initServer = async () => {
   // Start the server
   const PORT = process.env.PORT || 3000;
   server.listen(PORT, async () => {
-    console.log(`Server running on port ${PORT}`);
+    logger.info(`Server running on port ${PORT}`);
   });
 };
 
