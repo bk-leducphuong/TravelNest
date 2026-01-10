@@ -87,7 +87,7 @@ const initServer = async () => {
   // const joinRoutes = require('./routes/joinRoutes');
   // const paymentRoutes = require('./routes/paymentRoutes.js');
   const userRoutes = require('./routes/user.routes.js');
-  // const reviewRoutes = require('./routes/reviewRoutes.js');
+  const reviewRoutes = require('./routes/review.routes.js');
   // const cancelRoutes = require('./routes/cancelRoutes.js');
   // const bookingRoutes = require('./routes/bookingRoutes.js');
   const userNotificationRoutes = require('./routes/notification.routes.js');
@@ -100,7 +100,7 @@ const initServer = async () => {
   // app.use('/api/payment', paymentRoutes);
   // app.use('/api/cancel-bookings', cancelRoutes);
   app.use('/api/user', userRoutes);
-  // app.use('/api/review', reviewRoutes);
+  app.use('/api/reviews', reviewRoutes);
   // app.use('/api/booking', bookingRoutes);
   app.use('/api/notifications', userNotificationRoutes);
 
