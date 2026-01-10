@@ -1,5 +1,6 @@
+const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
+  const RoomInventory = sequelize.define(
     'room_inventory',
     {
       room_id: {
@@ -44,4 +45,12 @@ module.exports = function (sequelize, DataTypes) {
       ],
     }
   );
+
+  RoomInventory.associate = function (models) {
+    RoomInventory.belongsTo(models.rooms, {
+      foreignKey: 'room_id',
+    });
+  };
+
+  return RoomInventory;
 };

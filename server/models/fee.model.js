@@ -1,61 +1,61 @@
 const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
-    'user_notifications',
+  const Fee = sequelize.define(
+    'fees',
     {
-      notification_id: {
+      fee_id: {
         autoIncrement: true,
         type: DataTypes.INTEGER,
         allowNull: false,
         primaryKey: true,
       },
-      sender_id: {
+      transaction_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+          model: 'transactions',
+          key: 'transaction_id',
+        },
       },
-      notification_type: {
-        type: DataTypes.STRING(50),
-        allowNull: true,
+      amount: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
       },
-      message: {
-        type: DataTypes.TEXT,
-        allowNull: true,
+      percentage: {
+        type: DataTypes.DECIMAL(5, 2),
+        allowNull: false,
       },
       created_at: {
         type: DataTypes.DATE,
         allowNull: true,
         defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
       },
-      is_read: {
-        type: DataTypes.BOOLEAN,
-        allowNull: true,
-      },
-      reciever_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'users',
-          key: 'user_id',
-        },
-      },
     },
     {
       sequelize,
-      tableName: 'user_notifications',
+      tableName: 'fees',
       timestamps: false,
       indexes: [
         {
           name: 'PRIMARY',
           unique: true,
           using: 'BTREE',
-          fields: [{ name: 'notification_id' }],
+          fields: [{ name: 'fee_id' }],
         },
         {
-          name: 'reciever_id',
+          name: 'transaction_id',
           using: 'BTREE',
-          fields: [{ name: 'reciever_id' }],
+          fields: [{ name: 'transaction_id' }],
         },
       ],
     }
   );
+
+  Fee.associate = function (models) {
+    Fee.belongsTo(models.transactions, {
+      foreignKey: 'transaction_id',
+    });
+  };
+
+  return Fee;
 };

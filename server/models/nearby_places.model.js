@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
+  const NearbyPlace = sequelize.define(
     'nearby_places',
     {
       place_id: {
@@ -49,4 +49,12 @@ module.exports = function (sequelize, DataTypes) {
       ],
     }
   );
+
+  NearbyPlace.associate = function (models) {
+    NearbyPlace.belongsTo(models.hotels, {
+      foreignKey: 'hotel_id',
+    });
+  };
+
+  return NearbyPlace;
 };

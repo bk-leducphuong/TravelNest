@@ -101,5 +101,32 @@ module.exports = function (sequelize, DataTypes) {
     }
   );
 
+  User.associate = function (models) {
+    User.hasMany(models.bookings, {
+      foreignKey: 'buyer_id',
+    });
+    User.hasMany(models.hotels, {
+      foreignKey: 'owner_id',
+    });
+    User.hasMany(models.notifications, {
+      foreignKey: 'sender_id',
+    });
+    User.hasMany(models.refunds, {
+      foreignKey: 'buyer_id',
+    });
+    User.hasMany(models.reviews, {
+      foreignKey: 'user_id',
+    });
+    User.hasMany(models.saved_hotels, {
+      foreignKey: 'user_id',
+    });
+    User.hasMany(models.user_notifications, {
+      foreignKey: 'reciever_id',
+    });
+    User.hasMany(models.viewed_hotels, {
+      foreignKey: 'user_id',
+    });
+  };
+
   return User;
 };

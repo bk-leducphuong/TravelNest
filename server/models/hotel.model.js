@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
+  const Hotel = sequelize.define(
     'hotels',
     {
       hotel_id: {
@@ -105,4 +105,42 @@ module.exports = function (sequelize, DataTypes) {
       ],
     }
   );
+
+  Hotel.associate = function (models) {
+    Hotel.belongsTo(models.users, {
+      foreignKey: 'owner_id',
+    });
+    Hotel.hasMany(models.bookings, {
+      foreignKey: 'hotel_id',
+    });
+    Hotel.hasMany(models.invoices, {
+      foreignKey: 'hotel_id',
+    });
+    Hotel.hasMany(models.nearby_places, {
+      foreignKey: 'hotel_id',
+    });
+    Hotel.hasMany(models.notifications, {
+      foreignKey: 'reciever_id',
+    });
+    Hotel.hasMany(models.refunds, {
+      foreignKey: 'hotel_id',
+    });
+    Hotel.hasMany(models.reviews, {
+      foreignKey: 'hotel_id',
+    });
+    Hotel.hasMany(models.rooms, {
+      foreignKey: 'hotel_id',
+    });
+    Hotel.hasMany(models.saved_hotels, {
+      foreignKey: 'hotel_id',
+    });
+    Hotel.hasMany(models.transactions, {
+      foreignKey: 'hotel_id',
+    });
+    Hotel.hasMany(models.viewed_hotels, {
+      foreignKey: 'hotel_id',
+    });
+  };
+
+  return Hotel;
 };

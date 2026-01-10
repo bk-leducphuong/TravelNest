@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
+  const SavedHotel = sequelize.define(
     'saved_hotels',
     {
       id: {
@@ -56,4 +56,15 @@ module.exports = function (sequelize, DataTypes) {
       ],
     }
   );
+
+  SavedHotel.associate = function (models) {
+    SavedHotel.belongsTo(models.users, {
+      foreignKey: 'user_id',
+    });
+    SavedHotel.belongsTo(models.hotels, {
+      foreignKey: 'hotel_id',
+    });
+  };
+
+  return SavedHotel;
 };

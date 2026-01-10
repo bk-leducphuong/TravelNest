@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
+  const Refund = sequelize.define(
     'refunds',
     {
       refund_id: {
@@ -80,4 +80,18 @@ module.exports = function (sequelize, DataTypes) {
       ],
     }
   );
+
+  Refund.associate = function (models) {
+    Refund.belongsTo(models.transactions, {
+      foreignKey: 'transaction_id',
+    });
+    Refund.belongsTo(models.users, {
+      foreignKey: 'buyer_id',
+    });
+    Refund.belongsTo(models.hotels, {
+      foreignKey: 'hotel_id',
+    });
+  };
+
+  return Refund;
 };

@@ -82,7 +82,7 @@ const initServer = async () => {
 
   // User Routes
   const searchRoutes = require('./routes/searchRoutes');
-  const hotelRoutes = require('./routes/hotelRoutes');
+  const hotelRoutes = require('./routes/hotel.routes.js');
   const authRoutes = require('./routes/auth.routes');
   const homeRoutes = require('./routes/homeRoutes');
   const joinRoutes = require('./routes/joinRoutes');

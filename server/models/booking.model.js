@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
+  const Booking = sequelize.define(
     'bookings',
     {
       booking_id: {
@@ -107,4 +107,21 @@ module.exports = function (sequelize, DataTypes) {
       ],
     }
   );
+
+  Booking.associate = function (models) {
+    Booking.belongsTo(models.users, {
+      foreignKey: 'buyer_id',
+    });
+    Booking.belongsTo(models.hotels, {
+      foreignKey: 'hotel_id',
+    });
+    Booking.belongsTo(models.rooms, {
+      foreignKey: 'room_id',
+    });
+    Booking.hasMany(models.reviews, {
+      foreignKey: 'booking_id',
+    });
+  };
+
+  return Booking;
 };

@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
+  const SearchLog = sequelize.define(
     'search_logs',
     {
       search_id: {
@@ -61,4 +61,11 @@ module.exports = function (sequelize, DataTypes) {
       ],
     }
   );
+
+  // SearchLog has no foreign key relationships based on init-models.js
+  SearchLog.associate = function (models) {
+    // No associations defined
+  };
+
+  return SearchLog;
 };

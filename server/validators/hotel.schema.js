@@ -1,0 +1,227 @@
+const Joi = require('joi');
+const { pagination } = require('./common.schema');
+
+/**
+ * Hotel validation schemas
+ * Following RESTful API standards
+ */
+
+// Common validations
+const hotelIdSchema = Joi.number().integer().positive().required().messages({
+  'number.base': 'hotelId must be a number',
+  'number.integer': 'hotelId must be an integer',
+  'number.positive': 'hotelId must be a positive number',
+  'any.required': 'hotelId is required',
+});
+
+const dateSchema = Joi.string()
+  .isoDate()
+  .messages({
+    'string.isoDate': 'Date must be in ISO 8601 format (YYYY-MM-DD)',
+  });
+
+const positiveIntegerSchema = Joi.number().integer().positive().messages({
+  'number.base': 'Must be a number',
+  'number.integer': 'Must be an integer',
+  'number.positive': 'Must be a positive number',
+});
+
+/**
+ * GET /api/hotels/:hotelId
+ * Get hotel details with optional search parameters
+ */
+exports.getHotelDetails = {
+  params: Joi.object({
+    hotelId: hotelIdSchema,
+  }).required(),
+  query: Joi.object({
+    checkInDate: dateSchema,
+    checkOutDate: dateSchema,
+    numberOfDays: positiveIntegerSchema,
+    numberOfRooms: positiveIntegerSchema,
+    numberOfGuests: positiveIntegerSchema,
+  }).custom((value, helpers) => {
+    // If any date-related fields are provided, all date fields should be provided
+    const hasDateFields =
+      value.checkInDate || value.checkOutDate || value.numberOfDays;
+    if (hasDateFields) {
+      if (!value.checkInDate || !value.checkOutDate || !value.numberOfDays) {
+        return helpers.error('any.custom', {
+          message:
+            'If date search is used, checkInDate, checkOutDate, and numberOfDays are all required',
+        });
+      }
+      // Validate that checkOutDate is after checkInDate
+      const checkIn = new Date(value.checkInDate);
+      const checkOut = new Date(value.checkOutDate);
+      if (checkOut <= checkIn) {
+        return helpers.error('any.custom', {
+          message: 'checkOutDate must be after checkInDate',
+        });
+      }
+      // Validate that numberOfDays matches the date range
+      const daysDiff = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+      if (parseInt(value.numberOfDays, 10) !== daysDiff) {
+        return helpers.error('any.custom', {
+          message:
+            'numberOfDays must match the difference between checkInDate and checkOutDate',
+        });
+      }
+    }
+    return value;
+  }),
+};
+
+/**
+ * GET /api/hotels/:hotelId/rooms
+ * Search available rooms for a hotel
+ */
+exports.searchRooms = {
+  params: Joi.object({
+    hotelId: hotelIdSchema,
+  }).required(),
+  query: Joi.object({
+    checkInDate: dateSchema.required().messages({
+      'any.required': 'checkInDate is required',
+    }),
+    checkOutDate: dateSchema.required().messages({
+      'any.required': 'checkOutDate is required',
+    }),
+    numberOfDays: positiveIntegerSchema.required().messages({
+      'any.required': 'numberOfDays is required',
+    }),
+    numberOfRooms: positiveIntegerSchema.default(1),
+    numberOfGuests: positiveIntegerSchema,
+    ...pagination,
+  })
+    .required()
+    .custom((value, helpers) => {
+      // Validate that checkOutDate is after checkInDate
+      const checkIn = new Date(value.checkInDate);
+      const checkOut = new Date(value.checkOutDate);
+      if (checkOut <= checkIn) {
+        return helpers.error('any.custom', {
+          message: 'checkOutDate must be after checkInDate',
+        });
+      }
+      // Validate that numberOfDays matches the date range
+      const daysDiff = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+      if (parseInt(value.numberOfDays, 10) !== daysDiff) {
+        return helpers.error('any.custom', {
+          message:
+            'numberOfDays must match the difference between checkInDate and checkOutDate',
+        });
+      }
+      return value;
+    }),
+};
+
+/**
+ * GET /api/hotels/:hotelId/rooms/availability
+ * Check room availability for specific rooms
+ */
+exports.checkRoomAvailability = {
+  params: Joi.object({
+    hotelId: hotelIdSchema,
+  }).required(),
+  query: Joi.object({
+    checkInDate: dateSchema.required().messages({
+      'any.required': 'checkInDate is required',
+    }),
+    checkOutDate: dateSchema.required().messages({
+      'any.required': 'checkOutDate is required',
+    }),
+    numberOfDays: positiveIntegerSchema.required().messages({
+      'any.required': 'numberOfDays is required',
+    }),
+    numberOfGuests: positiveIntegerSchema,
+    selectedRooms: Joi.alternatives()
+      .try(
+        Joi.string()
+          .custom((value, helpers) => {
+            try {
+              const parsed = JSON.parse(value);
+              if (!Array.isArray(parsed)) {
+                return helpers.error('any.custom', {
+                  message: 'selectedRooms must be a JSON array',
+                });
+              }
+              if (parsed.length === 0) {
+                return helpers.error('any.custom', {
+                  message: 'At least one room must be selected',
+                });
+              }
+              // Validate each room object
+              const roomSchema = Joi.object({
+                room_id: Joi.number().integer().positive().required(),
+                roomQuantity: Joi.number().integer().positive().required(),
+              });
+              for (const room of parsed) {
+                const { error } = roomSchema.validate(room);
+                if (error) {
+                  return helpers.error('any.custom', {
+                    message: `Invalid room object: ${error.message}`,
+                  });
+                }
+              }
+              return parsed;
+            } catch (e) {
+              return helpers.error('any.custom', {
+                message: 'selectedRooms must be a valid JSON array',
+              });
+            }
+          }),
+        Joi.array()
+          .items(
+            Joi.object({
+              room_id: Joi.number().integer().positive().required().messages({
+                'number.base': 'room_id must be a number',
+                'number.integer': 'room_id must be an integer',
+                'number.positive': 'room_id must be a positive number',
+                'any.required': 'room_id is required',
+              }),
+              roomQuantity: Joi.number()
+                .integer()
+                .positive()
+                .required()
+                .messages({
+                  'number.base': 'roomQuantity must be a number',
+                  'number.integer': 'roomQuantity must be an integer',
+                  'number.positive': 'roomQuantity must be a positive number',
+                  'any.required': 'roomQuantity is required',
+                }),
+            })
+          )
+          .min(1)
+          .required()
+          .messages({
+            'array.min': 'At least one room must be selected',
+            'any.required': 'selectedRooms is required',
+          })
+      )
+      .required()
+      .messages({
+        'any.required': 'selectedRooms is required',
+      }),
+  })
+    .required()
+    .custom((value, helpers) => {
+      // Validate that checkOutDate is after checkInDate
+      const checkIn = new Date(value.checkInDate);
+      const checkOut = new Date(value.checkOutDate);
+      if (checkOut <= checkIn) {
+        return helpers.error('any.custom', {
+          message: 'checkOutDate must be after checkInDate',
+        });
+      }
+      // Validate that numberOfDays matches the date range
+      const daysDiff = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+      if (parseInt(value.numberOfDays, 10) !== daysDiff) {
+        return helpers.error('any.custom', {
+          message:
+            'numberOfDays must match the difference between checkInDate and checkOutDate',
+        });
+      }
+      return value;
+    }),
+};

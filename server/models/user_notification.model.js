@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
-    'notifications',
+  const UserNotification = sequelize.define(
+    'user_notifications',
     {
       notification_id: {
         autoIncrement: true,
@@ -12,10 +12,6 @@ module.exports = function (sequelize, DataTypes) {
       sender_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: {
-          model: 'users',
-          key: 'user_id',
-        },
       },
       notification_type: {
         type: DataTypes.STRING(50),
@@ -23,7 +19,7 @@ module.exports = function (sequelize, DataTypes) {
       },
       message: {
         type: DataTypes.TEXT,
-        allowNull: false,
+        allowNull: true,
       },
       created_at: {
         type: DataTypes.DATE,
@@ -38,14 +34,14 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-          model: 'hotels',
-          key: 'hotel_id',
+          model: 'users',
+          key: 'user_id',
         },
       },
     },
     {
       sequelize,
-      tableName: 'notifications',
+      tableName: 'user_notifications',
       timestamps: false,
       indexes: [
         {
@@ -55,16 +51,22 @@ module.exports = function (sequelize, DataTypes) {
           fields: [{ name: 'notification_id' }],
         },
         {
-          name: 'notifications_ibfk_1_idx',
+          name: 'reciever_id',
           using: 'BTREE',
           fields: [{ name: 'reciever_id' }],
-        },
-        {
-          name: 'sender_id_idx',
-          using: 'BTREE',
-          fields: [{ name: 'sender_id' }],
         },
       ],
     }
   );
+
+  UserNotification.associate = function (models) {
+    UserNotification.belongsTo(models.users, {
+      foreignKey: 'sender_id',
+    });
+    UserNotification.belongsTo(models.users, {
+      foreignKey: 'reciever_id',
+    });
+  };
+
+  return UserNotification;
 };

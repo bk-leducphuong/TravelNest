@@ -1,9 +1,9 @@
 const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
-    'fees',
+  const Payment = sequelize.define(
+    'payments',
     {
-      fee_id: {
+      payment_id: {
         autoIncrement: true,
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -17,15 +17,27 @@ module.exports = function (sequelize, DataTypes) {
           key: 'transaction_id',
         },
       },
+      payment_method: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+      },
+      payment_status: {
+        type: DataTypes.ENUM('pending', 'success', 'failed'),
+        allowNull: false,
+      },
       amount: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
       },
-      percentage: {
-        type: DataTypes.DECIMAL(5, 2),
+      currency: {
+        type: DataTypes.STRING(10),
         allowNull: false,
       },
-      created_at: {
+      paid_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      updated_at: {
         type: DataTypes.DATE,
         allowNull: true,
         defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
@@ -33,14 +45,14 @@ module.exports = function (sequelize, DataTypes) {
     },
     {
       sequelize,
-      tableName: 'fees',
+      tableName: 'payments',
       timestamps: false,
       indexes: [
         {
           name: 'PRIMARY',
           unique: true,
           using: 'BTREE',
-          fields: [{ name: 'fee_id' }],
+          fields: [{ name: 'payment_id' }],
         },
         {
           name: 'transaction_id',
@@ -50,4 +62,12 @@ module.exports = function (sequelize, DataTypes) {
       ],
     }
   );
+
+  Payment.associate = function (models) {
+    Payment.belongsTo(models.transactions, {
+      foreignKey: 'transaction_id',
+    });
+  };
+
+  return Payment;
 };

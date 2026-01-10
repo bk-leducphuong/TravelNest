@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
+  const ReviewCriteria = sequelize.define(
     'review_criterias',
     {
       review_score_id: {
@@ -45,4 +45,12 @@ module.exports = function (sequelize, DataTypes) {
       ],
     }
   );
+
+  ReviewCriteria.associate = function (models) {
+    ReviewCriteria.belongsTo(models.reviews, {
+      foreignKey: 'review_id',
+    });
+  };
+
+  return ReviewCriteria;
 };

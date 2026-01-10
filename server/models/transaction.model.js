@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
+  const Transaction = sequelize.define(
     'transactions',
     {
       transaction_id: {
@@ -84,4 +84,27 @@ module.exports = function (sequelize, DataTypes) {
       ],
     }
   );
+
+  Transaction.associate = function (models) {
+    Transaction.belongsTo(models.hotels, {
+      foreignKey: 'hotel_id',
+    });
+    Transaction.belongsTo(models.users, {
+      foreignKey: 'buyer_id',
+    });
+    Transaction.hasMany(models.fees, {
+      foreignKey: 'transaction_id',
+    });
+    Transaction.hasMany(models.invoices, {
+      foreignKey: 'transaction_id',
+    });
+    Transaction.hasMany(models.payments, {
+      foreignKey: 'transaction_id',
+    });
+    Transaction.hasMany(models.refunds, {
+      foreignKey: 'transaction_id',
+    });
+  };
+
+  return Transaction;
 };

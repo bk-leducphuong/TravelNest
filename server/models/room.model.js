@@ -1,21 +1,13 @@
 const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
-    'reviews',
+  const Room = sequelize.define(
+    'rooms',
     {
-      review_id: {
+      room_id: {
         autoIncrement: true,
         type: DataTypes.INTEGER,
         allowNull: false,
         primaryKey: true,
-      },
-      user_id: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-          model: 'users',
-          key: 'user_id',
-        },
       },
       hotel_id: {
         type: DataTypes.INTEGER,
@@ -25,12 +17,8 @@ module.exports = function (sequelize, DataTypes) {
           key: 'hotel_id',
         },
       },
-      rating: {
-        type: DataTypes.DECIMAL(2, 1),
-        allowNull: false,
-      },
-      comment: {
-        type: DataTypes.TEXT,
+      max_guests: {
+        type: DataTypes.INTEGER,
         allowNull: true,
       },
       created_at: {
@@ -38,48 +26,46 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: true,
         defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
       },
-      booking_code: {
-        type: DataTypes.STRING(100),
+      updated_at: {
+        type: DataTypes.DATE,
         allowNull: true,
+        defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
       },
-      booking_id: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-          model: 'bookings',
-          key: 'booking_id',
-        },
+      room_name: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
       },
-      reply: {
+      image_urls: {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      number_of_likes: {
-        type: DataTypes.INTEGER,
+      room_amenities: {
+        type: DataTypes.TEXT,
         allowNull: true,
-        defaultValue: 0,
       },
-      number_of_dislikes: {
+      room_size: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        defaultValue: 0,
+      },
+      room_type: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      quantity: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
       },
     },
     {
       sequelize,
-      tableName: 'reviews',
+      tableName: 'rooms',
       timestamps: false,
       indexes: [
         {
           name: 'PRIMARY',
           unique: true,
           using: 'BTREE',
-          fields: [{ name: 'review_id' }],
-        },
-        {
-          name: 'user_id',
-          using: 'BTREE',
-          fields: [{ name: 'user_id' }],
+          fields: [{ name: 'room_id' }],
         },
         {
           name: 'hotel_id',
@@ -89,4 +75,18 @@ module.exports = function (sequelize, DataTypes) {
       ],
     }
   );
+
+  Room.associate = function (models) {
+    Room.belongsTo(models.hotels, {
+      foreignKey: 'hotel_id',
+    });
+    Room.hasMany(models.bookings, {
+      foreignKey: 'room_id',
+    });
+    Room.hasMany(models.room_inventory, {
+      foreignKey: 'room_id',
+    });
+  };
+
+  return Room;
 };

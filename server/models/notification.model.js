@@ -1,28 +1,28 @@
 const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
-  return sequelize.define(
-    'invoices',
+  const Notification = sequelize.define(
+    'notifications',
     {
-      invoice_id: {
+      notification_id: {
         autoIncrement: true,
         type: DataTypes.INTEGER,
         allowNull: false,
         primaryKey: true,
       },
-      transaction_id: {
+      sender_id: {
         type: DataTypes.INTEGER,
-        allowNull: true,
+        allowNull: false,
         references: {
-          model: 'transactions',
-          key: 'transaction_id',
+          model: 'users',
+          key: 'user_id',
         },
       },
-      amount: {
-        type: DataTypes.DECIMAL(10, 2),
-        allowNull: false,
+      notification_type: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
       },
-      status: {
-        type: DataTypes.ENUM('available', 'unavailable', 'done'),
+      message: {
+        type: DataTypes.TEXT,
         allowNull: false,
       },
       created_at: {
@@ -30,16 +30,11 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: true,
         defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
       },
-      updated_at: {
-        type: DataTypes.DATE,
+      is_read: {
+        type: DataTypes.BOOLEAN,
         allowNull: true,
-        defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
       },
-      booking_code: {
-        type: DataTypes.STRING(60),
-        allowNull: false,
-      },
-      hotel_id: {
+      reciever_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
@@ -50,31 +45,37 @@ module.exports = function (sequelize, DataTypes) {
     },
     {
       sequelize,
-      tableName: 'invoices',
+      tableName: 'notifications',
       timestamps: false,
       indexes: [
         {
           name: 'PRIMARY',
           unique: true,
           using: 'BTREE',
-          fields: [{ name: 'invoice_id' }],
+          fields: [{ name: 'notification_id' }],
         },
         {
-          name: 'transaction_id',
+          name: 'notifications_ibfk_1_idx',
           using: 'BTREE',
-          fields: [{ name: 'transaction_id' }],
+          fields: [{ name: 'reciever_id' }],
         },
         {
-          name: 'booking_id',
+          name: 'sender_id_idx',
           using: 'BTREE',
-          fields: [{ name: 'booking_code' }],
-        },
-        {
-          name: 'hotel_id',
-          using: 'BTREE',
-          fields: [{ name: 'hotel_id' }],
+          fields: [{ name: 'sender_id' }],
         },
       ],
     }
   );
+
+  Notification.associate = function (models) {
+    Notification.belongsTo(models.users, {
+      foreignKey: 'sender_id',
+    });
+    Notification.belongsTo(models.hotels, {
+      foreignKey: 'reciever_id',
+    });
+  };
+
+  return Notification;
 };
