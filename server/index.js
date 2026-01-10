@@ -11,9 +11,8 @@ const initServer = async () => {
 
   // Database connection
   const sequelize = require('./config/db.js');
-  const { initialize } = require('./models/init-models.js');
   await sequelize.authenticate();
-  await initialize(sequelize);
+  require('./models/index.js');
   logger.info('Database connected successfully');
 
   const express = require('express');
@@ -81,29 +80,29 @@ const initServer = async () => {
   app.use(limiter);
 
   // User Routes
-  const searchRoutes = require('./routes/searchRoutes');
+  // const searchRoutes = require('./routes/searchRoutes');
   const hotelRoutes = require('./routes/hotel.routes.js');
   const authRoutes = require('./routes/auth.routes');
-  const homeRoutes = require('./routes/homeRoutes');
-  const joinRoutes = require('./routes/joinRoutes');
-  const paymentRoutes = require('./routes/paymentRoutes.js');
+  const homeRoutes = require('./routes/home.routes.js');
+  // const joinRoutes = require('./routes/joinRoutes');
+  // const paymentRoutes = require('./routes/paymentRoutes.js');
   const userRoutes = require('./routes/user.routes.js');
-  const reviewRoutes = require('./routes/reviewRoutes.js');
-  const cancelRoutes = require('./routes/cancelRoutes.js');
-  const bookingRoutes = require('./routes/bookingRoutes.js');
-  const userNotificationRoutes = require('./routes/notificationRoutes.js');
+  // const reviewRoutes = require('./routes/reviewRoutes.js');
+  // const cancelRoutes = require('./routes/cancelRoutes.js');
+  // const bookingRoutes = require('./routes/bookingRoutes.js');
+  // const userNotificationRoutes = require('./routes/notificationRoutes.js');
 
-  app.use('/api/search', searchRoutes);
+  // app.use('/api/search', searchRoutes);
   app.use('/api/home', homeRoutes);
   app.use('/api/hotels', hotelRoutes);
   app.use('/api/auth', authRoutes); // Login route
-  app.use('/api/join', joinRoutes); // Become a host route
-  app.use('/api/payment', paymentRoutes);
-  app.use('/api/cancel-bookings', cancelRoutes);
+  // app.use('/api/join', joinRoutes); // Become a host route
+  // app.use('/api/payment', paymentRoutes);
+  // app.use('/api/cancel-bookings', cancelRoutes);
   app.use('/api/user', userRoutes);
-  app.use('/api/review', reviewRoutes);
-  app.use('/api/booking', bookingRoutes);
-  app.use('/api/notifications', userNotificationRoutes);
+  // app.use('/api/review', reviewRoutes);
+  // app.use('/api/booking', bookingRoutes);
+  // app.use('/api/notifications', userNotificationRoutes);
 
   // Admin routes
   const adminPayoutRoutes = require('./routes/admin/payoutRoutes.js');

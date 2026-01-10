@@ -15,22 +15,14 @@ const router = express.Router();
  * Get hotel details with optional search parameters
  * Query params: checkInDate, checkOutDate, numberOfDays, numberOfRooms, numberOfGuests
  */
-router.get(
-  '/:hotelId',
-  validate(hotelSchema.getHotelDetails),
-  getHotelDetails
-);
+router.get('/:hotelId', validate(hotelSchema.getHotelDetails), getHotelDetails);
 
 /**
  * GET /api/hotels/:hotelId/rooms
  * Search available rooms for a hotel
  * Query params: checkInDate, checkOutDate, numberOfDays, numberOfRooms, numberOfGuests, page, limit
  */
-router.get(
-  '/:hotelId/rooms',
-  validate(hotelSchema.searchRooms),
-  searchRooms
-);
+router.get('/:hotelId/rooms', validate(hotelSchema.searchRooms), searchRooms);
 
 /**
  * GET /api/hotels/:hotelId/rooms/availability

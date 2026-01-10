@@ -1,7 +1,7 @@
 const { Sequelize } = require('sequelize');
 
-const config = {
 // Create a Sequelize instance for ORM
+const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
   process.env.DB_PASSWORD,
@@ -23,4 +23,4 @@ const config = {
   }
 );
 
-module.exports = config;
+module.exports = sequelize;
