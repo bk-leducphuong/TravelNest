@@ -50,9 +50,8 @@ class HotelService {
     });
 
     // Get nearby places
-    const nearbyPlaces = await hotelRepository.findNearbyPlacesByHotelId(
-      hotelId
-    );
+    const nearbyPlaces =
+      await hotelRepository.findNearbyPlacesByHotelId(hotelId);
 
     // Get review criteria averages
     const reviewCriterias =
@@ -178,7 +177,11 @@ class HotelService {
       );
     }
 
-    if (!selectedRooms || !Array.isArray(selectedRooms) || selectedRooms.length === 0) {
+    if (
+      !selectedRooms ||
+      !Array.isArray(selectedRooms) ||
+      selectedRooms.length === 0
+    ) {
       throw new ApiError(
         400,
         'INVALID_INPUT',

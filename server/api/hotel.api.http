@@ -9,7 +9,7 @@
 @contentType = application/json
 
 ### Variables (update these with your actual values)
-@hotelId = 1
+@hotelId = 2
 
 ###############################################
 ### HOTEL RESOURCE

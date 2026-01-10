@@ -10,7 +10,12 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
-    "seed": "node database/seeder.js"
+    "seed": "node seed/seeder.js",
+    "seed:user": "cross-env NODE_ENV=development node seed/user.seed.js",
+    "seed:review": "cross-env NODE_ENV=development node seed/review.seed.js",
+    "seed:room": "cross-env NODE_ENV=development node seed/room.seed.js",
+    "seed:booking": "cross-env NODE_ENV=development node seed/booking.seed.js",
+    "seed:nearby_place": "cross-env NODE_ENV=development node seed/nearby_place.seed.js"
   },
   "author": "Le Duc Phuong & Manh Xuan Thai",
   "license": "ISC",
@@ -45,6 +50,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.1",
+    "@faker-js/faker": "^10.2.0",
     "cross-env": "^7.0.3",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",

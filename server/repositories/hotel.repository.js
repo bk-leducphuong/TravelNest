@@ -53,7 +53,7 @@ class HotelRepository {
     } = options;
 
     // Lazy load sequelize to avoid circular dependency
-    const sequelize = require('../config/db.js');
+    const sequelize = require('../config/database.config');
 
     const query = `
       SELECT 
@@ -114,7 +114,7 @@ class HotelRepository {
    */
   async findReviewsByHotelId(hotelId, options = {}) {
     const { limit = 10, offset = 0 } = options;
-    const sequelize = require('../config/db.js');
+    const sequelize = require('../config/database.config');
 
     const query = `
       SELECT 
@@ -163,12 +163,7 @@ class HotelRepository {
   async findNearbyPlacesByHotelId(hotelId) {
     return await NearbyPlaces.findAll({
       where: { hotel_id: hotelId },
-      attributes: [
-        'place_id',
-        'place_name',
-        'latitude',
-        'longitude',
-      ],
+      attributes: ['place_id', 'place_name', 'latitude', 'longitude'],
     });
   }
 
@@ -176,7 +171,7 @@ class HotelRepository {
    * Find review criteria averages for a hotel
    */
   async findReviewCriteriasByHotelId(hotelId) {
-    const sequelize = require('../config/db.js');
+    const sequelize = require('../config/database.config.js');
 
     const query = `
       SELECT
@@ -202,8 +197,14 @@ class HotelRepository {
   /**
    * Check room availability for specific rooms
    */
-  async checkRoomAvailability(hotelId, roomIds, checkInDate, checkOutDate, numberOfDays) {
-    const sequelize = require('../config/db.js');
+  async checkRoomAvailability(
+    hotelId,
+    roomIds,
+    checkInDate,
+    checkOutDate,
+    numberOfDays
+  ) {
+    const sequelize = require('../config/database.config.js');
 
     const query = `
       SELECT 
