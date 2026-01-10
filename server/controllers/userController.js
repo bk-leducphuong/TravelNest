@@ -1,7 +1,7 @@
-const sharp = require("sharp");
-const bcrypt = require("bcryptjs");
-const cloudinary = require("../config/cloudinaryConfig");
-const { getModels } = require("../models/init-models.js");
+const sharp = require('sharp');
+const bcrypt = require('bcryptjs');
+const cloudinary = require('../config/cloudinaryConfig');
+const { getModels } = require('../models/init-models.js');
 const { Hotels, SavedHotels, Users } = getModels();
 
 const getUserInformation = async (req, res) => {
@@ -10,23 +10,23 @@ const getUserInformation = async (req, res) => {
     const user = await Users.findOne({
       where: { user_id: userId },
       attributes: [
-        "user_id",
-        "user_role",
-        "username",
-        "email",
-        "full_name",
-        "phone_number",
-        "address",
-        "nationality",
-        "country",
-        "profile_picture_url",
-        "date_of_birth",
-        "gender",
+        'user_id',
+        'user_role',
+        'username',
+        'email',
+        'full_name',
+        'phone_number',
+        'address',
+        'nationality',
+        'country',
+        'profile_picture_url',
+        'date_of_birth',
+        'gender',
       ],
     });
     res.status(200).json({ success: true, user: user });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -47,7 +47,7 @@ const editName = async (req, res) => {
     );
     res.status(200).json({ success: true });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -68,7 +68,7 @@ const editDisplayName = async (req, res) => {
     res.status(200).json({ success: true });
   } catch (error) {
     // console.log(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -88,7 +88,7 @@ const editEmail = async (req, res) => {
     );
     res.status(200).json({ success: true });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -108,7 +108,7 @@ const editPhoneNumber = async (req, res) => {
     );
     res.status(200).json({ success: true });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -128,7 +128,7 @@ const editDateOfBirth = async (req, res) => {
     );
     res.status(200).json({ success: true });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -148,7 +148,7 @@ const editAddress = async (req, res) => {
     );
     res.status(200).json({ success: true });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -168,7 +168,7 @@ const editNationality = async (req, res) => {
     );
     res.status(200).json({ success: true });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -188,7 +188,7 @@ const editCountry = async (req, res) => {
     );
     res.status(200).json({ success: true });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -208,14 +208,14 @@ const editGender = async (req, res) => {
     );
     res.status(200).json({ success: true });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
 const editAvatar = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).send("No file uploaded.");
+      return res.status(400).send('No file uploaded.');
     }
     const userId = req.session.user.user_id.toString();
 
@@ -227,12 +227,12 @@ const editAvatar = async (req, res) => {
     // Upload the AVIF image buffer to Cloudinary
     cloudinary.uploader
       .upload_stream(
-        { resource_type: "image", public_id: `users/avatars/${userId}` },
+        { resource_type: 'image', public_id: `users/avatars/${userId}` },
         async (error, result) => {
           if (error) {
             return res
               .status(500)
-              .send("Failed to upload image to Cloudinary.");
+              .send('Failed to upload image to Cloudinary.');
           }
 
           // Store link to avatar file in the database
@@ -253,8 +253,8 @@ const editAvatar = async (req, res) => {
       )
       .end(avifBuffer);
   } catch (error) {
-    console.log("Error processing image:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.log('Error processing image:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -266,7 +266,7 @@ const getFavoriteHotels = async (req, res) => {
       where: {
         user_id: userId,
       },
-      attributes: ["hotel_id"],
+      attributes: ['hotel_id'],
     });
 
     for (let hotel of favoriteHotels) {
@@ -274,19 +274,19 @@ const getFavoriteHotels = async (req, res) => {
       const hotelInformation = await Hotels.findOne({
         where: { hotel_id: hotelId },
         attributes: [
-          "name",
-          "overall_rating",
-          "address",
-          "hotel_class",
-          "image_urls",
+          'name',
+          'overall_rating',
+          'address',
+          'hotel_class',
+          'image_urls',
         ],
       });
       hotel.hotelInformation = hotelInformation;
     }
     res.status(200).json({ hotels: favoriteHotels });
   } catch (error) {
-    console.log("Error getting favorite hotels:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.log('Error getting favorite hotels:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -312,8 +312,8 @@ const setFavoriteHotels = async (req, res) => {
     });
     res.status(200).json({ success: true });
   } catch (error) {
-    console.log("Error setting favorite hotels:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.log('Error setting favorite hotels:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -330,8 +330,8 @@ const deleteFavoriteHotel = async (req, res) => {
     });
     res.status(200).json({ success: true });
   } catch (error) {
-    console.log("Error deleting favorite hotel:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.log('Error deleting favorite hotel:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -352,8 +352,8 @@ const checkFavoriteHotel = async (req, res) => {
       res.status(200).json({ isFavorite: false });
     }
   } catch (error) {
-    console.log("Error checking favorite hotel:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.log('Error checking favorite hotel:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -366,11 +366,11 @@ const resetPassword = async (req, res) => {
     if (!oldPassword || !newPassword || !confirmNewPassword) {
       return res
         .status(400)
-        .json({ message: "Please provide all required fields." });
+        .json({ message: 'Please provide all required fields.' });
     }
 
     if (newPassword !== confirmNewPassword) {
-      return res.status(400).json({ message: "Passwords do not match." });
+      return res.status(400).json({ message: 'Passwords do not match.' });
     }
 
     const userId = req.session.user.user_id;
@@ -382,7 +382,7 @@ const resetPassword = async (req, res) => {
     });
 
     if (user) {
-      return res.status(404).json({ message: "User not found." });
+      return res.status(404).json({ message: 'User not found.' });
     }
 
     const currentHashedPassword = user.password_hash;
@@ -390,7 +390,7 @@ const resetPassword = async (req, res) => {
     // So sánh mật khẩu cũ với mật khẩu trong cơ sở dữ liệu
     const isMatch = await bcrypt.compare(oldPassword, currentHashedPassword);
     if (!isMatch) {
-      return res.status(401).json({ message: "Old password is incorrect." });
+      return res.status(401).json({ message: 'Old password is incorrect.' });
     }
 
     // Mã hóa mật khẩu mới
@@ -410,10 +410,10 @@ const resetPassword = async (req, res) => {
 
     res
       .status(200)
-      .json({ success: true, message: "Password updated successfully." });
+      .json({ success: true, message: 'Password updated successfully.' });
   } catch (error) {
-    console.error("Error resetting password:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error('Error resetting password:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 module.exports = {

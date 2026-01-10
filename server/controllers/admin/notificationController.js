@@ -1,6 +1,6 @@
-const { getModels } = require("../../models/init-models.js");
+const { getModels } = require('../../models/init-models.js');
 const { Notifications } = getModels();
-const { Op } = require("sequelize");
+const { Op } = require('sequelize');
 
 const getNotifications = async (req, res) => {
   try {
@@ -9,13 +9,13 @@ const getNotifications = async (req, res) => {
       where: {
         reciever_id: hotelId,
       },
-      order: [["created_at", "DESC"]],
+      order: [['created_at', 'DESC']],
     });
 
     res.json({ notifications: notifications });
   } catch (error) {
-    console.error("Error fetching notifications:", error);
-    res.status(500).send({ error: "Failed to fetch notifications." });
+    console.error('Error fetching notifications:', error);
+    res.status(500).send({ error: 'Failed to fetch notifications.' });
   }
 };
 
@@ -36,10 +36,10 @@ const markAllNotificationAsRead = async (req, res) => {
       }
     );
 
-    res.json({ success: true, message: "Notification marked as read." });
+    res.json({ success: true, message: 'Notification marked as read.' });
   } catch (error) {
-    console.error("Error marking notification as read:", error);
-    res.status(500).send({ error: "Failed to mark notification as read." });
+    console.error('Error marking notification as read:', error);
+    res.status(500).send({ error: 'Failed to mark notification as read.' });
   }
 };
 
@@ -57,10 +57,10 @@ const markNotificationAsRead = async (req, res) => {
       }
     );
 
-    res.json({ success: true, message: "Notification marked as read." });
+    res.json({ success: true, message: 'Notification marked as read.' });
   } catch (error) {
-    console.error("Error marking notification as read:", error);
-    res.status(500).send({ error: "Failed to mark notification as read." });
+    console.error('Error marking notification as read:', error);
+    res.status(500).send({ error: 'Failed to mark notification as read.' });
   }
 };
 

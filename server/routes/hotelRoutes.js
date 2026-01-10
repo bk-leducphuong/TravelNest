@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { getHotelDetails, searchRoom, checkRoomAvailability } = require('../controllers/hotelController');
+const {
+  getHotelDetails,
+  searchRoom,
+  checkRoomAvailability,
+} = require('../controllers/hotelController');
 
 // root route: /api/hotels
 // Route to fetch detailed information about a single hotel

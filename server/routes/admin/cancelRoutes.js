@@ -1,7 +1,7 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 // const { handleCancel } = require('../../controllers/admin/cancelController');
-const { isAdminAuthenticated } = require("../../middlewares/sessionAuth");
+const { isAdminAuthenticated } = require('../../middlewares/sessionAuth');
 
 router.use(isAdminAuthenticated);
 
@@ -9,4 +9,3 @@ router.use(isAdminAuthenticated);
 // router.post('/', handleCancel);
 
 module.exports = router;
-

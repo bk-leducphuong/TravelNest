@@ -1,7 +1,14 @@
-const sequelize = require("../config/db");
+const sequelize = require('../config/db');
 
 const getHotelDetails = async (req, res) => {
-  const { hotelId, checkInDate, checkOutDate, numberOfDays, numberOfRooms, numberOfGuests } = req.body;
+  const {
+    hotelId,
+    checkInDate,
+    checkOutDate,
+    numberOfDays,
+    numberOfRooms,
+    numberOfGuests,
+  } = req.body;
 
   try {
     const hotelQuery = `
@@ -50,7 +57,7 @@ const getHotelDetails = async (req, res) => {
             FROM nearby_places WHERE hotel_id = ?
         `;
 
-    //TODO: delete review breakdown table, use new review_criterias table 
+    //TODO: delete review breakdown table, use new review_criterias table
     const reviewCriteriasQuery = `
       SELECT
           rc.criteria_name, r.hotel_id,
@@ -72,7 +79,14 @@ const getHotelDetails = async (req, res) => {
           type: sequelize.QueryTypes.SELECT,
         }),
         await sequelize.query(roomQuery, {
-          replacements: [checkInDate, checkOutDate, numberOfRooms, numberOfDays, hotelId, numberOfGuests],
+          replacements: [
+            checkInDate,
+            checkOutDate,
+            numberOfRooms,
+            numberOfDays,
+            hotelId,
+            numberOfGuests,
+          ],
           type: sequelize.QueryTypes.SELECT,
         }),
         await sequelize.query(reviewsQuery, {
@@ -100,15 +114,23 @@ const getHotelDetails = async (req, res) => {
       reviewCriterias: reviewCriterias,
     });
   } catch (error) {
-    console.error("Error fetching hotel details:", error);
-    res.status(500).json({ message: "Lỗi hệ thống, vui lòng thử lại sau." });
+    console.error('Error fetching hotel details:', error);
+    res.status(500).json({ message: 'Lỗi hệ thống, vui lòng thử lại sau.' });
   }
 };
 
 const searchRoom = async (req, res) => {
   try {
-    const { hotel_id, checkInDate, checkOutDate, numberOfDays, adults, children, rooms } = req.body;
-    
+    const {
+      hotel_id,
+      checkInDate,
+      checkOutDate,
+      numberOfDays,
+      adults,
+      children,
+      rooms,
+    } = req.body;
+
     const total_guests = parseInt(adults, 10) + parseInt(children, 10);
 
     const query = `
@@ -144,7 +166,7 @@ const searchRoom = async (req, res) => {
         rooms,
         numberOfDays,
         hotel_id,
-        total_guests
+        total_guests,
       ],
       type: sequelize.QueryTypes.SELECT,
     });
@@ -153,7 +175,7 @@ const searchRoom = async (req, res) => {
       return res.status(200).json({
         success: false,
         available_rooms: [],
-        message: "No hotels found matching the criteria",
+        message: 'No hotels found matching the criteria',
       });
     }
 
@@ -163,7 +185,7 @@ const searchRoom = async (req, res) => {
     res.status(500).json({
       success: false,
       available_rooms: [],
-      message: "Internal Server Error",
+      message: 'Internal Server Error',
     });
   }
 };
@@ -193,27 +215,25 @@ const checkRoomAvailability = async (req, res) => {
         bookingInfor.numberOfGuests,
         bookingInfor.checkInDate,
         bookingInfor.checkOutDate,
-        bookingInfor.numberOfDays
+        bookingInfor.numberOfDays,
       ],
       type: sequelize.QueryTypes.SELECT,
     });
 
-    bookingInfor.selectedRooms.forEach(selectedRoom => {
-      const room = rooms.find(room => room.room_id === selectedRoom.room_id);
+    bookingInfor.selectedRooms.forEach((selectedRoom) => {
+      const room = rooms.find((room) => room.room_id === selectedRoom.room_id);
       if (room) {
         room.available_rooms >= selectedRoom.roomQuantity;
-      }else {
+      } else {
         return res.status(200).json({ isAvailable: false });
       }
     });
 
     return res.status(200).json({ isAvailable: true });
-   
   } catch (error) {
     console.error(error);
     res.status(500).json({
-
-      message: "Internal Server Error",
+      message: 'Internal Server Error',
     });
   }
 };

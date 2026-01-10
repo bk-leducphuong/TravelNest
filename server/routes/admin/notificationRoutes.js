@@ -1,6 +1,10 @@
 const router = require('express').Router();
-const { getNotifications, markAllNotificationAsRead, markNotificationAsRead } = require('../../controllers/admin/notificationController');
-const {isAdminAuthenticated} = require('../../middlewares/sessionAuth');
+const {
+  getNotifications,
+  markAllNotificationAsRead,
+  markNotificationAsRead,
+} = require('../../controllers/admin/notificationController');
+const { isAdminAuthenticated } = require('../../middlewares/sessionAuth');
 
 // root route: /api/admin/notifications
 router.use(isAdminAuthenticated);

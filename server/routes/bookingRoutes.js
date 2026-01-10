@@ -1,6 +1,6 @@
 const express = require('express');
 const { getAllBookings } = require('../controllers/bookingController');
-const {isUserAuthenticated} = require('../middlewares/sessionAuth');
+const { isUserAuthenticated } = require('../middlewares/sessionAuth');
 const router = express.Router();
 
 // root route: /api/booking

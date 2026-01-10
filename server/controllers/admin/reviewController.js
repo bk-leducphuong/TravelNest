@@ -1,4 +1,4 @@
-const { getModels } = require("../../models/init-models.js");
+const { getModels } = require('../../models/init-models.js');
 const { Reviews, Users, ReviewCriterias } = getModels();
 
 const getAllReviews = async (req, res) => {
@@ -7,7 +7,7 @@ const getAllReviews = async (req, res) => {
     if (!hotelId) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing hotelId" });
+        .json({ success: false, message: 'Missing hotelId' });
     }
     const reviews = await Reviews.findAll({
       where: { hotel_id: hotelId },
@@ -22,14 +22,14 @@ const getAllReviews = async (req, res) => {
       // get reivew criteria
       const criteria = await ReviewCriterias.findAll({
         where: { review_id: review.review_id },
-        attributes: ["criteria_name", "score"],
+        attributes: ['criteria_name', 'score'],
       });
       review.review_criteria = criteria;
     }
 
     res.status(200).json(reviews);
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -39,7 +39,7 @@ const postReview = async (req, res) => {
     if (!userId || !hotelId || !rating || !comment) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing required fields" });
+        .json({ success: false, message: 'Missing required fields' });
     }
     await Reviews.update({
       user_id: userId,
@@ -49,9 +49,9 @@ const postReview = async (req, res) => {
     });
     res
       .status(201)
-      .json({ success: true, message: "Review posted successfully" });
+      .json({ success: true, message: 'Review posted successfully' });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -61,7 +61,7 @@ const replyToReview = async (req, res) => {
     if (!reviewId || !reply) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing required fields" });
+        .json({ success: false, message: 'Missing required fields' });
     }
     await Reviews.update(
       {
@@ -75,9 +75,9 @@ const replyToReview = async (req, res) => {
     );
     res
       .status(201)
-      .json({ success: true, message: "Reply posted successfully" });
+      .json({ success: true, message: 'Reply posted successfully' });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 

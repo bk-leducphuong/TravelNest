@@ -1,6 +1,6 @@
-const { getModels } = require("../../models/init-models.js");
+const { getModels } = require('../../models/init-models.js');
 const { Bookings, Users } = getModels();
-const { Op, Sequelize } = require("sequelize");
+const { Op, Sequelize } = require('sequelize');
 
 const getAllBookings = async (req, res) => {
   try {
@@ -19,7 +19,7 @@ const getAllBookings = async (req, res) => {
         where: {
           hotel_id: hotelId,
           status: {
-            [Op.net]: "cancelled",
+            [Op.net]: 'cancelled',
           },
         },
       }
@@ -32,7 +32,7 @@ const getAllBookings = async (req, res) => {
 
     res.status(200).json({ bookings: bookings });
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
@@ -43,11 +43,11 @@ const getBookerInformation = async (req, res) => {
       where: {
         user_id: buyer_id,
       },
-      attributes: ["username", "email", "country"],
+      attributes: ['username', 'email', 'country'],
     });
     res.status(200).json({ bookerInformation: bookerInformation });
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 

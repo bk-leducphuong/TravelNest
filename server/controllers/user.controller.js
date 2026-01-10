@@ -1,6 +1,6 @@
-const userService = require("../services/user.service");
-const logger = require("../config/logger");
-const asyncHandler = require("../utils/asyncHandler");
+const userService = require('../services/user.service');
+const logger = require('../config/logger');
+const asyncHandler = require('../utils/asyncHandler');
 
 /**
  * User Controller - HTTP ↔ business mapping
@@ -18,8 +18,8 @@ const getCurrentUser = asyncHandler(async (req, res) => {
   if (!user) {
     return res.status(404).json({
       error: {
-        code: "NOT_FOUND",
-        message: "User not found",
+        code: 'NOT_FOUND',
+        message: 'User not found',
       },
     });
   }
@@ -40,15 +40,15 @@ const updateCurrentUser = asyncHandler(async (req, res) => {
 
   // Map request fields to database fields
   const fieldMapping = {
-    name: "full_name",
-    displayName: "username",
-    email: "email",
-    phoneNumber: "phone_number",
-    dateOfBirth: "date_of_birth",
-    address: "address",
-    nationality: "nationality",
-    country: "country",
-    gender: "gender",
+    name: 'full_name',
+    displayName: 'username',
+    email: 'email',
+    phoneNumber: 'phone_number',
+    dateOfBirth: 'date_of_birth',
+    address: 'address',
+    nationality: 'nationality',
+    country: 'country',
+    gender: 'gender',
   };
 
   // Build update object with mapped fields
@@ -63,7 +63,7 @@ const updateCurrentUser = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     data: {
-      message: "User updated successfully",
+      message: 'User updated successfully',
     },
   });
 });
@@ -81,7 +81,7 @@ const updatePassword = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     data: {
-      message: "Password updated successfully",
+      message: 'Password updated successfully',
     },
   });
 });
@@ -94,10 +94,10 @@ const updateAvatar = asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({
       error: {
-        code: "BAD_REQUEST",
-        message: "No file uploaded",
+        code: 'BAD_REQUEST',
+        message: 'No file uploaded',
         fields: {
-          avatar: "File is required",
+          avatar: 'File is required',
         },
       },
     });
@@ -108,21 +108,21 @@ const updateAvatar = asyncHandler(async (req, res) => {
   try {
     const profilePictureUrl = await userService.updateAvatar(
       userId,
-      req.file.buffer,
+      req.file.buffer
     );
     res.status(200).json({
       data: {
         profilePictureUrl,
-        message: "Avatar updated successfully",
+        message: 'Avatar updated successfully',
       },
     });
   } catch (error) {
-    logger.error({ err: error }, "Error updating avatar");
-    if (error.message === "Failed to upload image to Cloudinary") {
+    logger.error({ err: error }, 'Error updating avatar');
+    if (error.message === 'Failed to upload image to Cloudinary') {
       return res.status(500).json({
         error: {
-          code: "INTERNAL_ERROR",
-          message: "Failed to upload image",
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to upload image',
         },
       });
     }
@@ -164,7 +164,7 @@ const addFavoriteHotel = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     data: {
-      message: "Hotel added to favorites",
+      message: 'Hotel added to favorites',
     },
   });
 });

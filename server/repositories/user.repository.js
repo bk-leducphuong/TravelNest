@@ -1,4 +1,4 @@
-const { Users, SavedHotels, Hotels } = require("../models/index.js");
+const { Users, SavedHotels, Hotels } = require('../models/index.js');
 
 /**
  * User Repository - Contains all database operations for users
@@ -13,18 +13,18 @@ class UserRepository {
     return await Users.findOne({
       where: { user_id: userId },
       attributes: [
-        "user_id",
-        "user_role",
-        "username",
-        "email",
-        "full_name",
-        "phone_number",
-        "address",
-        "nationality",
-        "country",
-        "profile_picture_url",
-        "date_of_birth",
-        "gender",
+        'user_id',
+        'user_role',
+        'username',
+        'email',
+        'full_name',
+        'phone_number',
+        'address',
+        'nationality',
+        'country',
+        'profile_picture_url',
+        'date_of_birth',
+        'gender',
       ],
     });
   }
@@ -35,7 +35,7 @@ class UserRepository {
   async findByIdWithPassword(userId) {
     return await Users.findOne({
       where: { user_id: userId },
-      attributes: ["user_id", "password_hash"],
+      attributes: ['user_id', 'password_hash'],
     });
   }
 
@@ -45,7 +45,7 @@ class UserRepository {
   async findByEmail(email) {
     return await Users.findOne({
       where: { email },
-      attributes: ["user_id", "email"],
+      attributes: ['user_id', 'email'],
     });
   }
 
@@ -64,7 +64,7 @@ class UserRepository {
   async findFavoriteHotelsByUserId(userId) {
     return await SavedHotels.findAll({
       where: { user_id: userId },
-      attributes: ["hotel_id"],
+      attributes: ['hotel_id'],
     });
   }
 
@@ -74,7 +74,7 @@ class UserRepository {
   async findFavoriteHotelsByUserIdPaginated(userId, limit, offset) {
     return await SavedHotels.findAndCountAll({
       where: { user_id: userId },
-      attributes: ["hotel_id"],
+      attributes: ['hotel_id'],
       limit,
       offset,
     });
@@ -87,11 +87,11 @@ class UserRepository {
     return await Hotels.findOne({
       where: { hotel_id: hotelId },
       attributes: [
-        "name",
-        "overall_rating",
-        "address",
-        "hotel_class",
-        "image_urls",
+        'name',
+        'overall_rating',
+        'address',
+        'hotel_class',
+        'image_urls',
       ],
     });
   }

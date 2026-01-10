@@ -1,7 +1,7 @@
-const sharp = require("sharp");
-const cloudinary = require("../../config/cloudinaryConfig");
+const sharp = require('sharp');
+const cloudinary = require('../../config/cloudinaryConfig');
 
-const { getModels } = require("../../models/init-models.js");
+const { getModels } = require('../../models/init-models.js');
 const { Rooms, RoomInventories, Hotels } = getModels();
 
 const getAllRooms = async (req, res) => {
@@ -10,7 +10,7 @@ const getAllRooms = async (req, res) => {
     if (!hotelId) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing hotelId" });
+        .json({ success: false, message: 'Missing hotelId' });
     }
     const rooms = await Rooms.findAll({
       where: {
@@ -19,7 +19,7 @@ const getAllRooms = async (req, res) => {
     });
     res.status(200).json(rooms);
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -29,7 +29,7 @@ const updateRoomInformation = async (req, res) => {
     if (!roomInformation) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing roomInformation" });
+        .json({ success: false, message: 'Missing roomInformation' });
     }
     await Rooms.update(
       {
@@ -45,7 +45,7 @@ const updateRoomInformation = async (req, res) => {
     );
     res.status(200).json({ success: true });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -55,7 +55,7 @@ const createNewRoom = async (req, res) => {
     if (!roomInformation || !hotelId) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing roomInformation" });
+        .json({ success: false, message: 'Missing roomInformation' });
     }
 
     const newRoom = await Rooms.create({
@@ -77,13 +77,13 @@ const createNewRoom = async (req, res) => {
         total_inventory: roomInformation.quantity,
         total_reserved: 0,
         price_per_night: 0,
-        status: "open",
+        status: 'open',
       });
     }
 
     res.status(200).json({ success: true });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -93,7 +93,7 @@ const deleteRoom = async (req, res) => {
     if (!roomId) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing roomInformation" });
+        .json({ success: false, message: 'Missing roomInformation' });
     }
 
     // delete room inventory from room_inventory table
@@ -111,7 +111,7 @@ const deleteRoom = async (req, res) => {
 
     return res.status(200).json({ success: true });
   } catch (error) {
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -122,17 +122,17 @@ const getAllRoomPhotos = async (req, res) => {
     if (!hotelId) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing hotelId" });
+        .json({ success: false, message: 'Missing hotelId' });
     }
     const rooms = await Rooms.findAll({
       where: {
         hotel_id: hotelId,
       },
-      attributes: ["room_id", "room_name", "image_urls"],
+      attributes: ['room_id', 'room_name', 'image_urls'],
     });
     res.status(200).json(rooms);
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -144,14 +144,14 @@ const deleteRoomPhotos = async (req, res) => {
     if (!roomId) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing roomId" });
+        .json({ success: false, message: 'Missing roomId' });
     }
 
     const oldImageUrls = await Rooms.findOne({
       where: {
         room_id: roomId,
       },
-      attributes: ["image_urls"],
+      attributes: ['image_urls'],
     });
     const oldImageUrlsArray = JSON.parse(oldImageUrls.image_urls);
     deletedRoomPhotosUrlsArray.forEach((url) => {
@@ -167,7 +167,7 @@ const deleteRoomPhotos = async (req, res) => {
     await Promise.all(
       cloudinaryUrls.map(async (url) => {
         await cloudinary.uploader.destroy(url, {
-          resource_type: "image",
+          resource_type: 'image',
         });
       })
     );
@@ -179,10 +179,10 @@ const deleteRoomPhotos = async (req, res) => {
     if (isUpdateSuccess) {
       res.status(200).json({ success: true });
     } else {
-      res.status(500).json({ message: "Internal Server Error" });
+      res.status(500).json({ message: 'Internal Server Error' });
     }
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -194,14 +194,14 @@ const deleteHotelPhotos = async (req, res) => {
     if (!hotelId) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing hotelId" });
+        .json({ success: false, message: 'Missing hotelId' });
     }
 
     const oldImageUrls = await Hotels.findOne({
       where: {
         hotel_id: hotelId,
       },
-      attributes: ["image_urls"],
+      attributes: ['image_urls'],
     });
     const oldImageUrlsArray = JSON.parse(oldImageUrls.image_urls);
     deletedHotelPhotosUrlsArray.forEach((url) => {
@@ -218,7 +218,7 @@ const deleteHotelPhotos = async (req, res) => {
     await Promise.all(
       cloudinaryUrls.map(async (url) => {
         await cloudinary.uploader.destroy(url, {
-          resource_type: "image",
+          resource_type: 'image',
         });
       })
     );
@@ -230,11 +230,11 @@ const deleteHotelPhotos = async (req, res) => {
     if (isUpdateSuccess) {
       res.status(200).json({ success: true });
     } else {
-      res.status(500).json({ message: "Internal Server Error" });
+      res.status(500).json({ message: 'Internal Server Error' });
     }
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -243,7 +243,7 @@ const addRoomPhotos = async (req, res) => {
     const { roomId, hotelId } = req.body;
 
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ success: false, message: "Missing files" });
+      return res.status(400).json({ success: false, message: 'Missing files' });
     }
 
     // Process each uploaded image
@@ -251,7 +251,7 @@ const addRoomPhotos = async (req, res) => {
       req.files.map(async (file) => {
         const timestamp = new Date()
           .toISOString()
-          .replace(/[^a-zA-Z0-9_\\-]/g, "-");
+          .replace(/[^a-zA-Z0-9_\\-]/g, '-');
 
         // Convert image to AVIF using sharp
         const avifBuffer = await sharp(file.buffer)
@@ -263,12 +263,12 @@ const addRoomPhotos = async (req, res) => {
           cloudinary.uploader
             .upload_stream(
               {
-                resource_type: "image",
+                resource_type: 'image',
                 public_id: `hotels/${hotelId}/rooms/${roomId}/${timestamp}`,
               },
               (error, result) => {
                 if (error) {
-                  console.error("Error uploading to Cloudinary:", error);
+                  console.error('Error uploading to Cloudinary:', error);
                   return reject(error);
                 }
                 resolve(result);
@@ -286,7 +286,7 @@ const addRoomPhotos = async (req, res) => {
       where: {
         room_id: roomId,
       },
-      attributes: ["image_urls"],
+      attributes: ['image_urls'],
     });
     const oldImageUrlsArray = JSON.parse(oldImageUrls.image_urls);
     processedFiles.forEach((file) => {
@@ -300,11 +300,11 @@ const addRoomPhotos = async (req, res) => {
     if (isUpdateSuccess) {
       res.status(200).json({ files: processedFiles });
     } else {
-      res.status(500).json({ message: "Internal Server Error" });
+      res.status(500).json({ message: 'Internal Server Error' });
     }
   } catch (error) {
-    console.error("Error in addRoomPhotos:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error('Error in addRoomPhotos:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -312,11 +312,11 @@ const addHotelPhotos = async (req, res) => {
   try {
     const { hotelId } = req.body;
     if (!hotelId) {
-      res.status(400).json({ success: false, message: "Missing hotel id" });
+      res.status(400).json({ success: false, message: 'Missing hotel id' });
     }
 
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ success: false, message: "Missing files" });
+      return res.status(400).json({ success: false, message: 'Missing files' });
     }
 
     // Process each uploaded image
@@ -324,7 +324,7 @@ const addHotelPhotos = async (req, res) => {
       req.files.map(async (file) => {
         const timestamp = new Date()
           .toISOString()
-          .replace(/[^a-zA-Z0-9_\\-]/g, "-");
+          .replace(/[^a-zA-Z0-9_\\-]/g, '-');
 
         // Convert image to AVIF using sharp
         const avifBuffer = await sharp(file.buffer)
@@ -335,7 +335,7 @@ const addHotelPhotos = async (req, res) => {
           cloudinary.uploader
             .upload_stream(
               {
-                resource_type: "image",
+                resource_type: 'image',
                 public_id: `hotels/${hotelId}/${timestamp}`,
               },
               (error, result) => {
@@ -358,7 +358,7 @@ const addHotelPhotos = async (req, res) => {
       where: {
         hotel_id: hotelId,
       },
-      attributes: ["image_urls"],
+      attributes: ['image_urls'],
     });
     const oldImageUrlsArray = JSON.parse(oldImageUrls.image_urls);
     processedFiles.forEach((file) => {
@@ -372,10 +372,10 @@ const addHotelPhotos = async (req, res) => {
     if (isUpdateSuccess) {
       res.status(200).json({ files: processedFiles });
     } else {
-      res.status(500).json({ message: "Internal Server Error" });
+      res.status(500).json({ message: 'Internal Server Error' });
     }
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -422,17 +422,17 @@ const getAllRoomAmenities = async (req, res) => {
     if (!hotelId) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing roomId" });
+        .json({ success: false, message: 'Missing roomId' });
     }
     const rooms = await Rooms.findAll({
       where: {
         hotel_id: hotelId,
       },
-      attributes: ["room_id", "room_name", "room_amenities", "room_size"],
+      attributes: ['room_id', 'room_name', 'room_amenities', 'room_size'],
     });
     res.status(200).json(rooms);
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -442,7 +442,7 @@ const updateRoomAmenities = async (req, res) => {
     if (!rooms || rooms.length === 0) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing roomId" });
+        .json({ success: false, message: 'Missing roomId' });
     }
 
     for (const room of rooms) {
@@ -462,7 +462,7 @@ const updateRoomAmenities = async (req, res) => {
     res.status(200).json({ success: true });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -473,7 +473,7 @@ const getRoomInventory = async (req, res) => {
     if (!roomId) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing roomId" });
+        .json({ success: false, message: 'Missing roomId' });
     }
     const roomInventories = await RoomInventories.findAll({
       where: {
@@ -482,7 +482,7 @@ const getRoomInventory = async (req, res) => {
     });
     res.status(200).json(roomInventories);
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -492,7 +492,7 @@ const updateRoomInventory = async (req, res) => {
     if (newRoomInventory.length === 0) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing newRoomInventory" });
+        .json({ success: false, message: 'Missing newRoomInventory' });
     }
 
     for (let i = 0; i < newRoomInventory.length; i++) {
@@ -506,14 +506,14 @@ const updateRoomInventory = async (req, res) => {
         {
           where: {
             room_id: room.room_id,
-            date: room.date.split("T")[0],
+            date: room.date.split('T')[0],
           },
         }
       );
     }
     res.status(200).json({ success: true });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 

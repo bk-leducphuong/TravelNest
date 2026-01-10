@@ -1,7 +1,7 @@
-const express = require("express");
-const bodyParser = require("body-parser");
+const express = require('express');
+const bodyParser = require('body-parser');
 // const { createAccount, createPayout, createAccountLink, checkAccountExist, getInvoices } = require('../../controllers/admin/payoutController');
-const { isAdminAuthenticated } = require("../../middlewares/sessionAuth");
+const { isAdminAuthenticated } = require('../../middlewares/sessionAuth');
 const router = express.Router();
 
 // root route: /api/admin/payout
@@ -22,4 +22,3 @@ router.use(isAdminAuthenticated);
 // router.post('/create-payout', createPayout);
 
 module.exports = router;
-

@@ -1,4 +1,4 @@
-const { getModels } = require("../../models/init-models.js");
+const { getModels } = require('../../models/init-models.js');
 const { Hotels } = getModels();
 
 const getAllManagingHotels = async (req, res) => {
@@ -11,7 +11,7 @@ const getAllManagingHotels = async (req, res) => {
     });
     res.status(200).json({ managingHotels });
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 

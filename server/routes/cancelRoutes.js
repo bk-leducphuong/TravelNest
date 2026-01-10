@@ -1,7 +1,7 @@
-const express = require("express");
-const bodyParser = require("body-parser");
+const express = require('express');
+const bodyParser = require('body-parser');
 // const { handleCancel } = require('../controllers/cancelController');
-const { isUserAuthenticated } = require("../middlewares/sessionAuth");
+const { isUserAuthenticated } = require('../middlewares/sessionAuth');
 const router = express.Router();
 
 // root route: /api/cancel-bookings
@@ -10,4 +10,3 @@ const router = express.Router();
 // router.post('/', handleCancel);
 
 module.exports = router;
-

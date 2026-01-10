@@ -1,8 +1,8 @@
-const bcrypt = require("bcryptjs");
-const sharp = require("sharp");
-const cloudinary = require("../config/cloudinaryConfig");
-const userRepository = require("../repositories/user.repository");
-const ApiError = require("../utils/ApiError");
+const bcrypt = require('bcryptjs');
+const sharp = require('sharp');
+const cloudinary = require('../config/cloudinaryConfig');
+const userRepository = require('../repositories/user.repository');
+const ApiError = require('../utils/ApiError');
 
 /**
  * User Service - Contains main business logic
@@ -18,7 +18,7 @@ class UserService {
   async getUserInformation(userId) {
     const user = await userRepository.findById(userId);
     if (!user) {
-      throw new ApiError(404, "USER_NOT_FOUND", "User not found");
+      throw new ApiError(404, 'USER_NOT_FOUND', 'User not found');
     }
     return user;
   }
@@ -33,14 +33,14 @@ class UserService {
     // Validate user exists
     const user = await userRepository.findById(userId);
     if (!user) {
-      throw new ApiError(404, "USER_NOT_FOUND", "User not found");
+      throw new ApiError(404, 'USER_NOT_FOUND', 'User not found');
     }
 
     // If email is being updated, check for uniqueness
     if (updateData.email) {
       const existingUser = await userRepository.findByEmail(updateData.email);
       if (existingUser && existingUser.user_id !== userId) {
-        throw new ApiError(409, "EMAIL_ALREADY_IN_USE", "Email already in use");
+        throw new ApiError(409, 'EMAIL_ALREADY_IN_USE', 'Email already in use');
       }
     }
 
@@ -62,7 +62,7 @@ class UserService {
       cloudinary.uploader
         .upload_stream(
           {
-            resource_type: "image",
+            resource_type: 'image',
             public_id: `users/avatars/${userId}`,
           },
           async (error, result) => {
@@ -70,9 +70,9 @@ class UserService {
               reject(
                 new ApiError(
                   500,
-                  "UPLOAD_FAILED",
-                  "Failed to upload image to Cloudinary",
-                ),
+                  'UPLOAD_FAILED',
+                  'Failed to upload image to Cloudinary'
+                )
               );
               return;
             }
@@ -83,7 +83,7 @@ class UserService {
             });
 
             resolve(profilePictureUrl);
-          },
+          }
         )
         .end(avifBuffer);
     });
@@ -104,20 +104,20 @@ class UserService {
       await userRepository.findFavoriteHotelsByUserIdPaginated(
         userId,
         limit,
-        offset,
+        offset
       );
 
     // Get hotel information for each favorite
     const hotelsWithInfo = await Promise.all(
       favoriteHotels.map(async (hotel) => {
         const hotelInformation = await userRepository.findHotelById(
-          hotel.hotel_id,
+          hotel.hotel_id
         );
         return {
           ...hotel.toJSON(),
           hotelInformation,
         };
-      }),
+      })
     );
 
     return {
@@ -140,8 +140,8 @@ class UserService {
     if (hotelIsSaved) {
       throw new ApiError(
         409,
-        "HOTEL_ALREADY_FAVORITE",
-        "Hotel already in favorites",
+        'HOTEL_ALREADY_FAVORITE',
+        'Hotel already in favorites'
       );
     }
 
@@ -180,13 +180,13 @@ class UserService {
     // Get user with password hash
     const user = await userRepository.findByIdWithPassword(userId);
     if (!user) {
-      throw new ApiError(404, "USER_NOT_FOUND", "User not found");
+      throw new ApiError(404, 'USER_NOT_FOUND', 'User not found');
     }
 
     // Verify old password
     const isMatch = await bcrypt.compare(oldPassword, user.password_hash);
     if (!isMatch) {
-      throw new ApiError(401, "INVALID_PASSWORD", "Old password is incorrect");
+      throw new ApiError(401, 'INVALID_PASSWORD', 'Old password is incorrect');
     }
 
     // Hash new password

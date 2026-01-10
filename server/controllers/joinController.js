@@ -1,7 +1,7 @@
-const sharp = require("sharp");
-const path = require("path");
-const fs = require("fs");
-const { getModels } = require("../models/init-models.js");
+const sharp = require('sharp');
+const path = require('path');
+const fs = require('fs');
+const { getModels } = require('../models/init-models.js');
 const { Rooms, Hotels, RoomInventories } = getModels();
 
 const postJoinFormData = async (req, res) => {
@@ -44,7 +44,7 @@ const postJoinFormData = async (req, res) => {
         total_inventory: joinFormData.roomDetails.numberOfRooms,
         total_reserved: 0,
         price_per_night: 0,
-        status: "open",
+        status: 'open',
       };
     });
 
@@ -54,13 +54,13 @@ const postJoinFormData = async (req, res) => {
       hotel_id: hotel.id,
       room_id: room.id,
       success: true,
-      message: "Join form submitted successfully",
+      message: 'Join form submitted successfully',
     });
   } catch (err) {
-    console.error("Error while processing join form:", err);
+    console.error('Error while processing join form:', err);
     res.status(500).json({
       success: false,
-      message: "Server error while processing join form",
+      message: 'Server error while processing join form',
     });
   }
 };
@@ -72,11 +72,11 @@ const postPhotos = async (req, res) => {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "No files uploaded",
+        message: 'No files uploaded',
       });
     }
 
-    const uploadDir = "../server/public/uploads/hotels";
+    const uploadDir = '../server/public/uploads/hotels';
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -86,10 +86,10 @@ const postPhotos = async (req, res) => {
         recursive: true,
       });
     } catch (err) {
-      console.error("Error creating directories:", err);
+      console.error('Error creating directories:', err);
       return res.status(500).json({
         success: false,
-        message: "Server error while creating directories",
+        message: 'Server error while creating directories',
       });
     }
 
@@ -97,7 +97,7 @@ const postPhotos = async (req, res) => {
       req.files.map(async (file) => {
         const timestamp = new Date()
           .toISOString()
-          .replace(/[^a-zA-Z0-9_\\-]/g, "-");
+          .replace(/[^a-zA-Z0-9_\\-]/g, '-');
         const avifFilename = `${timestamp}.avif`;
         const outputPath = path.join(
           uploadDir,
@@ -125,14 +125,14 @@ const postPhotos = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Files uploaded and converted successfully",
+      message: 'Files uploaded and converted successfully',
       files: processedFiles,
     });
   } catch (error) {
-    console.error("Error processing images:", error);
+    console.error('Error processing images:', error);
     res.status(500).json({
       success: false,
-      message: "Server error while processing images",
+      message: 'Server error while processing images',
     });
   }
 };

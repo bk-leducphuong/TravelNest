@@ -1,5 +1,5 @@
-const dns = require("dns").promises; // Use the promises version of dns
-const axios = require("axios");
+const dns = require('dns').promises; // Use the promises version of dns
+const axios = require('axios');
 // Check the format of the email using regex
 function isValidEmailFormat(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -9,12 +9,12 @@ function isValidEmailFormat(email) {
 // Validate the domain of the email
 async function validateEmailDomain(email) {
   try {
-    const domain = email.split("@")[1];
+    const domain = email.split('@')[1];
     const addresses = await dns.resolveMx(domain);
     return addresses && addresses.length > 0;
   } catch (error) {
     console.error(
-      `DNS lookup failed for domain: ${email.split("@")[1]}`,
+      `DNS lookup failed for domain: ${email.split('@')[1]}`,
       error
     );
     return false;
@@ -25,7 +25,7 @@ async function validateEmailDomain(email) {
 async function validateEmail(email) {
   try {
     const response = await axios.get(
-      "https://emailvalidation.abstractapi.com/v1/",
+      'https://emailvalidation.abstractapi.com/v1/',
       {
         params: {
           api_key: process.env.EMAIL_VALIDATION_API_KEY,
@@ -35,16 +35,16 @@ async function validateEmail(email) {
     );
 
     if (
-      response.data.deliverability === "DELIVERABLE" &&
+      response.data.deliverability === 'DELIVERABLE' &&
       parseFloat(response.data.quality_score) > 0.5
     ) {
       return true;
     } else {
-      console.log("Email is not deliverable or has a low quality score");
+      console.log('Email is not deliverable or has a low quality score');
       return false;
     }
   } catch (error) {
-    console.error("Error validating email with external API", error);
+    console.error('Error validating email with external API', error);
     return false;
   }
 }

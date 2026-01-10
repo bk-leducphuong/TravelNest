@@ -1,7 +1,7 @@
-const Sequelize = require("sequelize");
+const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
   return sequelize.define(
-    "reviews",
+    'reviews',
     {
       review_id: {
         autoIncrement: true,
@@ -13,16 +13,16 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.INTEGER,
         allowNull: true,
         references: {
-          model: "users",
-          key: "user_id",
+          model: 'users',
+          key: 'user_id',
         },
       },
       hotel_id: {
         type: DataTypes.INTEGER,
         allowNull: true,
         references: {
-          model: "hotels",
-          key: "hotel_id",
+          model: 'hotels',
+          key: 'hotel_id',
         },
       },
       rating: {
@@ -36,7 +36,7 @@ module.exports = function (sequelize, DataTypes) {
       created_at: {
         type: DataTypes.DATE,
         allowNull: true,
-        defaultValue: Sequelize.Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       booking_code: {
         type: DataTypes.STRING(100),
@@ -46,8 +46,8 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.INTEGER,
         allowNull: true,
         references: {
-          model: "bookings",
-          key: "booking_id",
+          model: 'bookings',
+          key: 'booking_id',
         },
       },
       reply: {
@@ -67,24 +67,24 @@ module.exports = function (sequelize, DataTypes) {
     },
     {
       sequelize,
-      tableName: "reviews",
+      tableName: 'reviews',
       timestamps: false,
       indexes: [
         {
-          name: "PRIMARY",
+          name: 'PRIMARY',
           unique: true,
-          using: "BTREE",
-          fields: [{ name: "review_id" }],
+          using: 'BTREE',
+          fields: [{ name: 'review_id' }],
         },
         {
-          name: "user_id",
-          using: "BTREE",
-          fields: [{ name: "user_id" }],
+          name: 'user_id',
+          using: 'BTREE',
+          fields: [{ name: 'user_id' }],
         },
         {
-          name: "hotel_id",
-          using: "BTREE",
-          fields: [{ name: "hotel_id" }],
+          name: 'hotel_id',
+          using: 'BTREE',
+          fields: [{ name: 'hotel_id' }],
         },
       ],
     }

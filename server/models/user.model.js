@@ -1,7 +1,7 @@
-const Sequelize = require("sequelize");
+const Sequelize = require('sequelize');
 module.exports = function (sequelize, DataTypes) {
   const User = sequelize.define(
-    "users",
+    'users',
     {
       user_id: {
         autoIncrement: true,
@@ -30,24 +30,24 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: true,
       },
       user_role: {
-        type: DataTypes.ENUM("customer", "partner", "admin"),
+        type: DataTypes.ENUM('customer', 'partner', 'admin'),
         allowNull: true,
-        defaultValue: "customer",
+        defaultValue: 'customer',
       },
       created_at: {
         type: DataTypes.DATE,
         allowNull: true,
-        defaultValue: Sequelize.Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       updated_at: {
         type: DataTypes.DATE,
         allowNull: true,
-        defaultValue: Sequelize.Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       connect_account_id: {
         type: DataTypes.STRING(255),
         allowNull: true,
-        unique: "connect_account_id_UNIQUE",
+        unique: 'connect_account_id_UNIQUE',
       },
       address: {
         type: DataTypes.TEXT,
@@ -66,7 +66,7 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: true,
       },
       gender: {
-        type: DataTypes.ENUM("male", "female"),
+        type: DataTypes.ENUM('male', 'female'),
         allowNull: true,
       },
       nationality: {
@@ -76,29 +76,29 @@ module.exports = function (sequelize, DataTypes) {
     },
     {
       sequelize,
-      tableName: "users",
+      tableName: 'users',
       timestamps: false,
       indexes: [
         {
-          name: "PRIMARY",
+          name: 'PRIMARY',
           unique: true,
-          using: "BTREE",
-          fields: [{ name: "user_id" }],
+          using: 'BTREE',
+          fields: [{ name: 'user_id' }],
         },
         {
-          name: "unique_email_role",
+          name: 'unique_email_role',
           unique: true,
-          using: "BTREE",
-          fields: [{ name: "email" }, { name: "user_role" }],
+          using: 'BTREE',
+          fields: [{ name: 'email' }, { name: 'user_role' }],
         },
         {
-          name: "connect_account_id_UNIQUE",
+          name: 'connect_account_id_UNIQUE',
           unique: true,
-          using: "BTREE",
-          fields: [{ name: "connect_account_id" }],
+          using: 'BTREE',
+          fields: [{ name: 'connect_account_id' }],
         },
       ],
-    },
+    }
   );
 
   return User;

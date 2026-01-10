@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const { isAdminAuthenticated } = require('../../middlewares/sessionAuth');
-const { getAllManagingHotels } = require('../../controllers/admin/hotelsManagementController');
+const {
+  getAllManagingHotels,
+} = require('../../controllers/admin/hotelsManagementController');
 
 // root route: /api/admin/hotels-management
 router.use(isAdminAuthenticated);

@@ -1,6 +1,6 @@
-const { getModels } = require("../../models/init-models.js");
+const { getModels } = require('../../models/init-models.js');
 const { Bookings, Invoices, Rooms, Users } = getModels();
-const { Op, Sequelize } = require("sequelize");
+const { Op, Sequelize } = require('sequelize');
 
 const getTotalBookings = async (req, res) => {
   try {
@@ -16,7 +16,7 @@ const getTotalBookings = async (req, res) => {
     res.status(200).json({ totalBookings: bookings.length });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -26,7 +26,7 @@ const getRevenueStats = async (req, res) => {
     const { hotelId, period } = req.body;
 
     if (!hotelId || !period || !period.start || !period.end) {
-      return res.status(400).json({ message: "Invalid input parameters" });
+      return res.status(400).json({ message: 'Invalid input parameters' });
     }
 
     const revenue = await Bookings.update(
@@ -41,7 +41,7 @@ const getRevenueStats = async (req, res) => {
         where: {
           hotel_id: hotelId,
           status: {
-            [Op.ne]: "cancelled",
+            [Op.ne]: 'cancelled',
           },
         },
       }
@@ -49,8 +49,8 @@ const getRevenueStats = async (req, res) => {
 
     res.status(200).json({ revenueStats: revenue || 0 });
   } catch (error) {
-    console.error("Error in getRevenueStats:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error('Error in getRevenueStats:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -60,13 +60,13 @@ const getDailyRevenueChart = async (req, res) => {
     const { hotelId, period } = req.body;
 
     if (!hotelId || !period || !period.start || !period.end) {
-      return res.status(400).json({ message: "Invalid input parameters" });
+      return res.status(400).json({ message: 'Invalid input parameters' });
     }
 
     const results = await Invoices.findAll({
       attributes: [
-        [Sequelize.fn("DATE", Sequelize.col("created_at")), "date"],
-        [Sequelize.fn("SUM", Sequelize.col("amount")), "revenue"],
+        [Sequelize.fn('DATE', Sequelize.col('created_at')), 'date'],
+        [Sequelize.fn('SUM', Sequelize.col('amount')), 'revenue'],
       ],
       where: {
         hotel_id: hotelId,
@@ -74,14 +74,14 @@ const getDailyRevenueChart = async (req, res) => {
           [Op.between]: [period.start, period.end],
         },
       },
-      group: [Sequelize.fn("DATE", Sequelize.col("created_at"))],
-      order: [[Sequelize.fn("DATE", Sequelize.col("created_at")), "ASC"]],
+      group: [Sequelize.fn('DATE', Sequelize.col('created_at'))],
+      order: [[Sequelize.fn('DATE', Sequelize.col('created_at')), 'ASC']],
     });
 
     res.status(200).json({ dailyRevenueChart: results });
   } catch (error) {
-    console.error("Error in getDailyRevenueChart:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error('Error in getDailyRevenueChart:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -91,13 +91,13 @@ const getRoomBooks = async (req, res) => {
     const { hotelId, period } = req.body;
 
     if (!hotelId || !period || !period.start || !period.end) {
-      return res.status(400).json({ message: "Invalid input parameters" });
+      return res.status(400).json({ message: 'Invalid input parameters' });
     }
 
     const roomSales = await Bookings.findAll({
       attributes: [
-        "room_id",
-        [Sequelize.fn("COUNT", Sequelize.col("*")), "book_count"],
+        'room_id',
+        [Sequelize.fn('COUNT', Sequelize.col('*')), 'book_count'],
       ],
       where: {
         hotel_id: hotelId,
@@ -105,7 +105,7 @@ const getRoomBooks = async (req, res) => {
           [Op.between]: [period.start, period.end],
         },
       },
-      group: ["room_id"],
+      group: ['room_id'],
       raw: true,
     });
 
@@ -119,8 +119,8 @@ const getRoomBooks = async (req, res) => {
     }
     res.status(200).json({ roomSales: roomSales });
   } catch (error) {
-    console.error("Error in getRoomSales:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error('Error in getRoomSales:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -130,22 +130,22 @@ const getNewCustomers = async (req, res) => {
     const { period, hotelId } = req.body;
 
     if (!hotelId || !period || !period.start || !period.end) {
-      return res.status(400).json({ message: "Invalid input parameters" });
+      return res.status(400).json({ message: 'Invalid input parameters' });
     }
 
     const newCustomers = await Users.findAll({
-      attributes: ["username", "email", "profile_picture_url"],
+      attributes: ['username', 'email', 'profile_picture_url'],
       distinct: true,
       include: [
         {
           model: Bookings,
-          as: "bookings",
+          as: 'bookings',
           attributes: [],
           required: true,
           where: {
             hotel_id: hotelId,
             status: {
-              [Op.in]: ["confirmed", "checked in", "completed"],
+              [Op.in]: ['confirmed', 'checked in', 'completed'],
             },
             created_at: {
               [Op.between]: [period.start, period.end],
@@ -166,8 +166,8 @@ const getNewCustomers = async (req, res) => {
     });
     res.status(200).json({ newCustomers: newCustomers });
   } catch (error) {
-    console.error("Error in getNewCustomers:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error('Error in getNewCustomers:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -177,16 +177,16 @@ const calculateWeeklyChange = async (req, res) => {
     const { currentWeek, previousWeek, hotelId } = req.body;
 
     if (!currentWeek || !previousWeek || !hotelId) {
-      return res.status(400).json({ message: "Invalid input parameters" });
+      return res.status(400).json({ message: 'Invalid input parameters' });
     }
 
-    const currentRevenue = await Invoices.sum("amount", {
+    const currentRevenue = await Invoices.sum('amount', {
       where: {
         hotel_id: hotelId,
         [Op.between]: [currentWeek.start, currentWeek.end],
       },
     });
-    const previousRevenue = await Invoices.sum("amount", {
+    const previousRevenue = await Invoices.sum('amount', {
       where: {
         hotel_id: hotelId,
         [Op.between]: [previousWeek.start, previousWeek.end],
@@ -205,8 +205,8 @@ const calculateWeeklyChange = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Error in calculateWeeklyChange:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error('Error in calculateWeeklyChange:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 

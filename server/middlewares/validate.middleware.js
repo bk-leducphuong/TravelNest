@@ -1,7 +1,7 @@
-const ApiError = require("../utils/ApiError");
+const ApiError = require('../utils/ApiError');
 
 module.exports = (schema) => (req, res, next) => {
-  const validationTargets = ["params", "query", "body"];
+  const validationTargets = ['params', 'query', 'body'];
 
   for (const key of validationTargets) {
     if (schema[key]) {
@@ -14,12 +14,12 @@ module.exports = (schema) => (req, res, next) => {
         // Format validation errors as fields object per RESTful standards
         const fields = {};
         error.details.forEach((detail) => {
-          const fieldPath = detail.path.join(".");
+          const fieldPath = detail.path.join('.');
           fields[fieldPath] = detail.message;
         });
 
         return next(
-          new ApiError(400, "VALIDATION_ERROR", "Invalid request data", fields),
+          new ApiError(400, 'VALIDATION_ERROR', 'Invalid request data', fields)
         );
       }
 

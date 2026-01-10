@@ -1,8 +1,8 @@
-const nodemailer = require("nodemailer");
+const nodemailer = require('nodemailer');
 
 // Email transporter configuration
 const transporter = nodemailer.createTransport({
-  service: "gmail", // Sử dụng Gmail SMTP server
+  service: 'gmail', // Sử dụng Gmail SMTP server
   auth: {
     user: process.env.NODEMAILER_EMAIL,
     pass: process.env.NODEMAILER_PASSWORD,

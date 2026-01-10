@@ -1,6 +1,6 @@
-const sequelize = require("../config/db");
-const { Op } = require("sequelize");
-const { getModels } = require("../models/init-models.js");
+const sequelize = require('../config/db');
+const { Op } = require('sequelize');
+const { getModels } = require('../models/init-models.js');
 const { Bookings, Hotels, Rooms } = getModels();
 
 const getAllBookings = async (req, res) => {
@@ -19,29 +19,29 @@ const getAllBookings = async (req, res) => {
         where: {
           buyer_id: buyerId,
           status: {
-            [Op.ne]: "cancelled",
+            [Op.ne]: 'cancelled',
           },
         },
       }
     );
 
     const bookings = await Bookings.findAll({
-      where: { buyer_id: buyerId, status: { [Op.ne]: "cancelled" } },
-      order: [["created_at", "DESC"]],
+      where: { buyer_id: buyerId, status: { [Op.ne]: 'cancelled' } },
+      order: [['created_at', 'DESC']],
     });
 
     for (let booking of bookings) {
       const hotelId = booking.hotel_id;
       const hotelInformation = await Hotels.findOne({
         where: { hotel_id: hotelId },
-        attributes: ["hotel_id", "name", "city", "image_urls"],
+        attributes: ['hotel_id', 'name', 'city', 'image_urls'],
       });
       booking.hotel = hotelInformation;
 
       const roomId = booking.room_id;
       const roomInformation = await Rooms.findOne({
         where: { room_id: roomId },
-        attributes: ["room_id", "room_name"],
+        attributes: ['room_id', 'room_name'],
       });
       booking.roomName = roomInformation.room_name;
     }

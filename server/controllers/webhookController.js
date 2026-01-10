@@ -1,8 +1,8 @@
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const transporter = require("../config/nodemailer");
-const { getIO } = require("../config/socket");
-const fs = require("fs");
-const { getModels } = require("../models/init-models.js");
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const transporter = require('../config/nodemailer');
+const { getIO } = require('../config/socket');
+const fs = require('fs');
+const { getModels } = require('../models/init-models.js');
 const {
   Transactions,
   Bookings,
@@ -42,7 +42,7 @@ const storeBooking = async (paymentIntent) => {
       check_in_date: checkInDate,
       check_out_date: checkOutDate,
       total_price: paymentIntent.amount, // price for all booked rooms
-      status: "confirmed",
+      status: 'confirmed',
       number_of_guests: numberOfGuests,
       quantity: bookedRoom.roomQuantity,
       hotel_id: hotelId,
@@ -60,7 +60,7 @@ const storeInvoice = async (paymentIntent) => {
   await Invoices.create({
     transaction_id: transactionId,
     hotel_id: hotelId,
-    status: "unavailable",
+    status: 'unavailable',
     amount: paymentIntent.amount,
     created_at: new Date(),
     booking_code: bookingCode,
@@ -89,21 +89,21 @@ const handlePaymentIntentCreated = async (paymentIntent) => {
       hotel_id: hotelId,
       amount: paymentIntent.amount,
       currency: currency,
-      status: "pending",
-      transaction_type: "booking_payment",
+      status: 'pending',
+      transaction_type: 'booking_payment',
       payment_intent_id: paymentIntent.id,
     });
 
     await Payments.create({
       transaction_id: transactionId,
-      payment_method: paymentMethod ? paymentMethod.type : "unknown",
-      payment_status: "pending",
+      payment_method: paymentMethod ? paymentMethod.type : 'unknown',
+      payment_status: 'pending',
       amount: paymentIntent.amount,
       currency: currency,
       paid_at: new Date(),
     });
   } catch (error) {
-    console.error("Error handling payment intent created:", error);
+    console.error('Error handling payment intent created:', error);
     throw error;
   }
 };
@@ -125,21 +125,21 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
       const transactionId = transaction.transaction_id;
 
       await Transactions.update(
-        { status: "completed", charge_id: chargeId, booking_code: bookingCode },
+        { status: 'completed', charge_id: chargeId, booking_code: bookingCode },
         { where: { transaction_id: transactionId } }
       );
       await Payments.update(
-        { payment_status: "success", payment_method: paymentMethod.type },
+        { payment_status: 'success', payment_method: paymentMethod.type },
         { where: { transaction_id: transactionId } }
       );
     } else {
       console.error(
-        "Transaction not found for payment intent:",
+        'Transaction not found for payment intent:',
         paymentIntent.id
       );
     }
   } catch (error) {
-    console.error("Error handling payment intent succeeded:", error);
+    console.error('Error handling payment intent succeeded:', error);
     throw error;
   }
 };
@@ -159,21 +159,21 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
       hotel_id: hotelId,
       amount: paymentIntent.amount,
       currency: currency,
-      status: "failed",
-      transaction_type: "booking_payment",
+      status: 'failed',
+      transaction_type: 'booking_payment',
       payment_intent_id: paymentIntent.id,
     });
 
     await Payments.create({
       transaction_id: transaction.transaction_id,
-      payment_method: paymentMethod ? paymentMethod.type : "unknown",
-      payment_status: "failed",
+      payment_method: paymentMethod ? paymentMethod.type : 'unknown',
+      payment_status: 'failed',
       amount: paymentIntent.amount,
       currency: currency,
       paid_at: new Date(),
     });
   } catch (error) {
-    console.error("Error handling payment intent created:", error);
+    console.error('Error handling payment intent created:', error);
     throw error;
   }
 };
@@ -203,12 +203,12 @@ const handleRefundIntentSucceeded = async (chargeRefunded) => {
       transaction_id: transaction.transaction_id,
       amount: amount,
       completed_at: new Date(),
-      status: "completed",
+      status: 'completed',
     });
 
     // update booking status
     await Bookings.update(
-      { status: "cancelled" },
+      { status: 'cancelled' },
       { where: { booking_code: bookingCode } }
     );
 
@@ -233,7 +233,7 @@ const handleRefundIntentSucceeded = async (chargeRefunded) => {
       );
     }
   } catch (error) {
-    console.error("Refund failed:", error);
+    console.error('Refund failed:', error);
   }
 };
 
@@ -255,34 +255,34 @@ const sendConfirmationEmail = async (paymentIntent) => {
     //...
 
     // Load the email template
-    const templatePath = "./email-templates/thankyou.html";
-    let emailTemplate = fs.readFileSync(templatePath, "utf8");
+    const templatePath = './email-templates/thankyou.html';
+    let emailTemplate = fs.readFileSync(templatePath, 'utf8');
 
     // Replace placeholders with actual booking details
     emailTemplate = emailTemplate
       // .replace('{{buyerName}}', buyerName)
       // .replace('{{hotelName}}', hotelName)
-      .replace("{{bookingCode}}", bookingCode)
-      .replace("{{checkInDate}}", new Date(checkInDate).toDateString())
-      .replace("{{checkOutDate}}", new Date(checkOutDate).toDateString())
-      .replace("{{numberOfGuests}}", numberOfGuests)
+      .replace('{{bookingCode}}', bookingCode)
+      .replace('{{checkInDate}}', new Date(checkInDate).toDateString())
+      .replace('{{checkOutDate}}', new Date(checkOutDate).toDateString())
+      .replace('{{numberOfGuests}}', numberOfGuests)
       .replace(
-        "{{totalPrice}}",
-        parseInt(paymentIntent.amount).toLocaleString("vi-VN")
+        '{{totalPrice}}',
+        parseInt(paymentIntent.amount).toLocaleString('vi-VN')
       );
 
     // Email options
     const mailOptions = {
       from: process.env.NODEMAILER_EMAIL,
       to: paymentIntent.receipt_email, // Recipient's email address
-      subject: "Booking Confirmation",
+      subject: 'Booking Confirmation',
       html: emailTemplate, // HTML content
     };
 
     // Send email
     const info = await transporter.sendMail(mailOptions);
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error('Error sending email:', error);
   }
 };
 
@@ -301,7 +301,7 @@ async function storeAdminNotification(notification) {
     });
     return notification.notification_id;
   } catch (error) {
-    console.error("Error storing notification:", error);
+    console.error('Error storing notification:', error);
     throw error;
   }
 }
@@ -319,7 +319,7 @@ async function storeUserNotification(notification) {
     });
     return userNotification.notification_id;
   } catch (error) {
-    console.error("Error storing notification:", error);
+    console.error('Error storing notification:', error);
     throw error;
   }
 }
@@ -352,7 +352,7 @@ async function sendNewBookingNotification(paymentIntent) {
     const adminNotification = {
       senderId: buyerId,
       recieverId: hotelId, // hotel  id
-      notificationType: "booking",
+      notificationType: 'booking',
       message: `New booking: ${buyerName} booked ${totalRooms} rooms from ${new Date(
         checkInDate
       ).toDateString()} to ${new Date(
@@ -364,7 +364,7 @@ async function sendNewBookingNotification(paymentIntent) {
     const adminNotificationId = await storeAdminNotification(adminNotification);
 
     io.to(`owner_${adminNotification.recieverId}`).emit(
-      "newAdminNotification",
+      'newAdminNotification',
       {
         notification_id: adminNotificationId,
         notification_type: adminNotification.notificationType,
@@ -378,14 +378,14 @@ async function sendNewBookingNotification(paymentIntent) {
     const userNotification = {
       senderId: 0, // system,
       recieverId: buyerId,
-      notificationType: "booking",
+      notificationType: 'booking',
       message: `Bạn đã đặt phòng thành công!`,
       isRead: 0,
     };
 
     const userNotificationId = await storeUserNotification(userNotification);
 
-    io.to(`user_${buyerId}`).emit("newUserNotification", {
+    io.to(`user_${buyerId}`).emit('newUserNotification', {
       notification_id: userNotificationId,
       notification_type: userNotification.notificationType,
       message: userNotification.message,
@@ -451,10 +451,10 @@ const handlePayoutEvent = async (payout, status) => {
 
     // update status of invoice
     await Invoices.update(
-      { status: "done", updated_at: new Date() },
+      { status: 'done', updated_at: new Date() },
       { where: { transaction_id: transactionID } }
     );
-    if (status === "failed") {
+    if (status === 'failed') {
       console.error(`Payout failed for payoutId: ${payoutId}`);
       // Optional: Add any retry logic or notifications for failure
     }
@@ -471,7 +471,7 @@ const webhookController = async (req, res) => {
   let event = req.body;
 
   if (process.env.STRIPE_WEBHOOK_SECRET) {
-    const sig = req.headers["stripe-signature"];
+    const sig = req.headers['stripe-signature'];
     try {
       // Verify webhook signature
       event = stripe.webhooks.constructEvent(
@@ -480,7 +480,7 @@ const webhookController = async (req, res) => {
         process.env.STRIPE_WEBHOOK_SECRET
       );
     } catch (err) {
-      console.error("Webhook signature verification failed:", err.message);
+      console.error('Webhook signature verification failed:', err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
   }
@@ -491,11 +491,11 @@ const webhookController = async (req, res) => {
     const paymentIntent = event.data.object;
 
     switch (event.type) {
-      case "payment_intent.created":
+      case 'payment_intent.created':
         await handlePaymentIntentCreated(paymentIntent);
         break;
 
-      case "payment_intent.succeeded":
+      case 'payment_intent.succeeded':
         const paymentMethodId = paymentIntent.payment_method;
         const paymentMethod = paymentMethodId
           ? await stripe.paymentMethods.retrieve(paymentMethodId)
@@ -505,15 +505,14 @@ const webhookController = async (req, res) => {
 
         if (paymentMethodId) {
           try {
-            const paymentMethod = await stripe.paymentMethods.retrieve(
-              paymentMethodId
-            );
+            const paymentMethod =
+              await stripe.paymentMethods.retrieve(paymentMethodId);
             receiptEmail = paymentMethod.billing_details.email;
           } catch (err) {
-            console.error("Error retrieving payment method:", err.message);
+            console.error('Error retrieving payment method:', err.message);
           }
         } else {
-          console.log("No payment method provided in this event.");
+          console.log('No payment method provided in this event.');
         }
         // send notification to hotel owner
         await sendNewBookingNotification(paymentIntent);
@@ -534,33 +533,33 @@ const webhookController = async (req, res) => {
 
             await sendConfirmationEmail(paymentIntent);
           } catch (err) {
-            console.error("Error sending confirmation email:", err.message);
+            console.error('Error sending confirmation email:', err.message);
           }
         } else {
-          console.log("No email provided for this payment.");
+          console.log('No email provided for this payment.');
         }
         break;
 
-      case "payment_intent.payment_failed":
+      case 'payment_intent.payment_failed':
         await handlePaymentIntentFailed(event, paymentIntent);
         // You could add failed payment notification logic here
         break;
 
       // cases for payout
-      case "payout.paid":
+      case 'payout.paid':
         const payoutPaid = event.data.object;
-        await handlePayoutEvent(payoutPaid, "completed");
-        sendPayoutNotification(payoutPaid, "completed");
+        await handlePayoutEvent(payoutPaid, 'completed');
+        sendPayoutNotification(payoutPaid, 'completed');
         break;
 
-      case "payout.failed":
+      case 'payout.failed':
         const failedPayout = event.data.object;
-        await handlePayoutEvent(failedPayout, "failed");
-        sendPayoutNotification(failedPayout, "failed");
+        await handlePayoutEvent(failedPayout, 'failed');
+        sendPayoutNotification(failedPayout, 'failed');
         break;
 
       // case for cancel booking
-      case "charge.refunded":
+      case 'charge.refunded':
         const chargeRefunded = event.data.object;
         // console.log('Charge refunded:', chargeRefunded);
         await handleRefundIntentSucceeded(chargeRefunded);
@@ -573,8 +572,8 @@ const webhookController = async (req, res) => {
 
     res.json({ received: true });
   } catch (error) {
-    console.error("Error processing webhook:", error);
-    res.status(500).json({ error: "Failed to process webhook" });
+    console.error('Error processing webhook:', error);
+    res.status(500).json({ error: 'Failed to process webhook' });
   }
 };
 module.exports = { webhookController };

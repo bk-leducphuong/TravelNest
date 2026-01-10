@@ -1,8 +1,23 @@
 const express = require('express');
-const {isUserAuthenticated} = require('../middlewares/sessionAuth');
-const { getUserInformation, editName, editDisplayName, editEmail, editPhoneNumber, 
-editDateOfBirth, editAddress, editNationality, editCountry, editGender, editAvatar,
- getFavoriteHotels, setFavoriteHotels, deleteFavoriteHotel, checkFavoriteHotel, resetPassword } = require( '../controllers/userController.js');
+const { isUserAuthenticated } = require('../middlewares/sessionAuth');
+const {
+  getUserInformation,
+  editName,
+  editDisplayName,
+  editEmail,
+  editPhoneNumber,
+  editDateOfBirth,
+  editAddress,
+  editNationality,
+  editCountry,
+  editGender,
+  editAvatar,
+  getFavoriteHotels,
+  setFavoriteHotels,
+  deleteFavoriteHotel,
+  checkFavoriteHotel,
+  resetPassword,
+} = require('../controllers/userController.js');
 const upload = require('../config/multer');
 const router = express.Router();
 

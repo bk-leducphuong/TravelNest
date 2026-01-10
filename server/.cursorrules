@@ -215,5 +215,197 @@ VALID:
 
 ---
 
+Express REST API – Architecture & Rules (v1)
+1. Architecture Layers (Strict)
+Route → Validation → Controller → Service → Repository → Sequelize Model → DB
+
+Responsibilities
+
+Route: URL + middleware wiring only
+
+Validation (Joi): request shape only
+
+Controller: HTTP ↔ service mapping
+
+Service: business logic, authorization, transactions
+
+Repository: Sequelize queries only
+
+Model: schema + DB-level constraints
+
+❌ No layer may skip another
+❌ Controllers/services must NOT import Sequelize models
+
+2. Folder Structure (Required)
+src/
+ ├── routes/
+ ├── controllers/
+ ├── services/
+ ├── repositories/
+ ├── models/
+ ├── validators/
+ ├── middlewares/
+ └── utils/
+
+3. Controllers (Rules)
+
+Must be async
+
+Must be wrapped with asyncHandler
+
+Must NOT contain:
+
+try/catch
+
+business logic
+
+Sequelize usage
+
+Must use response helpers only
+
+✅ Controllers never throw raw errors
+
+4. Services (Rules)
+
+Contain all business logic
+
+Handle authorization & ownership checks
+
+Start and manage transactions
+
+Must throw ApiError (or predefined errors)
+
+Must NOT:
+
+access req / res
+
+return HTTP responses
+
+catch errors unless rethrowing
+
+✅ Services are the only place to decide why an operation fails
+
+5. Repositories (Rules)
+
+Only layer allowed to use Sequelize models
+
+Encapsulate all queries, includes, pagination
+
+No business rules
+
+Accept transaction via options
+
+❌ No HTTP logic
+❌ No validation logic
+
+6. Sequelize Models (Rules)
+
+Define schema, relations, DB constraints
+
+Use underscored, paranoid when needed
+
+No business logic in hooks
+
+No request validation
+
+❌ No service logic
+❌ No authorization logic
+
+7. Validation Layer (Joi)
+
+Validation happens before controller
+
+Validate params, query, body, headers
+
+Use:
+
+abortEarly: false
+
+stripUnknown: true
+
+Validation errors → ApiError(400, VALIDATION_ERROR)
+
+❌ No Joi in services or controllers
+
+8. Error Handling (Mandatory)
+
+Use a single ApiError class
+
+Services throw errors
+
+Controllers never catch
+
+One global error middleware (last)
+
+Error Response Format
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human readable",
+    "details": {}
+  }
+}
+
+9. Success Response Format (Mandatory)
+{
+  "success": true,
+  "data": {},
+  "meta": {}
+}
+
+
+Use response helpers (ok, created, noContent)
+
+Never return errors with HTTP 200
+
+10. Sequelize Error Mapping
+
+Sequelize errors must be mapped centrally:
+
+UniqueConstraintError → 409
+
+ValidationError → 400
+
+Services must not depend on Sequelize error types
+
+11. HTTP Status Codes (Strict)
+
+200 → OK
+
+201 → Created
+
+204 → No Content
+
+400 → Validation / bad request
+
+401 → Unauthorized
+
+403 → Forbidden
+
+404 → Not found
+
+409 → Conflict
+
+500 → Internal error
+
+12. Absolute Prohibitions ❌
+
+No res.json() outside response helpers
+
+No throw new Error()
+
+No Sequelize in controllers/services
+
+No validation in controllers/services
+
+No business logic in repositories/models
+
+No sequelize.sync() in production
+
+13. Golden Rule
+
+Controllers translate, services decide, repositories fetch.
+
 ## END OF RULES
 

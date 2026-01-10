@@ -1,4 +1,4 @@
-const { getModels } = require("../models/init-models.js");
+const { getModels } = require('../models/init-models.js');
 const { Reviews, ReviewCriterias, Hotels, Bookings } = getModels();
 
 const validateReview = async (req, res) => {
@@ -8,7 +8,7 @@ const validateReview = async (req, res) => {
     if (!bookingCode || !hotelId) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing bookingCode" });
+        .json({ success: false, message: 'Missing bookingCode' });
     }
 
     const booking = await Bookings.findOne({
@@ -16,19 +16,19 @@ const validateReview = async (req, res) => {
         booking_code: bookingCode,
         buyer_id: buyerId,
         hotel_id: hotelId,
-        status: "completed",
+        status: 'completed',
       },
     });
 
     if (!booking) {
       return res
         .status(404)
-        .json({ success: false, message: "Booking not found" });
+        .json({ success: false, message: 'Booking not found' });
     }
     res.status(200).json({ success: true, bookingCode: bookingCode });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -38,7 +38,7 @@ const checkAlreadyReviewed = async (req, res) => {
     if (!bookingCode || !hotelId) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing bookingCode" });
+        .json({ success: false, message: 'Missing bookingCode' });
     }
 
     const review = await Reviews.findOne({
@@ -46,7 +46,7 @@ const checkAlreadyReviewed = async (req, res) => {
       include: [
         {
           model: ReviewCriterias,
-          attributes: ["criteria_name", "score"],
+          attributes: ['criteria_name', 'score'],
         },
       ],
     });
@@ -70,7 +70,7 @@ const checkAlreadyReviewed = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -90,7 +90,7 @@ const postReview = async (req, res) => {
     ) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing required fields" });
+        .json({ success: false, message: 'Missing required fields' });
     }
 
     const review = await Reviews.create({
@@ -115,10 +115,10 @@ const postReview = async (req, res) => {
 
     res
       .status(201)
-      .json({ success: true, message: "Review posted successfully" });
+      .json({ success: true, message: 'Review posted successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 
@@ -129,34 +129,34 @@ const getAllReviews = async (req, res) => {
     const bookings = await Bookings.findAll({
       where: {
         buyer_id: userId,
-        status: "completed",
+        status: 'completed',
       },
-      attributes: ["hotel_id", "booking_code"],
+      attributes: ['hotel_id', 'booking_code'],
       include: [
         {
           model: Hotels,
-          attributes: ["hotel_id", "name", "image_urls"],
+          attributes: ['hotel_id', 'name', 'image_urls'],
         },
         {
           model: Reviews,
           attributes: [
-            "review_id",
-            "rating",
-            "comment",
-            "created_at",
-            "reply",
-            "number_of_likes",
-            "number_of_dislikes",
+            'review_id',
+            'rating',
+            'comment',
+            'created_at',
+            'reply',
+            'number_of_likes',
+            'number_of_dislikes',
           ],
         },
       ],
-      group: ["hotel_id", "booking_code"],
+      group: ['hotel_id', 'booking_code'],
     });
 
     res.status(200).json({ reviews: bookings });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 };
 

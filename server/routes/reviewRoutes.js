@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { validateReview, postReview, getAllReviews, checkAlreadyReviewed } = require('../controllers/reviewController');
+const {
+  validateReview,
+  postReview,
+  getAllReviews,
+  checkAlreadyReviewed,
+} = require('../controllers/reviewController');
 const { isUserAuthenticated } = require('../middlewares/sessionAuth');
 
 // root route: /api/review

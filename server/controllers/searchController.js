@@ -1,7 +1,7 @@
-const { getModels } = require("../models/init-models.js");
+const { getModels } = require('../models/init-models.js');
 const { Rooms, RoomInventories, SearchLogs } = getModels();
-const { Op, Sequelize } = require("sequelize");
-const sequelize = require("../config/db"); // Adjust the path as necessary
+const { Op, Sequelize } = require('sequelize');
+const sequelize = require('../config/db'); // Adjust the path as necessary
 
 const getSearchResults = async (req, res) => {
   try {
@@ -26,7 +26,7 @@ const getSearchResults = async (req, res) => {
       return res.status(400).json({
         success: false,
         hotels: [],
-        message: "Missing search criteria",
+        message: 'Missing search criteria',
       });
     }
 
@@ -73,7 +73,7 @@ const getSearchResults = async (req, res) => {
       return res.status(200).json({
         success: false,
         hotels: [],
-        message: "No hotels found matching the criteria",
+        message: 'No hotels found matching the criteria',
       });
     }
 
@@ -82,8 +82,8 @@ const getSearchResults = async (req, res) => {
       const lowestPrice = await RoomInventories.findOne({
         attributes: [
           [
-            Sequelize.fn("SUM", Sequelize.col("price_per_night")),
-            "total_price",
+            Sequelize.fn('SUM', Sequelize.col('price_per_night')),
+            'total_price',
           ],
         ],
         include: [
@@ -99,10 +99,10 @@ const getSearchResults = async (req, res) => {
           date: {
             [Op.between]: [checkInDate, checkOutDate],
           },
-          status: "open",
+          status: 'open',
         },
-        group: ["room_id"],
-        order: [[Sequelize.fn("SUM", Sequelize.col("price_per_night")), "ASC"]],
+        group: ['room_id'],
+        order: [[Sequelize.fn('SUM', Sequelize.col('price_per_night')), 'ASC']],
         raw: true,
       });
 
@@ -114,7 +114,7 @@ const getSearchResults = async (req, res) => {
     console.error(error);
     res
       .status(500)
-      .json({ success: false, hotels: [], message: "Internal Server Error" });
+      .json({ success: false, hotels: [], message: 'Internal Server Error' });
   }
 };
 
@@ -142,13 +142,13 @@ const saveSearchInformation = async (req, res) => {
     ) {
       return res
         .status(400)
-        .json({ success: false, message: "Missing search details" });
+        .json({ success: false, message: 'Missing search details' });
     }
 
     await SearchLogs.create({
       location,
       user_id,
-      search_time: Sequelize.fn("NOW"),
+      search_time: Sequelize.fn('NOW'),
       children,
       adults,
       rooms,
@@ -159,10 +159,10 @@ const saveSearchInformation = async (req, res) => {
 
     res
       .status(201)
-      .json({ success: true, message: "Search log recorded successfully" });
+      .json({ success: true, message: 'Search log recorded successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
 

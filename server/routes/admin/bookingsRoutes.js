@@ -1,7 +1,10 @@
 const router = require('express').Router();
 const connection = require('../../config/db');
-const { isAdminAuthenticated } = require('../../middlewares/sessionAuth')
-const { getAllBookings, getBookerInformation } = require('../../controllers/admin/bookingsController');
+const { isAdminAuthenticated } = require('../../middlewares/sessionAuth');
+const {
+  getAllBookings,
+  getBookerInformation,
+} = require('../../controllers/admin/bookingsController');
 
 // root route: /api/admin/bookings
 router.use(isAdminAuthenticated);

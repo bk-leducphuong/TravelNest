@@ -14,7 +14,7 @@ const { isAdminAuthenticated } = require('../../middlewares/sessionAuth');
 router.use(isAdminAuthenticated);
 
 // Các route thống kê cho dashboard admin
-router.post('/get-total-bookings', getTotalBookings); 
+router.post('/get-total-bookings', getTotalBookings);
 router.post('/get-revenue-stats', getRevenueStats); // tổng thu nhập trong 1 khoảng thời gian
 router.post('/get-daily-revenue-chart', getDailyRevenueChart); //tong thu nhap tung nhap theo ngày
 router.post('/get-room-book', getRoomBooks); // so luong phong dat trong 1 khoảng thời gian

@@ -1,12 +1,12 @@
-const ApiError = require("../utils/ApiError");
-const logger = require("../config/logger");
+const ApiError = require('../utils/ApiError');
+const logger = require('../config/logger');
 
 module.exports = (err, req, res, next) => {
   let apiError = err;
 
   // Convert unknown errors
   if (!(err instanceof ApiError)) {
-    apiError = new ApiError(500, "INTERNAL_ERROR", "Internal server error");
+    apiError = new ApiError(500, 'INTERNAL_ERROR', 'Internal server error');
   }
 
   logger.error(
@@ -15,7 +15,7 @@ module.exports = (err, req, res, next) => {
       requestId: req.id,
       path: req.originalUrl,
     },
-    err.message,
+    err.message
   );
 
   // Format error response per RESTful standards
