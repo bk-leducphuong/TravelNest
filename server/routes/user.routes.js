@@ -1,5 +1,5 @@
 const express = require('express');
-const { isUserAuthenticated } = require('../middlewares/sessionAuth');
+const { isUserAuthenticated } = require('../middlewares/auth.middleware');
 const {
   getCurrentUser,
   updateCurrentUser,

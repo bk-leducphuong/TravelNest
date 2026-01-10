@@ -80,7 +80,7 @@ const initServer = async () => {
   app.use(limiter);
 
   // User Routes
-  // const searchRoutes = require('./routes/searchRoutes');
+  const searchRoutes = require('./routes/search.routes.js');
   const hotelRoutes = require('./routes/hotel.routes.js');
   const authRoutes = require('./routes/auth.routes');
   const homeRoutes = require('./routes/home.routes.js');
@@ -90,9 +90,9 @@ const initServer = async () => {
   // const reviewRoutes = require('./routes/reviewRoutes.js');
   // const cancelRoutes = require('./routes/cancelRoutes.js');
   // const bookingRoutes = require('./routes/bookingRoutes.js');
-  // const userNotificationRoutes = require('./routes/notificationRoutes.js');
+  const userNotificationRoutes = require('./routes/notification.routes.js');
 
-  // app.use('/api/search', searchRoutes);
+  app.use('/api/search', searchRoutes);
   app.use('/api/home', homeRoutes);
   app.use('/api/hotels', hotelRoutes);
   app.use('/api/auth', authRoutes); // Login route
@@ -102,7 +102,7 @@ const initServer = async () => {
   app.use('/api/user', userRoutes);
   // app.use('/api/review', reviewRoutes);
   // app.use('/api/booking', bookingRoutes);
-  // app.use('/api/notifications', userNotificationRoutes);
+  app.use('/api/notifications', userNotificationRoutes);
 
   // Admin routes
   const adminPayoutRoutes = require('./routes/admin/payoutRoutes.js');

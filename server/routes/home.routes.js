@@ -11,7 +11,7 @@ const {
   getPopularDestinations,
   getTrendingHotels,
 } = require('../controllers/home.controller.js');
-const { isUserAuthenticated } = require('../middlewares/sessionAuth');
+const { isUserAuthenticated } = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate.middleware');
 const homeSchema = require('../validators/home.schema');
 const router = express.Router();
