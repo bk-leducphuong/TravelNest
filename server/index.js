@@ -84,8 +84,8 @@ const initServer = async () => {
   const hotelRoutes = require('./routes/hotel.routes.js');
   const authRoutes = require('./routes/auth.routes');
   const homeRoutes = require('./routes/home.routes.js');
-  // const joinRoutes = require('./routes/joinRoutes');
-  // const paymentRoutes = require('./routes/paymentRoutes.js');
+  const joinRoutes = require('./routes/join.routes.js');
+  const paymentRoutes = require('./routes/payment.routes.js');
   const userRoutes = require('./routes/user.routes.js');
   const reviewRoutes = require('./routes/review.routes.js');
   // const cancelRoutes = require('./routes/cancelRoutes.js');
@@ -96,8 +96,8 @@ const initServer = async () => {
   app.use('/api/home', homeRoutes);
   app.use('/api/hotels', hotelRoutes);
   app.use('/api/auth', authRoutes); // Login route
-  // app.use('/api/join', joinRoutes); // Become a host route
-  // app.use('/api/payment', paymentRoutes);
+  app.use('/api/join', joinRoutes); // Become a partner route
+  app.use('/api/payments', paymentRoutes);
   // app.use('/api/cancel-bookings', cancelRoutes);
   app.use('/api/user', userRoutes);
   app.use('/api/reviews', reviewRoutes);
