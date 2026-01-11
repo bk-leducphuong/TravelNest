@@ -86,13 +86,13 @@
 </template>
 
 <script>
-import axios from 'axios' // Import Axios
 import { mapActions, mapGetters } from 'vuex'
 import { useToast } from "vue-toastification";
 import ForgotPassword from '@/components/ForgotPassword.vue';
 import checkPasswordStrength from '@/utils/checkPasswordStrength';
 import LoginHeader from '@/components/LoginHeader.vue'
 import errorHandler from '@/request/errorHandler';
+import { AuthService } from '@/services/auth.service';
 
 export default {
   components: {
@@ -113,7 +113,8 @@ export default {
       confirmPassword: '',
       isNewUser: false,
       isForgotPassword: false,
-      userRole: 'customer'
+      userRole: 'customer',
+      isLoading: false
     }
   },
   computed: {
@@ -123,32 +124,33 @@ export default {
     }
   },
   methods: {
-    ...mapActions('auth', ['login']), // Map the login action
+    ...mapActions('auth', ['login', 'register']), // Map the login and register actions
 
-    checkEmail() {
-      // Call to API to check if email exists
-      axios
-        .post(`${import.meta.env.VITE_SERVER_HOST}/api/auth/check-email`, {
+    async checkEmail() {
+      try {
+        const response = await AuthService.checkEmail({
           email: this.email,
           userRole: this.userRole
         })
-        .then((response) => {
-          if (response.data.exists) {
-            // Email exists, proceed to login
-            this.isNewUser = false
-          } else {
-            // Email doesn't exist, register new user
-            this.isNewUser = true
-          }
-          this.step = 2
-        })
-        .catch((error) => {
-          if (error.response && error.response.status === 400) {
-            this.toast.error(error);
-          } else {
-            this.toast.error('Unexpected error occurred. Please try again.')
-          }
-        })
+        
+        // Check if response has data property (from http interceptor) or is the data itself
+        const data = response.data || response
+        
+        if (data.exists) {
+          // Email exists, proceed to login
+          this.isNewUser = false
+        } else {
+          // Email doesn't exist, register new user
+          this.isNewUser = true
+        }
+        this.step = 2
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+          this.toast.error(error.response.data?.message || 'Invalid email');
+        } else {
+          this.toast.error('Unexpected error occurred. Please try again.')
+        }
+      }
     },
     async registerOrLogin() {
       if (this.passwordMismatch) {
@@ -163,45 +165,57 @@ export default {
         }
       }
 
-      const apiUrl = this.isNewUser
-        ? `${import.meta.env.VITE_SERVER_HOST}/api/auth/register`
-        : `${import.meta.env.VITE_SERVER_HOST}/api/auth/login`
+      const payload = {
+        email: this.email,
+        password: this.password,
+        userRole: this.userRole
+      }
 
-      const payload = this.isNewUser
-        ? { email: this.email, password: this.password, userRole: this.userRole}
-        : { email: this.email, password: this.password, userRole: this.userRole }
+      const redirectRoute = this.$route.query.redirect || '/'
 
-      await this.login({ apiUrl: apiUrl, payload: payload, redirectRoute: this.$route.query.redirect || '/'})
-      if (this.isLoginFail) {
-        this.toast.error('Mật khẩu sai!')
+      try {
+        if (this.isNewUser) {
+          await this.register({ payload, redirectRoute })
+        } else {
+          await this.login({ payload, redirectRoute })
+        }
+        
+        if (this.isLoginFail) {
+          this.toast.error('Mật khẩu sai!')
+          this.password = ''
+        }
+      } catch (error) {
+        this.toast.error('Đăng nhập/Đăng ký thất bại. Vui lòng thử lại.')
         this.password = ''
       }
     },
     async socialLogin(provider) {
       // Ensure `provider` is one of the allowed providers
-      const allowedProviders = ['facebook', 'google', 'apple']
+      const allowedProviders = ['facebook', 'google', 'twitter']
       if (!allowedProviders.includes(provider)) {
         console.error('Invalid provider')
         return
       }
 
-      // Show loading state (could be a UI change, like a spinner)
+      // Show loading state
       this.isLoading = true
 
       try {
-        const queryUrl = `${import.meta.env.VITE_SERVER_HOST}/api/auth/login-${provider}`
-        const response = await axios.get(queryUrl, { withCredentials: true })
+        const response = await AuthService.loginWithSocialProvider(provider)
+        
+        // Check if response has data property or is the data itself
+        const data = response.data || response
 
-        if (response.data.success) {
+        if (data.success) {
           this.$router.push('/')
-          this.toast.success('Successfully logged in!') // Example for user feedback
+          this.toast.success('Successfully logged in!')
         } else {
           this.toast.error('Login failed. Please try again.')
         }
       } catch (error) {
         errorHandler(error)
       } finally {
-        this.isLoading = false // Remove loading state
+        this.isLoading = false
       }
     },
     closeForgotPassword() {
@@ -211,78 +225,89 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@import '@/assets/styles/index.scss';
+
 .container {
-  max-width: 400px;
-  margin: 40px auto;
-  padding: 20px;
-  background-color: white;
-  border-radius: 4px;
+  max-width: $container-max-width;
+  margin: $spacing-xxl auto;
+  padding: $spacing-lg;
+  background-color: $white;
+  border-radius: $border-radius-sm;
 }
+
 h1 {
-  color: #333;
-  margin-bottom: 20px;
+  color: $text-primary;
+  margin-bottom: $spacing-lg;
 }
+
 p {
-  color: #666;
+  color: $text-secondary;
   line-height: 1.5;
 }
+
 input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 20px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  @include input-base;
 }
+
 .btn {
-  width: 100%;
-  padding: 10px;
-  background-color: #0071c2;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
+  @include button-primary;
 }
+
 .social-login {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
+  @include flex-between;
+  margin-top: $spacing-lg;
 }
+
 .social-btn {
   width: 30%;
-  height: 40px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  height: $spacing-xxl;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-sm;
+  @include flex-center;
   cursor: pointer;
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: $primary-color-light;
+  }
+
+  img {
+    width: $spacing-lg;
+    height: $spacing-lg;
+  }
 }
-.social-btn img {
-  width: 20px;
-  height: 20px;
-}
+
 .footer {
   text-align: center;
-  margin-top: 20px;
-  font-size: 12px;
-  color: #666;
-}
-.footer a {
-  color: #0071c2;
-  text-decoration: none;
+  margin-top: $spacing-lg;
+  font-size: $font-size-xs;
+  color: $text-secondary;
+
+  a {
+    color: $primary-color-light;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 .forgot-password {
-  font-size: 16px;
-  color: #2966e8;
-  margin-bottom: 15px;
+  font-size: $font-size-base;
+  color: $primary-color-light;
+  margin-bottom: $spacing-md;
   cursor: pointer;
   text-align: right;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: $primary-color-hover;
+  }
 }
 
-.forgot-password:hover {
-  color: #004779;
+.error {
+  color: $error-color;
 }
 </style>

@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
-    "format": "prettier --write src/"
+    "lint:fix": "eslint --fix --ext .js,.vue src",
+    "format": "prettier --write \"src/**/*.{js,vue,json,css,scss}\""
   },
   "dependencies": {
     "@stripe/stripe-js": "^4.9.0",
@@ -34,9 +35,15 @@
     "@vitejs/plugin-vue-jsx": "^4.0.0",
     "@vue/eslint-config-prettier": "^9.0.0",
     "cross-env": "^7.0.3",
-    "eslint": "^8.57.0",
-    "eslint-plugin-vue": "^9.23.0",
-    "prettier": "^3.2.5",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-promise": "^7.2.1",
+    "eslint-plugin-vue": "^9.33.0",
+    "prettier": "^3.7.4",
+    "sass": "^1.97.2",
+    "stylelint": "^16.26.1",
+    "stylelint-config-standard-scss": "^16.0.0",
     "vite": "^5.3.1",
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-vue-devtools": "^7.3.1"

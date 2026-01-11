@@ -25,6 +25,15 @@ export const AuthService = {
   loginWithGoogle() {
     window.location.href = `${import.meta.env.VITE_SERVER_HOST}/api/auth/google`
   },
+  loginWithFacebook() {
+    window.location.href = `${import.meta.env.VITE_SERVER_HOST}/api/auth/facebook`
+  },
+  loginWithTwitter() {
+    window.location.href = `${import.meta.env.VITE_SERVER_HOST}/api/auth/twitter`
+  },
+  loginWithSocialProvider(provider) {
+    return http.get(`/api/auth/login-${provider}`)
+  },
   loginAdmin(credentials) {
     return http.post('/api/auth/admin/sessions', credentials)
   },

@@ -1,19 +1,17 @@
-import './assets/main.css'
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
-import stores from './stores/index.js'  // import store
+import './assets/main.css';
+import { createApp } from 'vue';
+import App from './App.vue';
+import router from './router';
+import stores from './stores/index.js'; // import store
 import { clickOutside } from '../directives/clickOutsite'; // import custom directives
-import i18n from './config/i18n'
-import Toast from "vue-toastification";
+import i18n from './config/i18n';
+import Toast from 'vue-toastification';
 // Import the CSS or use your own!
-import "vue-toastification/dist/index.css";
+import 'vue-toastification/dist/index.css';
+import 'leaflet';
+import './assets/styles/index.scss';
 
-import "leaflet"
-
-
-
-const app = createApp(App)
+const app = createApp(App);
 
 // add custom directives
 app.directive('click-outside', clickOutside);
@@ -25,9 +23,9 @@ app.use(router);
 
 // toast notification
 const options = {
-    //...
+  //...
 };
 
 app.use(Toast, options);
 
-app.mount('#app')
+app.mount('#app');

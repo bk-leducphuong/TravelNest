@@ -1,0 +1,42 @@
+// Button mixin
+@mixin button-base {
+  width: 100%;
+  padding: $spacing-sm;
+  border: none;
+  border-radius: $border-radius-sm;
+  cursor: pointer;
+  font-size: $font-size-base;
+  transition: background-color 0.2s ease;
+}
+
+@mixin button-primary {
+  @include button-base;
+  background-color: $primary-color-light;
+  color: $white;
+  
+  &:hover {
+    background-color: $primary-color-hover;
+  }
+}
+
+// Input mixin
+@mixin input-base {
+  width: 100%;
+  padding: $spacing-sm;
+  margin-bottom: $spacing-lg;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-sm;
+}
+
+// Flexbox mixins
+@mixin flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

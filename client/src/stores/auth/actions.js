@@ -56,6 +56,24 @@ export default {
       commit('setAuthentication', false) // Reset state if not authenticated
     }
   },
+  // register for regular user
+  async register({ commit }, { payload, redirectRoute }) {
+    try {
+      const response = await AuthService.register(payload)
+      if (response.data) {
+        commit('setUserId', response.data.userId)
+        commit('setEmail', payload.email)
+        commit('setAuthentication', true)
+        commit('setUserRole', payload.userRole)
+        commit('setLoginFailure', false)
+        // Check for redirect query and navigate accordingly
+        router.push(redirectRoute)
+      }
+    } catch (error) {
+      commit('setLoginFailure', true)
+      router.push('/login')
+    }
+  },
   // for admin
   async loginAdmin({ commit }, { payload }) {
     try {

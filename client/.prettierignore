@@ -1,6 +1,5 @@
-# Ignore node_modules
-node_modules/
+node_modules
+dist
+build
+coverage
 
-# Ignore build output
-dist/
-build/
