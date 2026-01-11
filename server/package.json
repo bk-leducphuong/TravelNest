@@ -10,12 +10,20 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
-    "seed": "node seed/seeder.js",
-    "seed:user": "cross-env NODE_ENV=development node seed/user.seed.js",
-    "seed:review": "cross-env NODE_ENV=development node seed/review.seed.js",
-    "seed:room": "cross-env NODE_ENV=development node seed/room.seed.js",
-    "seed:booking": "cross-env NODE_ENV=development node seed/booking.seed.js",
-    "seed:nearby_place": "cross-env NODE_ENV=development node seed/nearby_place.seed.js"
+    "seed": "node database/seeders/seeder.js",
+    "seed:user": "cross-env NODE_ENV=development node database/seeders/user.seed.js",
+    "seed:review": "cross-env NODE_ENV=development node database/seeders/review.seed.js",
+    "seed:room": "cross-env NODE_ENV=development node database/seeders/room.seed.js",
+    "seed:booking": "cross-env NODE_ENV=development node database/seeders/booking.seed.js",
+    "seed:nearby_place": "cross-env NODE_ENV=development node database/seeders/nearby_place.seed.js",
+    "seed:notification": "cross-env NODE_ENV=development node database/seeders/notification.seed.js",
+    "migrate": "sequelize-cli db:migrate",
+    "migrate:undo": "sequelize-cli db:migrate:undo",
+    "migrate:undo:all": "sequelize-cli db:migrate:undo:all",
+    "migrate:status": "sequelize-cli db:migrate:status",
+    "migrate:create": "sequelize-cli migration:generate --name",
+    "migrate:seed": "sequelize-cli db:seed:all",
+    "migrate:seed:undo": "sequelize-cli db:seed:undo:all"
   },
   "author": "Le Duc Phuong & Manh Xuan Thai",
   "license": "ISC",
@@ -63,6 +71,7 @@
     "eslint-plugin-vue": "^10.0.0",
     "globals": "^16.5.0",
     "nodemon": "^3.1.7",
-    "prettier": "^3.7.4"
+    "prettier": "^3.7.4",
+    "sequelize-cli": "^6.6.5"
   }
 }
