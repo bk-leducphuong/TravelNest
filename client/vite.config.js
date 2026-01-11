@@ -8,7 +8,18 @@ import compression from 'vite-plugin-compression';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue(), vueJsx(), vueDevTools(), compression({ algorithm: 'gzip' })],
+  plugins: [
+    vue(),
+    vueJsx(),
+    vueDevTools(),
+    compression({ algorithm: 'gzip' }),
+    AutoImport({
+      resolvers: [ElementPlusResolver()],
+    }),
+    Components({
+      resolvers: [ElementPlusResolver()],
+    }),
+  ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
