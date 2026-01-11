@@ -120,9 +120,6 @@ module.exports = function (sequelize, DataTypes) {
     User.hasMany(models.saved_hotels, {
       foreignKey: 'user_id',
     });
-    User.hasMany(models.user_notifications, {
-      foreignKey: 'reciever_id',
-    });
     User.hasMany(models.viewed_hotels, {
       foreignKey: 'user_id',
     });

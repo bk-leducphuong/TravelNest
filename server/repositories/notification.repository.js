@@ -1,5 +1,5 @@
-const { UserNotifications } = require('../models/index.js');
 const { Op } = require('sequelize');
+const { Notifications } = require('../models/index.js');
 
 /**
  * Notification Repository - Contains all database operations for notifications
@@ -21,7 +21,7 @@ class NotificationRepository {
       where.is_read = false;
     }
 
-    return await UserNotifications.findAndCountAll({
+    return await Notifications.findAndCountAll({
       where,
       order: [['created_at', 'DESC']],
       limit: limit || undefined,
@@ -33,7 +33,7 @@ class NotificationRepository {
    * Find notification by ID
    */
   async findById(notificationId) {
-    return await UserNotifications.findOne({
+    return await Notifications.findOne({
       where: { notification_id: notificationId },
     });
   }
@@ -42,7 +42,7 @@ class NotificationRepository {
    * Update notification by ID
    */
   async updateById(notificationId, updateData) {
-    return await UserNotifications.update(updateData, {
+    return await Notifications.update(updateData, {
       where: { notification_id: notificationId },
     });
   }
@@ -51,7 +51,7 @@ class NotificationRepository {
    * Mark all notifications as read for a user
    */
   async markAllAsReadByUserId(userId) {
-    return await UserNotifications.update(
+    return await Notifications.update(
       { is_read: true },
       {
         where: {
@@ -66,7 +66,7 @@ class NotificationRepository {
    * Mark notification as read by ID
    */
   async markAsReadById(notificationId) {
-    return await UserNotifications.update(
+    return await Notifications.update(
       { is_read: true },
       {
         where: {
@@ -80,7 +80,7 @@ class NotificationRepository {
    * Count unread notifications for a user
    */
   async countUnreadByUserId(userId) {
-    return await UserNotifications.count({
+    return await Notifications.count({
       where: {
         reciever_id: userId,
         is_read: false,
