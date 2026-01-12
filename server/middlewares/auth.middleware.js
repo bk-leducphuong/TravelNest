@@ -1,9 +1,8 @@
 // Middleware: Ensure user is authenticated
 function isUserAuthenticated(req, res, next) {
   if (
-    req.session &&
-    req.session.user.user_id &&
-    req.session.user.userRole === 'customer'
+    req.session?.user?.user_id &&
+    req.session?.user?.userRole === 'customer'
   ) {
     return next(); // Proceed if authenticated
   }
@@ -13,11 +12,7 @@ function isUserAuthenticated(req, res, next) {
 }
 
 function isAdminAuthenticated(req, res, next) {
-  if (
-    req.session &&
-    req.session.user.user_id &&
-    req.session.user.userRole === 'partner'
-  ) {
+  if (req.session?.user?.user_id && req.session?.user?.userRole === 'partner') {
     return next(); // Proceed if authenticated
   }
   return res

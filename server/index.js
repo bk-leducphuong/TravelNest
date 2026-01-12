@@ -17,11 +17,9 @@ const initServer = async () => {
 
   const express = require('express');
   const cors = require('cors');
-  const RedisStore = require('connect-redis').default;
-  const redisClient = require('./config/redis.config'); // connect to redis cloud
-  const session = require('express-session');
   const bodyParser = require('body-parser');
   const errorMiddleware = require('./middlewares/error.middleware.js');
+  const sessionMiddleware = require('./config/session.config');
 
   const app = express();
 
@@ -35,6 +33,11 @@ const initServer = async () => {
   //   bodyParser.raw({ type: "application/json" }),
   //   webhookController,
   // );
+  // Socket io
+  const http = require('http');
+  const { initSocket } = require('./socket/index');
+  const server = http.createServer(app);
+  initSocket(server);
 
   app.use(express.static('public'));
   app.use(
@@ -49,31 +52,13 @@ const initServer = async () => {
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: false })); // create application/x-www-form-urlencoded parser
 
   // Configure Session
-  app.use(
-    session({
-      store: new RedisStore({ client: redisClient }),
-      secret: process.env.SESSION_SECRET_KEY, // A secret key to sign the session ID
-      resave: false, // Prevents session being saved back to the session store if nothing changed
-      saveUninitialized: false, // Prevents uninitialized sessions (without changes) from being saved
-      cookie: {
-        maxAge: 1000 * 60 * 60 * 365 * 24, // one year session expiration
-        httpOnly: true, // Protects against XSS attacks
-        secure: process.env.NODE_ENV === 'production', // Set to true if you're using HTTPS
-      },
-    })
-  );
+  app.use(sessionMiddleware);
 
   // Khởi tạo passport
   // const passport = require("passport");
   // require("./config/passport.config");
   // app.use(passport.initialize());
   // app.use(passport.session());
-
-  // Socket io
-  const http = require('http');
-  const { init } = require('./config/socket.config'); // Import socket config
-  const server = http.createServer(app);
-  init(server);
 
   // Rate limiter
   const limiter = require('./middlewares/rate-limitter.middleware');
