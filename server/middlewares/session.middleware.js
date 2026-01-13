@@ -1,6 +1,6 @@
 const session = require('express-session');
 const RedisStore = require('connect-redis').default;
-const redisClient = require('./redis.config');
+const redisClient = require('../config/redis.config');
 
 const sessionMiddleware = session({
   store: new RedisStore({ client: redisClient }),

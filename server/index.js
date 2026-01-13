@@ -19,7 +19,7 @@ const initServer = async () => {
   const cors = require('cors');
   const bodyParser = require('body-parser');
   const errorMiddleware = require('./middlewares/error.middleware.js');
-  const sessionMiddleware = require('./config/session.config');
+  const sessionMiddleware = require('./middlewares/session.middleware');
 
   const app = express();
 

@@ -21,10 +21,11 @@ module.exports = {
         skipMiddlewares: true,
       },
     });
-    io.on('connection', (socket) => handleConnection(io, socket));
 
     io.use(sessionSocketMiddleware);
     io.use(authMiddleware);
+
+    io.on('connection', (socket) => handleConnection(io, socket));
 
     return io;
   },
