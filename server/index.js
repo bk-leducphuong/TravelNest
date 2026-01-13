@@ -87,24 +87,9 @@ const initServer = async () => {
   app.use('/api/bookings', bookingRoutes);
   app.use('/api/notifications', userNotificationRoutes);
 
-  // Admin routes
-  // const adminPayoutRoutes = require('./routes/admin/payoutRoutes.js');
-  // const bookingsRoutes = require('./routes/admin/bookingsRoutes.js');
-  // const hotelsManagementRoutes = require('./routes/admin/hotelsManagementRoutes.js');
-  // const roomRoutes = require('./routes/admin/roomRoutes.js');
-  // const adminReviewRoutes = require('./routes/admin/reviewRoutes.js');
-  // const adminCancelRoutes = require('./routes/admin/cancelRoutes.js');
-  // const adminNotificationRoutes = require('./routes/admin/notificationRoutes.js');
-  // const adminHomeRoutes = require('./routes/admin/homeRoutes.js');
-  //
-  // app.use('/api/admin/home', adminHomeRoutes);
-  // app.use('/api/admin/notifications', adminNotificationRoutes);
-  // app.use('/api/admin/hotels-management', hotelsManagementRoutes);
-  // app.use('/api/admin/payout', adminPayoutRoutes);
-  // app.use('/api/admin/bookings', bookingsRoutes);
-  // app.use('/api/admin/room', roomRoutes);
-  // app.use('/api/admin/review', adminReviewRoutes);
-  // app.use('/api/admin/cancel-booking', adminCancelRoutes);
+  // Admin routes - Refactored with RESTful standards
+  const adminRoutes = require('./routes/admin/index.js');
+  app.use('/api/admin', adminRoutes);
 
   app.use(errorMiddleware);
 
