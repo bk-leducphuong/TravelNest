@@ -2,49 +2,39 @@
   <div class="recent-search-container container" v-if="recentSearches.length > 0">
     <h2 class="h2">{{ $t('userHome.recentSearches') }}</h2>
     <div class="slider-container">
-      <div
-        ref="recentSlider"
-        class="search-slider"
-        @scroll="(event) => handleScroll(event)"
+      <el-carousel
+        :interval="0"
+        :arrow="groupedSearches.length > 1 ? 'hover' : 'never'"
+        indicator-position="none"
+        height="96px"
+        class="search-carousel"
       >
-        <div
-          class="search-card"
-          v-for="(search, index) in recentSearches"
-          :key="index"
-          @click="redirectToSearchResults(search)"
-        >
-          <div class="search-image">
-            <img
-              :src="'assets/vietnam_city/' + search.location + '.jpg'"
-              :alt="search.location"
-            />
+        <el-carousel-item v-for="(group, groupIndex) in groupedSearches" :key="groupIndex">
+          <div class="search-group">
+            <div
+              class="search-card"
+              v-for="(search, index) in group"
+              :key="index"
+              @click="redirectToSearchResults(search)"
+            >
+              <div class="search-image">
+                <img
+                  :src="'assets/vietnam_city/' + search.location + '.jpg'"
+                  :alt="search.location"
+                />
+              </div>
+              <div class="search-content">
+                <h2 class="search-title">{{ search.location }}</h2>
+                <p class="search-details">
+                  From {{ new Date(search.check_in_date).toLocaleDateString('vi-VN') }} to
+                  {{ new Date(search.check_out_date).toLocaleDateString('vi-VN') }}
+                </p>
+              </div>
+              <button class="close-button" @click.stop="removeSearch(search, groupIndex * itemsPerSlide + index)">×</button>
+            </div>
           </div>
-          <div class="search-content">
-            <h2 class="search-title">{{ search.location }}</h2>
-            <p class="search-details">
-              From {{ new Date(search.check_in_date).toLocaleDateString('vi-VN') }} to
-              {{ new Date(search.check_out_date).toLocaleDateString('vi-VN') }}
-            </p>
-          </div>
-          <button class="close-button" @click.stop="removeSearch(search, index)">×</button>
-        </div>
-      </div>
-      <div class="nav-button-container" v-if="recentSearches.length > 0">
-        <button
-          class="nav-button prev"
-          :disabled="disableScrollLeft"
-          @click="scrollLeft"
-        >
-          ‹
-        </button>
-        <button
-          class="nav-button next"
-          :disabled="disableScrollRight"
-          @click="scrollRight"
-        >
-          ›
-        </button>
-      </div>
+        </el-carousel-item>
+      </el-carousel>
     </div>
   </div>
 </template>
@@ -69,20 +59,39 @@ export default {
   emits: ['update:recentSearches'],
   data() {
     return {
-      sliderPosition: 0
+      windowWidth: typeof window !== 'undefined' ? window.innerWidth : 1200
     }
   },
   computed: {
-    disableScrollLeft() {
-      return this.sliderPosition === 0
+    itemsPerSlide() {
+      if (this.windowWidth >= 1400) return 5
+      if (this.windowWidth >= 1200) return 4
+      if (this.windowWidth >= 768) return 3
+      return 2
     },
-    disableScrollRight() {
-      const slider = this.$refs.recentSlider
-      if (!slider) return true
-      return this.sliderPosition >= slider.scrollWidth - slider.clientWidth
+    groupedSearches() {
+      const groups = []
+      for (let i = 0; i < this.recentSearches.length; i += this.itemsPerSlide) {
+        groups.push(this.recentSearches.slice(i, i + this.itemsPerSlide))
+      }
+      return groups
+    }
+  },
+  mounted() {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', this.handleResize)
+      this.handleResize()
+    }
+  },
+  beforeUnmount() {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.handleResize)
     }
   },
   methods: {
+    handleResize() {
+      this.windowWidth = window.innerWidth
+    },
     ...mapActions('search', [
       'updateLocation',
       'updateCheckInDate',
@@ -123,23 +132,6 @@ export default {
       } catch (error) {
         errorHandler(error)
       }
-    },
-    scrollLeft() {
-      const slider = this.$refs.recentSlider
-      this.sliderPosition = Math.max(this.sliderPosition - 300, 0)
-      slider.scrollTo({ left: this.sliderPosition, behavior: 'smooth' })
-    },
-    scrollRight() {
-      const slider = this.$refs.recentSlider
-      this.sliderPosition = Math.min(
-        this.sliderPosition + 300,
-        slider.scrollWidth - slider.clientWidth
-      )
-      slider.scrollTo({ left: this.sliderPosition, behavior: 'smooth' })
-    },
-    handleScroll(event) {
-      const slider = event.target
-      this.sliderPosition = slider.scrollLeft
     }
   }
 }
@@ -164,17 +156,22 @@ export default {
   position: relative;
 }
 
-.search-slider {
+.search-carousel {
+  :deep(.el-carousel__container) {
+    height: 96px;
+  }
+
+  :deep(.el-carousel__item) {
+    padding: 0 $spacing-sm;
+  }
+}
+
+.search-group {
   display: flex;
   gap: $spacing-lg;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  padding: $spacing-sm 0;
-  scroll-snap-type: x mandatory;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  justify-content: center;
+  height: 100%;
+  align-items: center;
 }
 
 .search-card {
@@ -187,12 +184,26 @@ export default {
   gap: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   position: relative;
-  scroll-snap-align: start;
   transition: transform 0.3s;
   cursor: pointer;
 
   &:hover {
     transform: translateY(-2px);
+  }
+
+  @media (max-width: 1400px) {
+    flex: 0 0 calc((100% - 60px) / 4);
+    max-width: 400px;
+  }
+
+  @media (max-width: 1200px) {
+    flex: 0 0 calc((100% - 40px) / 3);
+    max-width: 400px;
+  }
+
+  @media (max-width: 768px) {
+    flex: 0 0 calc((100% - 20px) / 2);
+    max-width: 400px;
   }
 }
 
@@ -245,49 +256,6 @@ export default {
 
   &:hover {
     color: $text-primary;
-  }
-}
-
-.nav-button-container {
-  width: 100%;
-  position: absolute;
-  inset-block-start: 50%;
-  display: flex;
-  justify-content: space-between;
-  pointer-events: none;
-}
-
-.nav-button {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
-  background: $white;
-  border: 1px solid #ddd;
-  border-radius: 50%;
-  cursor: pointer;
-  @include flex-center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.3s;
-  z-index: 2;
-  pointer-events: all;
-
-  &:hover:not(:disabled) {
-    background: #f5f5f5;
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-
-  &.prev {
-    left: -20px;
-  }
-
-  &.next {
-    right: -20px;
   }
 }
 </style>

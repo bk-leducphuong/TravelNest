@@ -2,53 +2,43 @@
   <div class="hotel-container container" v-if="viewedHotels.length > 0">
     <h2 class="h2">{{ $t('userHome.viewedHotels') }}</h2>
     <div class="slider-container">
-      <div
-        ref="viewedSlider"
-        class="hotel-slider"
-        @scroll="(event) => handleScroll(event)"
+      <el-carousel
+        :interval="0"
+        :arrow="groupedHotels.length > 1 ? 'hover' : 'never'"
+        indicator-position="none"
+        height="360px"
+        class="hotel-carousel"
       >
-        <div
-          class="hotel-card"
-          v-for="(hotel, index) in viewedHotels"
-          :key="index"
-          @click="redirectToHotelDetails(hotel)"
-        >
-          <div class="hotel-image">
-            <img
-              v-if="hotel.image_urls"
-              :src="JSON.parse(hotel.image_urls)[0]"
-              :alt="hotel.name"
-            />
-            <img :src="'assets/hotels/no-image.png'" alt="hotel image" v-else />
-            <SavedHotelIcon :hotelId="hotel.hotel_id" />
-          </div>
-          <div class="hotel-content">
-            <h2 class="hotel-name">{{ hotel.name }}</h2>
-            <p class="hotel-location">{{ hotel.address.slice(0, 35) }} ...</p>
-            <div class="hotel-rating">
-              <span class="rating-badge">{{ hotel.overall_rating }}</span>
-              <span class="rating-text">{{ hotel.reviewSummary }}</span>
-              <span class="review-count">{{ hotel.reviewCount }}điểm đánh giá</span>
+        <el-carousel-item v-for="(group, groupIndex) in groupedHotels" :key="groupIndex">
+          <div class="hotel-group">
+            <div
+              class="hotel-card"
+              v-for="(hotel, index) in group"
+              :key="index"
+              @click="redirectToHotelDetails(hotel)"
+            >
+              <div class="hotel-image">
+                <img
+                  v-if="hotel.image_urls"
+                  :src="JSON.parse(hotel.image_urls)[0]"
+                  :alt="hotel.name"
+                />
+                <img :src="'assets/hotels/no-image.png'" alt="hotel image" v-else />
+                <SavedHotelIcon :hotelId="hotel.hotel_id" />
+              </div>
+              <div class="hotel-content">
+                <h2 class="hotel-name">{{ hotel.name }}</h2>
+                <p class="hotel-location">{{ hotel.address.slice(0, 35) }} ...</p>
+                <div class="hotel-rating">
+                  <span class="rating-badge">{{ hotel.overall_rating }}</span>
+                  <span class="rating-text">{{ hotel.reviewSummary }}</span>
+                  <span class="review-count">{{ hotel.reviewCount }}điểm đánh giá</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-      <div class="nav-button-container" v-if="viewedHotels.length > 0">
-        <button
-          class="nav-button prev"
-          :disabled="disableScrollLeft"
-          @click="scrollLeft"
-        >
-          ‹
-        </button>
-        <button
-          class="nav-button next"
-          :disabled="disableScrollRight"
-          @click="scrollRight"
-        >
-          ›
-        </button>
-      </div>
+        </el-carousel-item>
+      </el-carousel>
     </div>
   </div>
 </template>
@@ -70,25 +60,42 @@ export default {
       default: () => []
     }
   },
-  computed: {
-    ...mapGetters('auth', ['isUserAuthenticated'])
-  },
   data() {
     return {
-      sliderPosition: 0
+      windowWidth: typeof window !== 'undefined' ? window.innerWidth : 1200
     }
   },
   computed: {
-    disableScrollLeft() {
-      return this.sliderPosition === 0
+    ...mapGetters('auth', ['isUserAuthenticated']),
+    itemsPerSlide() {
+      if (this.windowWidth >= 1400) return 5
+      if (this.windowWidth >= 1200) return 4
+      if (this.windowWidth >= 768) return 3
+      return 2
     },
-    disableScrollRight() {
-      const slider = this.$refs.viewedSlider
-      if (!slider) return true
-      return this.sliderPosition >= slider.scrollWidth - slider.clientWidth
+    groupedHotels() {
+      const groups = []
+      for (let i = 0; i < this.viewedHotels.length; i += this.itemsPerSlide) {
+        groups.push(this.viewedHotels.slice(i, i + this.itemsPerSlide))
+      }
+      return groups
+    }
+  },
+  mounted() {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', this.handleResize)
+      this.handleResize()
+    }
+  },
+  beforeUnmount() {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.handleResize)
     }
   },
   methods: {
+    handleResize() {
+      this.windowWidth = window.innerWidth
+    },
     ...mapActions('search', ['updateLocation']),
     async redirectToHotelDetails(hotel) {
       try {
@@ -121,23 +128,6 @@ export default {
       } catch (error) {
         console.error('Error redirecting to hotel details:', error)
       }
-    },
-    scrollLeft() {
-      const slider = this.$refs.viewedSlider
-      this.sliderPosition = Math.max(this.sliderPosition - 300, 0)
-      slider.scrollTo({ left: this.sliderPosition, behavior: 'smooth' })
-    },
-    scrollRight() {
-      const slider = this.$refs.viewedSlider
-      this.sliderPosition = Math.min(
-        this.sliderPosition + 300,
-        slider.scrollWidth - slider.clientWidth
-      )
-      slider.scrollTo({ left: this.sliderPosition, behavior: 'smooth' })
-    },
-    handleScroll(event) {
-      const slider = event.target
-      this.sliderPosition = slider.scrollLeft
     }
   }
 }
@@ -162,17 +152,22 @@ export default {
   position: relative;
 }
 
-.hotel-slider {
+.hotel-carousel {
+  :deep(.el-carousel__container) {
+    height: 360px;
+  }
+
+  :deep(.el-carousel__item) {
+    padding: 0 $spacing-sm;
+  }
+}
+
+.hotel-group {
   display: flex;
   gap: $spacing-lg;
-  overflow-x: auto;
-  scroll-behavior: smooth;
-  padding: $spacing-sm 0;
-  scroll-snap-type: x mandatory;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  justify-content: center;
+  height: 100%;
+  align-items: flex-start;
 }
 
 .hotel-card {
@@ -183,12 +178,26 @@ export default {
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: relative;
-  scroll-snap-align: start;
   transition: transform 0.3s;
   cursor: pointer;
 
   &:hover {
     transform: translateY(-5px);
+  }
+
+  @media (max-width: 1400px) {
+    flex: 0 0 calc((100% - 60px) / 4);
+    max-width: 280px;
+  }
+
+  @media (max-width: 1200px) {
+    flex: 0 0 calc((100% - 40px) / 3);
+    max-width: 280px;
+  }
+
+  @media (max-width: 768px) {
+    flex: 0 0 calc((100% - 20px) / 2);
+    max-width: 280px;
   }
 }
 
@@ -248,48 +257,5 @@ export default {
 .review-count {
   color: $text-secondary;
   font-size: $font-size-sm;
-}
-
-.nav-button-container {
-  width: 100%;
-  position: absolute;
-  inset-block-start: 50%;
-  display: flex;
-  justify-content: space-between;
-  pointer-events: none;
-}
-
-.nav-button {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
-  background: $white;
-  border: 1px solid #ddd;
-  border-radius: 50%;
-  cursor: pointer;
-  @include flex-center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.3s;
-  z-index: 2;
-  pointer-events: all;
-
-  &:hover:not(:disabled) {
-    background: #f5f5f5;
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-
-  &.prev {
-    left: -20px;
-  }
-
-  &.next {
-    right: -20px;
-  }
 }
 </style>
