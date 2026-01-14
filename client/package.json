@@ -12,6 +12,7 @@
     "format": "prettier --write \"src/**/*.{js,vue,json,css,scss}\""
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
     "@stripe/stripe-js": "^4.9.0",
     "@vue-leaflet/vue-leaflet": "^0.10.1",
     "axios": "^1.7.7",
