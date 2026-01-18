@@ -100,8 +100,8 @@ class AdminBookingRepository {
    */
   async findUserById(userId) {
     return await Users.findOne({
-      where: { user_id: userId },
-      attributes: ['user_id', 'username', 'email', 'country', 'phone_number'],
+      where: { id: userId },
+      attributes: ['id', 'username', 'email', 'country', 'phone_number'],
     });
   }
 

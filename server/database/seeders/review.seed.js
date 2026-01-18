@@ -261,7 +261,7 @@ async function seedReviews(options = {}) {
     // Get all customers (users with role 'customer')
     const existingCustomers = await users.findAll({
       where: { user_role: 'customer' },
-      attributes: ['user_id'],
+      attributes: ['id'],
     });
 
     if (existingCustomers.length === 0) {
@@ -334,7 +334,7 @@ async function seedReviews(options = {}) {
             faker.number.int({ min: 0, max: existingCustomers.length - 1 })
           ];
         const userId =
-          randomCustomer.user_id || randomCustomer.get?.('user_id');
+          randomCustomer.id || randomCustomer.get?.('id');
 
         // Try to use a booking if available and useBookings is true
         let bookingId = null;
@@ -472,7 +472,7 @@ async function seedReviewsForHotel(hotelId, count = 20, useBookings = false) {
         existingCustomers[
           faker.number.int({ min: 0, max: existingCustomers.length - 1 })
         ];
-      const userId = randomCustomer.user_id || randomCustomer.get?.('user_id');
+      const userId = randomCustomer.id || randomCustomer.get?.('id');
 
       let bookingId = null;
       let bookingCode = null;

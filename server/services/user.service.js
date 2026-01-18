@@ -39,7 +39,7 @@ class UserService {
     // If email is being updated, check for uniqueness
     if (updateData.email) {
       const existingUser = await userRepository.findByEmail(updateData.email);
-      if (existingUser && existingUser.user_id !== userId) {
+      if (existingUser && existingUser.id !== userId) {
         throw new ApiError(409, 'EMAIL_ALREADY_IN_USE', 'Email already in use');
       }
     }

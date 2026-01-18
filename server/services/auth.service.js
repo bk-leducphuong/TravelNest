@@ -82,7 +82,7 @@ class AuthService {
     }
 
     return {
-      userId: user.user_id,
+      userId: user.id,
       userRole: user.user_role,
     };
   }
@@ -119,7 +119,7 @@ class AuthService {
     });
 
     return {
-      userId: newUser.user_id,
+      userId: newUser.id,
       userRole: userRole,
     };
   }
@@ -160,7 +160,7 @@ class AuthService {
     });
 
     return {
-      userId: newUser.user_id,
+      userId: newUser.id,
       userRole: userRole,
     };
   }
@@ -360,7 +360,7 @@ class AuthService {
     }
 
     return {
-      userId: user.user_id,
+      userId: user.id,
       userRole: user.user_role,
     };
   }

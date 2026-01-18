@@ -79,8 +79,8 @@ class AdminReviewRepository {
    */
   async findUserById(userId) {
     return await Users.findOne({
-      where: { user_id: userId },
-      attributes: ['user_id', 'username', 'email', 'profile_picture_url'],
+      where: { id: userId },
+      attributes: ['id', 'username', 'email', 'profile_picture_url'],
     });
   }
 

@@ -1,13 +1,14 @@
 const Sequelize = require('sequelize');
+const { uuidv7 } = require('uuidv7');
 module.exports = function (sequelize, DataTypes) {
   const User = sequelize.define(
     'users',
     {
-      user_id: {
-        autoIncrement: true,
-        type: DataTypes.INTEGER,
+      id: {
+        type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
+        defaultValue: () => uuidv7(),
       },
       username: {
         type: DataTypes.STRING(255),
@@ -83,7 +84,7 @@ module.exports = function (sequelize, DataTypes) {
           name: 'PRIMARY',
           unique: true,
           using: 'BTREE',
-          fields: [{ name: 'user_id' }],
+          fields: [{ name: 'id' }],
         },
         {
           name: 'unique_email_role',

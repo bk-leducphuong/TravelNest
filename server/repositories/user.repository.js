@@ -11,9 +11,9 @@ class UserRepository {
    */
   async findById(userId) {
     return await Users.findOne({
-      where: { user_id: userId },
+      where: { id: userId },
       attributes: [
-        'user_id',
+        'id',
         'user_role',
         'username',
         'email',
@@ -34,8 +34,8 @@ class UserRepository {
    */
   async findByIdWithPassword(userId) {
     return await Users.findOne({
-      where: { user_id: userId },
-      attributes: ['user_id', 'password_hash'],
+      where: { id: userId },
+      attributes: ['id', 'password_hash'],
     });
   }
 
@@ -45,7 +45,7 @@ class UserRepository {
   async findByEmail(email) {
     return await Users.findOne({
       where: { email },
-      attributes: ['user_id', 'email'],
+      attributes: ['id', 'email'],
     });
   }
 
@@ -54,7 +54,7 @@ class UserRepository {
    */
   async updateById(userId, updateData) {
     return await Users.update(updateData, {
-      where: { user_id: userId },
+      where: { id: userId },
     });
   }
 

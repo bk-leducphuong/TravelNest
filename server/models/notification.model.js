@@ -10,11 +10,11 @@ module.exports = function (sequelize, DataTypes) {
         primaryKey: true,
       },
       sender_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
           model: 'users',
-          key: 'user_id',
+          key: 'id',
         },
       },
       notification_type: {

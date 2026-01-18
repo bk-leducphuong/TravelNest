@@ -10,11 +10,11 @@ module.exports = function (sequelize, DataTypes) {
         primaryKey: true,
       },
       owner_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: true,
         references: {
           model: 'users',
-          key: 'user_id',
+          key: 'id',
         },
       },
       name: {

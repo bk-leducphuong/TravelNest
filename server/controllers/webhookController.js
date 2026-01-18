@@ -339,7 +339,7 @@ async function sendNewBookingNotification(paymentIntent) {
 
     // get buyer name
     const buyer = await Users.findOne({
-      where: { user_id: buyerId },
+      where: { id: buyerId },
     });
     const buyerName = buyer.username;
     // get total number of rooms

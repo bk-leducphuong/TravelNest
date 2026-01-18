@@ -72,7 +72,7 @@ class AuthRepository {
         email: email,
         user_role: userRole,
       },
-      attributes: ['user_id', 'email', 'password_hash', 'user_role'],
+      attributes: ['id', 'email', 'password_hash', 'user_role'],
     });
   }
 }

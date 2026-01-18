@@ -128,7 +128,7 @@ class HotelRepository {
         users.profile_picture_url, 
         users.country
       FROM reviews rv 
-      JOIN users ON users.user_id = rv.user_id
+      JOIN users ON users.id = rv.user_id
       WHERE rv.hotel_id = ?
       ORDER BY rv.created_at DESC
       LIMIT ? OFFSET ?

@@ -191,7 +191,7 @@ async function seedNotifications(options = {}) {
 
     // Get all users (can be customers, partners, or admins as senders)
     const existingUsers = await users.findAll({
-      attributes: ['user_id', 'full_name'],
+      attributes: ['id', 'full_name'],
     });
 
     if (existingUsers.length === 0) {
@@ -267,7 +267,7 @@ async function seedNotifications(options = {}) {
             existingUsers[
               faker.number.int({ min: 0, max: existingUsers.length - 1 })
             ];
-          senderId = randomUser.user_id || randomUser.get?.('user_id');
+          senderId = randomUser.id || randomUser.get?.('id');
         }
 
         // Determine notification type
@@ -434,7 +434,7 @@ async function seedNotificationsForHotel(
 
     // Get users
     const existingUsers = await users.findAll({
-      attributes: ['user_id', 'full_name'],
+      attributes: ['id', 'full_name'],
     });
 
     if (existingUsers.length === 0) {

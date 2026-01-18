@@ -264,7 +264,7 @@ async function seedBookings(options = {}) {
     // Get all customers (users with role 'customer')
     const existingCustomers = await users.findAll({
       where: { user_role: 'customer' },
-      attributes: ['user_id'],
+      attributes: ['id'],
     });
 
     if (existingCustomers.length === 0) {
@@ -327,7 +327,7 @@ async function seedBookings(options = {}) {
             faker.number.int({ min: 0, max: existingCustomers.length - 1 })
           ];
         const buyerId =
-          randomCustomer.user_id || randomCustomer.get?.('user_id');
+          randomCustomer.id || randomCustomer.get?.('id');
 
         // Select a random room from this hotel
         const randomRoom =
@@ -448,7 +448,7 @@ async function seedBookingsForHotel(hotelId, count = 30, dateRange = {}) {
         existingCustomers[
           faker.number.int({ min: 0, max: existingCustomers.length - 1 })
         ];
-      const buyerId = randomCustomer.user_id || randomCustomer.get?.('user_id');
+      const buyerId = randomCustomer.id || randomCustomer.get?.('id');
 
       const randomRoom =
         hotelRooms[
