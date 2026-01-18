@@ -299,7 +299,7 @@ async function storeAdminNotification(notification) {
       message: message,
       is_read: isRead,
     });
-    return notification.notification_id;
+    return notification.id;
   } catch (error) {
     console.error('Error storing notification:', error);
     throw error;

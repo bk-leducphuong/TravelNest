@@ -34,7 +34,7 @@ class NotificationRepository {
    */
   async findById(notificationId) {
     return await Notifications.findOne({
-      where: { notification_id: notificationId },
+      where: { id: notificationId },
     });
   }
 
@@ -43,7 +43,7 @@ class NotificationRepository {
    */
   async updateById(notificationId, updateData) {
     return await Notifications.update(updateData, {
-      where: { notification_id: notificationId },
+      where: { id: notificationId },
     });
   }
 
@@ -56,7 +56,6 @@ class NotificationRepository {
       {
         where: {
           reciever_id: userId,
-          notification_id: { [Op.gt]: 0 }, // All notifications
         },
       }
     );
@@ -70,7 +69,7 @@ class NotificationRepository {
       { is_read: true },
       {
         where: {
-          notification_id: notificationId,
+          id: notificationId,
         },
       }
     );

@@ -1,13 +1,14 @@
 const Sequelize = require('sequelize');
+const { uuidv7 } = require('uuidv7');
 module.exports = function (sequelize, DataTypes) {
   const Notification = sequelize.define(
     'notifications',
     {
-      notification_id: {
-        autoIncrement: true,
-        type: DataTypes.INTEGER,
+      id: {
+        type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
+        defaultValue: () => uuidv7(),
       },
       sender_id: {
         type: DataTypes.UUID,
@@ -52,7 +53,7 @@ module.exports = function (sequelize, DataTypes) {
           name: 'PRIMARY',
           unique: true,
           using: 'BTREE',
-          fields: [{ name: 'notification_id' }],
+          fields: [{ name: 'id' }],
         },
         {
           name: 'notifications_ibfk_1_idx',

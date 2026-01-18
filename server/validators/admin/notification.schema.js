@@ -6,21 +6,18 @@ const Joi = require('joi');
  */
 
 // Common validations
-const hotelIdSchema = Joi.number().integer().positive().required().messages({
-  'number.base': 'hotelId must be a number',
-  'number.integer': 'hotelId must be an integer',
-  'number.positive': 'hotelId must be a positive number',
+const hotelIdSchema = Joi.string().uuid().required().messages({
+  'string.base': 'hotelId must be a string',
+  'string.guid': 'hotelId must be a valid UUID',
   'any.required': 'hotelId is required',
 });
 
-const notificationIdSchema = Joi.number()
-  .integer()
-  .positive()
+const notificationIdSchema = Joi.string()
+  .uuid()
   .required()
   .messages({
-    'number.base': 'notificationId must be a number',
-    'number.integer': 'notificationId must be an integer',
-    'number.positive': 'notificationId must be a positive number',
+    'string.base': 'notificationId must be a string',
+    'string.guid': 'notificationId must be a valid UUID',
     'any.required': 'notificationId is required',
   });
 

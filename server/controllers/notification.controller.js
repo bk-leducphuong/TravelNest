@@ -40,7 +40,7 @@ const markNotificationAsRead = asyncHandler(async (req, res) => {
   const { notificationId } = req.params;
 
   await notificationService.markNotificationAsRead(
-    parseInt(notificationId, 10),
+    notificationId,
     userId
   );
 

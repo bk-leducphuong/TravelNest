@@ -7,10 +7,9 @@ const { pagination } = require('./common.schema');
  */
 
 // Common validations
-const notificationIdSchema = Joi.number().integer().positive().required().messages({
-  'number.base': 'notificationId must be a number',
-  'number.integer': 'notificationId must be an integer',
-  'number.positive': 'notificationId must be a positive number',
+const notificationIdSchema = Joi.string().uuid().required().messages({
+  'string.base': 'notificationId must be a string',
+  'string.guid': 'notificationId must be a valid UUID',
   'any.required': 'notificationId is required',
 });
 

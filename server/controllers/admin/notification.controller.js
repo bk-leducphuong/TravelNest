@@ -40,7 +40,7 @@ const getNotificationById = asyncHandler(async (req, res) => {
   const { notificationId } = req.params;
 
   const notification = await adminNotificationService.getNotificationById(
-    parseInt(notificationId, 10),
+    notificationId,
     ownerId
   );
 
@@ -58,7 +58,7 @@ const markNotificationAsRead = asyncHandler(async (req, res) => {
   const { notificationId } = req.params;
 
   const notification = await adminNotificationService.markNotificationAsRead(
-    parseInt(notificationId, 10),
+    notificationId,
     ownerId
   );
 
@@ -95,7 +95,7 @@ const deleteNotification = asyncHandler(async (req, res) => {
   const { notificationId } = req.params;
 
   const result = await adminNotificationService.deleteNotification(
-    parseInt(notificationId, 10),
+    notificationId,
     ownerId
   );
 

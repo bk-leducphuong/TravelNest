@@ -42,7 +42,7 @@ class AdminNotificationRepository {
    */
   async findById(notificationId) {
     return await Notifications.findOne({
-      where: { notification_id: notificationId },
+      where: { id: notificationId },
     });
   }
 
@@ -53,7 +53,7 @@ class AdminNotificationRepository {
     return await Notifications.update(
       { is_read: 1 },
       {
-        where: { notification_id: notificationId },
+        where: { id: notificationId },
       }
     );
   }
@@ -78,7 +78,7 @@ class AdminNotificationRepository {
    */
   async delete(notificationId) {
     return await Notifications.destroy({
-      where: { notification_id: notificationId },
+      where: { id: notificationId },
     });
   }
 
@@ -100,7 +100,7 @@ class AdminNotificationRepository {
   async verifyHotelOwnership(hotelId, ownerId) {
     const hotel = await Hotels.findOne({
       where: {
-        hotel_id: hotelId,
+        id: hotelId,
         owner_id: ownerId,
       },
     });
@@ -113,7 +113,7 @@ class AdminNotificationRepository {
   async verifyNotificationOwnership(notificationId, hotelId) {
     const notification = await Notifications.findOne({
       where: {
-        notification_id: notificationId,
+        id: notificationId,
         reciever_id: hotelId,
       },
     });
