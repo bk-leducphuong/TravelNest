@@ -39,7 +39,7 @@ class ReviewService {
 
     return {
       bookingCode,
-      bookingId: booking.booking_id,
+      bookingId: booking.id,
       isValid: true,
     };
   }
@@ -168,7 +168,7 @@ class ReviewService {
       rating: parseFloat(rating),
       comment: comment.trim(),
       bookingCode,
-      bookingId: booking.booking_id,
+      bookingId: booking.id,
     });
 
     // Create review criteria

@@ -59,7 +59,7 @@ const getPaymentByBookingId = asyncHandler(async (req, res) => {
   const { bookingId } = req.params;
 
   const payment = await paymentService.getPaymentByBookingId(
-    parseInt(bookingId, 10),
+    bookingId,
     userId
   );
 

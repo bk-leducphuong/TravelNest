@@ -44,7 +44,7 @@ class AdminBookingRepository {
   async findByIdAndHotelId(bookingId, hotelId) {
     return await Bookings.findOne({
       where: {
-        booking_id: bookingId,
+        id: bookingId,
         hotel_id: hotelId,
       },
     });
@@ -55,7 +55,7 @@ class AdminBookingRepository {
    */
   async findById(bookingId) {
     return await Bookings.findOne({
-      where: { booking_id: bookingId },
+      where: { id: bookingId },
     });
   }
 
@@ -90,7 +90,7 @@ class AdminBookingRepository {
     return await Bookings.update(
       { status },
       {
-        where: { booking_id: bookingId },
+        where: { id: bookingId },
       }
     );
   }
@@ -156,7 +156,7 @@ class AdminBookingRepository {
       where,
       attributes: [
         'status',
-        [sequelize.fn('COUNT', sequelize.col('booking_id')), 'count'],
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
       ],
       group: ['status'],
       raw: true,

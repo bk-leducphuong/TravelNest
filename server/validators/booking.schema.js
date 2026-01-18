@@ -6,10 +6,9 @@ const Joi = require('joi');
  */
 
 // Common validations
-const bookingIdSchema = Joi.number().integer().positive().required().messages({
-  'number.base': 'bookingId must be a number',
-  'number.integer': 'bookingId must be an integer',
-  'number.positive': 'bookingId must be a positive number',
+const bookingIdSchema = Joi.string().uuid().required().messages({
+  'string.base': 'bookingId must be a string',
+  'string.guid': 'bookingId must be a valid UUID',
   'any.required': 'bookingId is required',
 });
 

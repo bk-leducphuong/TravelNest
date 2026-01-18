@@ -279,7 +279,7 @@ class HomeRepository {
           'view_count',
         ],
         [
-          Sequelize.fn('COUNT', Sequelize.col('bookings.booking_id')),
+          Sequelize.fn('COUNT', Sequelize.col('bookings.id')),
           'booking_count',
         ],
       ],

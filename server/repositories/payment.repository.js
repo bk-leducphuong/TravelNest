@@ -124,7 +124,7 @@ class PaymentRepository {
    */
   async findPaymentByBookingId(bookingId) {
     const booking = await Bookings.findOne({
-      where: { booking_id: bookingId },
+      where: { id: bookingId },
       attributes: ['booking_code'],
     });
 

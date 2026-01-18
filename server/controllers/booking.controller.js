@@ -33,7 +33,7 @@ const getBookingById = asyncHandler(async (req, res) => {
   const { bookingId } = req.params;
 
   const booking = await bookingService.getBookingById(
-    parseInt(bookingId, 10),
+    bookingId,
     userId
   );
 
@@ -67,7 +67,7 @@ const cancelBooking = asyncHandler(async (req, res) => {
   const { processRefund } = req.query;
 
   const result = await bookingService.cancelBooking(
-    parseInt(bookingId, 10),
+    bookingId,
     userId,
     {
       processRefund: processRefund === 'true',

@@ -278,7 +278,7 @@ async function seedReviews(options = {}) {
     let existingBookings = [];
     if (useBookings) {
       existingBookings = await bookings.findAll({
-        attributes: ['booking_id', 'booking_code', 'buyer_id', 'hotel_id'],
+        attributes: ['id', 'booking_code', 'buyer_id', 'hotel_id'],
         where: {
           status: ['completed', 'checked in'],
         },
@@ -460,7 +460,7 @@ async function seedReviewsForHotel(hotelId, count = 20, useBookings = false) {
           hotel_id: hotelId,
           status: ['completed', 'checked in'],
         },
-        attributes: ['booking_id', 'booking_code', 'buyer_id'],
+        attributes: ['id', 'booking_code', 'buyer_id'],
       });
     }
 

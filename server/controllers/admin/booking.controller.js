@@ -39,7 +39,7 @@ const getBookingById = asyncHandler(async (req, res) => {
   const { bookingId } = req.params;
 
   const booking = await adminBookingService.getBookingById(
-    parseInt(bookingId, 10),
+    bookingId,
     ownerId
   );
 
@@ -57,7 +57,7 @@ const getBookerInformation = asyncHandler(async (req, res) => {
   const { bookingId } = req.params;
 
   const booker = await adminBookingService.getBookerInformation(
-    parseInt(bookingId, 10),
+    bookingId,
     ownerId
   );
 
@@ -76,7 +76,7 @@ const updateBookingStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
 
   const booking = await adminBookingService.updateBookingStatus(
-    parseInt(bookingId, 10),
+    bookingId,
     ownerId,
     status
   );

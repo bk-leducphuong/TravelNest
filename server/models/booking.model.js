@@ -1,13 +1,14 @@
 const Sequelize = require('sequelize');
+const { uuidv7 } = require('uuidv7');
 module.exports = function (sequelize, DataTypes) {
   const Booking = sequelize.define(
     'bookings',
     {
-      booking_id: {
-        autoIncrement: true,
-        type: DataTypes.INTEGER,
+      id: {
+        type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
+        defaultValue: () => uuidv7(),
       },
       buyer_id: {
         type: DataTypes.UUID,
@@ -87,7 +88,7 @@ module.exports = function (sequelize, DataTypes) {
           name: 'PRIMARY',
           unique: true,
           using: 'BTREE',
-          fields: [{ name: 'booking_id' }],
+          fields: [{ name: 'id' }],
         },
         {
           name: 'user_id',

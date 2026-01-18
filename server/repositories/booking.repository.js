@@ -41,7 +41,7 @@ class BookingRepository {
    */
   async findById(bookingId) {
     return await Bookings.findOne({
-      where: { booking_id: bookingId },
+      where: { id: bookingId },
     });
   }
 
@@ -60,7 +60,7 @@ class BookingRepository {
   async findByIdAndBuyerId(bookingId, buyerId) {
     return await Bookings.findOne({
       where: {
-        booking_id: bookingId,
+        id: bookingId,
         buyer_id: buyerId,
       },
     });
@@ -73,7 +73,7 @@ class BookingRepository {
     return await Bookings.update(
       { status },
       {
-        where: { booking_id: bookingId },
+        where: { id: bookingId },
       }
     );
   }
@@ -150,11 +150,11 @@ class BookingRepository {
    */
   async findBookingWithDetails(bookingId) {
     return await Bookings.findOne({
-      where: { booking_id: bookingId },
+      where: { id: bookingId },
       include: [
         {
           model: Hotels,
-          attributes: ['hotel_id', 'name', 'city', 'image_urls'],
+          attributes: ['id', 'name', 'city', 'image_urls'],
         },
         {
           model: Rooms,
