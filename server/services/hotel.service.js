@@ -130,7 +130,7 @@ class HotelService {
 
     return {
       rooms: rooms.map((room) => ({
-        roomId: room.room_id,
+        roomId: room.id || room.room_id,
         roomName: room.room_name,
         maxGuests: room.max_guests,
         roomImageUrls: room.room_image_urls,
@@ -190,7 +190,7 @@ class HotelService {
     }
 
     // Extract room IDs
-    const roomIds = selectedRooms.map((room) => room.room_id);
+    const roomIds = selectedRooms.map((room) => room.roomId || room.room_id);
 
     // Check availability
     const availableRooms = await hotelRepository.checkRoomAvailability(
@@ -204,7 +204,7 @@ class HotelService {
     // Check if all selected rooms are available in required quantities
     for (const selectedRoom of selectedRooms) {
       const room = availableRooms.find(
-        (r) => r.room_id === selectedRoom.room_id
+        (r) => (r.room_id || r.id) === (selectedRoom.room_id || selectedRoom.roomId)
       );
 
       if (!room) {

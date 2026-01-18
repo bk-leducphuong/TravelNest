@@ -153,7 +153,7 @@ exports.checkRoomAvailability = {
               }
               // Validate each room object
               const roomSchema = Joi.object({
-                room_id: Joi.number().integer().positive().required(),
+                room_id: Joi.string().uuid().required(),
                 roomQuantity: Joi.number().integer().positive().required(),
               });
               for (const room of parsed) {

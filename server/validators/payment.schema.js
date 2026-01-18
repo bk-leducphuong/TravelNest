@@ -77,7 +77,7 @@ const bookingDetailsSchema = Joi.object({
   bookedRooms: Joi.array()
     .items(
       Joi.object({
-        room_id: Joi.number().integer().positive().required(),
+        room_id: Joi.string().uuid().required(),
         roomQuantity: Joi.number().integer().positive().required(),
       })
     )

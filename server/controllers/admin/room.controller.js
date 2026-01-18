@@ -33,7 +33,7 @@ const getRoomById = asyncHandler(async (req, res) => {
   const { roomId } = req.params;
 
   const room = await adminRoomService.getRoomById(
-    parseInt(roomId, 10),
+    roomId,
     ownerId
   );
 
@@ -72,7 +72,7 @@ const updateRoom = asyncHandler(async (req, res) => {
   const updateData = req.body;
 
   const room = await adminRoomService.updateRoom(
-    parseInt(roomId, 10),
+    roomId,
     ownerId,
     updateData
   );
@@ -92,7 +92,7 @@ const deleteRoom = asyncHandler(async (req, res) => {
   const { roomId } = req.params;
 
   const result = await adminRoomService.deleteRoom(
-    parseInt(roomId, 10),
+    roomId,
     ownerId
   );
 
@@ -110,7 +110,7 @@ const getRoomPhotos = asyncHandler(async (req, res) => {
   const { roomId } = req.params;
 
   const result = await adminRoomService.getRoomPhotos(
-    parseInt(roomId, 10),
+    roomId,
     ownerId
   );
 
@@ -129,7 +129,7 @@ const addRoomPhotos = asyncHandler(async (req, res) => {
   const { hotelId } = req.body;
 
   const result = await adminRoomService.addRoomPhotos(
-    parseInt(roomId, 10),
+    roomId,
     hotelId,
     ownerId,
     req.files
@@ -150,7 +150,7 @@ const deleteRoomPhotos = asyncHandler(async (req, res) => {
   const { photoUrls } = req.body;
 
   const result = await adminRoomService.deleteRoomPhotos(
-    parseInt(roomId, 10),
+    roomId,
     ownerId,
     photoUrls
   );
@@ -227,7 +227,7 @@ const getRoomInventory = asyncHandler(async (req, res) => {
   const { startDate, endDate } = req.query;
 
   const result = await adminRoomService.getRoomInventory(
-    parseInt(roomId, 10),
+    roomId,
     ownerId,
     startDate ? new Date(startDate) : null,
     endDate ? new Date(endDate) : null
@@ -248,7 +248,7 @@ const updateRoomInventory = asyncHandler(async (req, res) => {
   const { inventories } = req.body;
 
   const result = await adminRoomService.updateRoomInventory(
-    parseInt(roomId, 10),
+    roomId,
     ownerId,
     inventories
   );

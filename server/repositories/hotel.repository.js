@@ -233,9 +233,9 @@ class HotelRepository {
    */
   async findRoomById(roomId) {
     return await Rooms.findOne({
-      where: { room_id: roomId },
+      where: { id: roomId },
       attributes: [
-        'room_id',
+        'id',
         'hotel_id',
         'room_name',
         'max_guests',

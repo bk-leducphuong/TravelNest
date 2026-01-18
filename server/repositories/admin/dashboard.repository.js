@@ -106,8 +106,8 @@ class AdminDashboardRepository {
     const enrichedStats = await Promise.all(
       roomStats.map(async (stat) => {
         const room = await Rooms.findOne({
-          where: { room_id: stat.room_id },
-          attributes: ['room_id', 'room_name', 'room_type'],
+          where: { id: stat.room_id },
+          attributes: ['id', 'room_name', 'room_type'],
         });
 
         return {

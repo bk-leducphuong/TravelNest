@@ -45,7 +45,7 @@ class BookingService {
           hotel: hotel ? (hotel.toJSON ? hotel.toJSON() : hotel) : null,
           room: room
             ? {
-                room_id: room.room_id,
+                room_id: room.id,
                 room_name: room.room_name,
               }
             : null,
@@ -87,7 +87,7 @@ class BookingService {
       hotel: hotel ? (hotel.toJSON ? hotel.toJSON() : hotel) : null,
       room: room
         ? {
-            room_id: room.room_id,
+            room_id: room.id,
             room_name: room.room_name,
           }
         : null,
@@ -256,7 +256,7 @@ class BookingService {
       hotel: hotel ? (hotel.toJSON ? hotel.toJSON() : hotel) : null,
       room: room
         ? {
-            room_id: room.room_id,
+            room_id: room.id,
             room_name: room.room_name,
           }
         : null,

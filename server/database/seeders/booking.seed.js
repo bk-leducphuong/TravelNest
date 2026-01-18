@@ -298,7 +298,7 @@ async function seedBookings(options = {}) {
       // Get rooms for this hotel
       const hotelRooms = await rooms.findAll({
         where: { hotel_id: hotelId },
-        attributes: ['room_id'],
+        attributes: ['id'],
       });
 
       if (hotelRooms.length === 0) {
@@ -334,7 +334,7 @@ async function seedBookings(options = {}) {
           hotelRooms[
             faker.number.int({ min: 0, max: hotelRooms.length - 1 })
           ];
-        const roomId = randomRoom.room_id || randomRoom.get?.('room_id');
+        const roomId = randomRoom.id || randomRoom.get?.('id');
 
         const booking = await generateBooking(
           buyerId,

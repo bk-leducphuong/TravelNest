@@ -14,10 +14,9 @@ const hotelIdSchema = Joi.number().integer().positive().required().messages({
   'any.required': 'hotel_id is required',
 });
 
-const roomIdSchema = Joi.number().integer().positive().required().messages({
-  'number.base': 'room_id must be a number',
-  'number.integer': 'room_id must be an integer',
-  'number.positive': 'room_id must be a positive number',
+const roomIdSchema = Joi.string().uuid().required().messages({
+  'string.base': 'room_id must be a string',
+  'string.guid': 'room_id must be a valid UUID',
   'any.required': 'room_id is required',
 });
 

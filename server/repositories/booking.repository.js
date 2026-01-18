@@ -117,8 +117,8 @@ class BookingRepository {
    */
   async findRoomById(roomId) {
     return await Rooms.findOne({
-      where: { room_id: roomId },
-      attributes: ['room_id', 'room_name'],
+      where: { id: roomId },
+      attributes: ['id', 'room_name'],
     });
   }
 
@@ -158,7 +158,7 @@ class BookingRepository {
         },
         {
           model: Rooms,
-          attributes: ['room_id', 'room_name'],
+          attributes: ['id', 'room_name'],
         },
       ],
     });

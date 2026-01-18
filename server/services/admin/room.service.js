@@ -89,7 +89,7 @@ class AdminRoomService {
       date.setDate(date.getDate() + i);
 
       inventoryEntries.push({
-        room_id: newRoom.room_id,
+        room_id: newRoom.id,
         date: date,
         total_inventory: quantity,
         total_reserved: 0,
@@ -166,7 +166,7 @@ class AdminRoomService {
       : [];
 
     return {
-      roomId: room.room_id,
+      roomId: room.id,
       roomName: room.room_name,
       imageUrls,
     };

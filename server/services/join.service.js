@@ -119,10 +119,10 @@ class JoinService {
 
     // Extract room ID from Sequelize instance
     const roomId =
-      room.room_id ||
-      room.get?.('room_id') ||
-      room.dataValues?.room_id ||
-      room.id;
+      room.id ||
+      room.get?.('id') ||
+      room.dataValues?.id ||
+      room.room_id;
 
     // Create room inventory entries for next 60 days
     const inventoryEntries = Array.from({ length: 60 }, (_, i) => {

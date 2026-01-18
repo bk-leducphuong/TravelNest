@@ -120,8 +120,8 @@ class AdminBookingRepository {
    */
   async findRoomById(roomId) {
     return await Rooms.findOne({
-      where: { room_id: roomId },
-      attributes: ['room_id', 'room_name', 'room_type'],
+      where: { id: roomId },
+      attributes: ['id', 'room_name', 'room_type'],
     });
   }
 

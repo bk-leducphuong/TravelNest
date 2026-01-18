@@ -62,11 +62,11 @@ module.exports = function (sequelize, DataTypes) {
         },
       },
       room_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
           model: 'rooms',
-          key: 'room_id',
+          key: 'id',
         },
       },
       quantity: {
