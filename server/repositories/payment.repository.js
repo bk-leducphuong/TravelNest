@@ -110,7 +110,7 @@ class PaymentRepository {
         },
         {
           model: Hotels,
-          attributes: ['hotel_id', 'name', 'city'],
+          attributes: ['id', 'name', 'city'],
         },
       ],
       limit: limit || undefined,
@@ -148,7 +148,7 @@ class PaymentRepository {
         },
         {
           model: Hotels,
-          attributes: ['hotel_id', 'name', 'city'],
+          attributes: ['id', 'name', 'city'],
         },
       ],
     });

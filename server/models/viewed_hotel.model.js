@@ -18,11 +18,11 @@ module.exports = function (sequelize, DataTypes) {
         },
       },
       hotel_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: true,
         references: {
           model: 'hotels',
-          key: 'hotel_id',
+          key: 'id',
         },
       },
       viewed_at: {

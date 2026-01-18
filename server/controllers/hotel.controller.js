@@ -30,7 +30,7 @@ const getHotelDetails = asyncHandler(async (req, res) => {
   };
 
   const result = await hotelService.getHotelDetails(
-    parseInt(hotelId, 10),
+    hotelId,
     options
   );
 
@@ -66,7 +66,7 @@ const searchRooms = asyncHandler(async (req, res) => {
   };
 
   const result = await hotelService.searchRooms(
-    parseInt(hotelId, 10),
+    hotelId,
     searchParams
   );
 
@@ -104,7 +104,7 @@ const checkRoomAvailability = asyncHandler(async (req, res) => {
       : selectedRooms;
 
   const isAvailable = await hotelService.checkRoomAvailability(
-    parseInt(hotelId, 10),
+    hotelId,
     parsedSelectedRooms,
     checkInDate,
     checkOutDate,

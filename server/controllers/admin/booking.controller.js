@@ -15,7 +15,7 @@ const getAllBookings = asyncHandler(async (req, res) => {
   const { hotelId, status, page, limit } = req.query;
 
   const result = await adminBookingService.getAllBookings(
-    parseInt(hotelId, 10),
+    hotelId,
     ownerId,
     {
       status,

@@ -34,7 +34,7 @@ const getHotelById = asyncHandler(async (req, res) => {
   const { hotelId } = req.params;
 
   const hotel = await adminHotelService.getHotelById(
-    parseInt(hotelId, 10),
+    hotelId,
     ownerId
   );
 
@@ -53,7 +53,7 @@ const updateHotel = asyncHandler(async (req, res) => {
   const updateData = req.body;
 
   const hotel = await adminHotelService.updateHotel(
-    parseInt(hotelId, 10),
+    hotelId,
     ownerId,
     updateData
   );

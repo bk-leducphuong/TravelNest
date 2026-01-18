@@ -110,8 +110,8 @@ class AdminBookingRepository {
    */
   async findHotelById(hotelId) {
     return await Hotels.findOne({
-      where: { hotel_id: hotelId },
-      attributes: ['hotel_id', 'name', 'city', 'image_urls'],
+      where: { id: hotelId },
+      attributes: ['id', 'name', 'city', 'image_urls'],
     });
   }
 
@@ -131,7 +131,7 @@ class AdminBookingRepository {
   async verifyHotelOwnership(hotelId, ownerId) {
     const hotel = await Hotels.findOne({
       where: {
-        hotel_id: hotelId,
+        id: hotelId,
         owner_id: ownerId,
       },
     });

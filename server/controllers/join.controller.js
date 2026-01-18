@@ -59,7 +59,7 @@ const uploadPhotos = asyncHandler(async (req, res) => {
   const imageBuffers = req.files.map((file) => file.buffer);
 
   const imageUrls = await joinService.uploadPhotos(
-    parseInt(hotel_id, 10),
+    hotel_id,
     parseInt(room_id, 10),
     imageBuffers
   );

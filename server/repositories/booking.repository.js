@@ -107,8 +107,8 @@ class BookingRepository {
    */
   async findHotelById(hotelId) {
     return await Hotels.findOne({
-      where: { hotel_id: hotelId },
-      attributes: ['hotel_id', 'name', 'city', 'image_urls'],
+      where: { id: hotelId },
+      attributes: ['id', 'name', 'city', 'image_urls'],
     });
   }
 

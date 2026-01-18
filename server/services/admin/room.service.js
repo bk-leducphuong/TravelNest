@@ -302,7 +302,7 @@ class AdminRoomService {
       : [];
 
     return {
-      hotelId: hotel.hotel_id,
+      hotelId: hotel.id,
       hotelName: hotel.name,
       imageUrls,
     };

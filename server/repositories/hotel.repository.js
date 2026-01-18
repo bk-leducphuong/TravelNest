@@ -19,9 +19,9 @@ class HotelRepository {
    */
   async findById(hotelId) {
     return await Hotels.findOne({
-      where: { hotel_id: hotelId },
+      where: { id: hotelId },
       attributes: [
-        'hotel_id',
+        'id',
         'name',
         'description',
         'address',
@@ -77,8 +77,8 @@ class HotelRepository {
         GROUP BY ri.room_id
         HAVING COUNT(CASE WHEN ri.total_inventory - ri.total_reserved >= ? THEN 1 END) = ?
       ) AS ri ON r.room_id = ri.room_id
-      JOIN hotels AS h ON h.hotel_id = r.hotel_id
-      WHERE h.hotel_id = ?
+      JOIN hotels AS h ON h.id = r.hotel_id
+      WHERE h.id = ?
       ${numberOfGuests ? 'AND r.max_guests >= ?' : ''}
       ${limit ? 'LIMIT ?' : ''}
       ${offset ? 'OFFSET ?' : ''}
@@ -212,10 +212,10 @@ class HotelRepository {
         r.room_id
       FROM hotels h
       JOIN rooms r 
-      ON h.hotel_id = r.hotel_id
+      ON h.id = r.hotel_id
       JOIN room_inventory ri 
       ON r.room_id = ri.room_id
-      WHERE h.hotel_id = ?
+      WHERE h.id = ?
       AND r.room_id IN (?)
       AND ri.date BETWEEN ? AND ?
       GROUP BY r.room_id

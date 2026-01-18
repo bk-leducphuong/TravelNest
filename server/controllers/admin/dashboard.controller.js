@@ -15,7 +15,7 @@ const getTotalBookings = asyncHandler(async (req, res) => {
   const { hotelId, startDate, endDate } = req.query;
 
   const result = await adminDashboardService.getTotalBookings(
-    parseInt(hotelId, 10),
+    hotelId,
     ownerId,
     new Date(startDate),
     new Date(endDate)
@@ -35,7 +35,7 @@ const getRevenueStats = asyncHandler(async (req, res) => {
   const { hotelId, startDate, endDate } = req.query;
 
   const result = await adminDashboardService.getRevenueStats(
-    parseInt(hotelId, 10),
+    hotelId,
     ownerId,
     new Date(startDate),
     new Date(endDate)
@@ -55,7 +55,7 @@ const getDailyRevenueChart = asyncHandler(async (req, res) => {
   const { hotelId, startDate, endDate } = req.query;
 
   const result = await adminDashboardService.getDailyRevenueChart(
-    parseInt(hotelId, 10),
+    hotelId,
     ownerId,
     new Date(startDate),
     new Date(endDate)
@@ -75,7 +75,7 @@ const getRoomBookings = asyncHandler(async (req, res) => {
   const { hotelId, startDate, endDate } = req.query;
 
   const result = await adminDashboardService.getRoomBookings(
-    parseInt(hotelId, 10),
+    hotelId,
     ownerId,
     new Date(startDate),
     new Date(endDate)
@@ -95,7 +95,7 @@ const getNewCustomers = asyncHandler(async (req, res) => {
   const { hotelId, startDate, endDate } = req.query;
 
   const result = await adminDashboardService.getNewCustomers(
-    parseInt(hotelId, 10),
+    hotelId,
     ownerId,
     new Date(startDate),
     new Date(endDate)
@@ -121,7 +121,7 @@ const getWeeklyChange = asyncHandler(async (req, res) => {
   } = req.query;
 
   const result = await adminDashboardService.getWeeklyChange(
-    parseInt(hotelId, 10),
+    hotelId,
     ownerId,
     new Date(currentWeekStart),
     new Date(currentWeekEnd),
@@ -143,7 +143,7 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
   const { hotelId, startDate, endDate } = req.query;
 
   const result = await adminDashboardService.getDashboardOverview(
-    parseInt(hotelId, 10),
+    hotelId,
     ownerId,
     new Date(startDate),
     new Date(endDate)

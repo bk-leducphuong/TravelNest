@@ -36,7 +36,7 @@ class AdminHotelRepository {
    */
   async findById(hotelId) {
     return await Hotels.findOne({
-      where: { hotel_id: hotelId },
+      where: { id: hotelId },
     });
   }
 
@@ -46,7 +46,7 @@ class AdminHotelRepository {
   async findByIdAndOwnerId(hotelId, ownerId) {
     return await Hotels.findOne({
       where: {
-        hotel_id: hotelId,
+        id: hotelId,
         owner_id: ownerId,
       },
     });
@@ -57,7 +57,7 @@ class AdminHotelRepository {
    */
   async update(hotelId, updateData) {
     return await Hotels.update(updateData, {
-      where: { hotel_id: hotelId },
+      where: { id: hotelId },
     });
   }
 
@@ -67,7 +67,7 @@ class AdminHotelRepository {
   async verifyHotelOwnership(hotelId, ownerId) {
     const hotel = await Hotels.findOne({
       where: {
-        hotel_id: hotelId,
+        id: hotelId,
         owner_id: ownerId,
       },
     });

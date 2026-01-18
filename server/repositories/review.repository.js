@@ -97,7 +97,7 @@ class ReviewRepository {
       include: [
         {
           model: Hotels,
-          attributes: ['hotel_id', 'name', 'image_urls'],
+          attributes: ['id', 'name', 'image_urls'],
         },
         {
           model: Reviews,

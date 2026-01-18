@@ -105,10 +105,10 @@ class JoinService {
 
     // Extract hotel ID from Sequelize instance
     const hotelId =
-      hotel.hotel_id ||
-      hotel.get?.('hotel_id') ||
-      hotel.dataValues?.hotel_id ||
-      hotel.id;
+      hotel.id ||
+      hotel.get?.('id') ||
+      hotel.dataValues?.id ||
+      hotel.hotel_id;
 
     // Create room
     const room = await joinRepository.createRoom({

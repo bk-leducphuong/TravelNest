@@ -29,7 +29,7 @@ const getHotelReviews = asyncHandler(async (req, res) => {
   const { hotelId } = req.params;
   const { page, limit } = req.query;
 
-  const result = await reviewService.getHotelReviews(parseInt(hotelId, 10), {
+  const result = await reviewService.getHotelReviews(hotelId, {
     page: page ? parseInt(page, 10) : 1,
     limit: limit ? parseInt(limit, 10) : 20,
   });
@@ -79,7 +79,7 @@ const validateReview = asyncHandler(async (req, res) => {
   const result = await reviewService.validateReview(
     userId,
     bookingCode,
-    parseInt(hotelId, 10)
+    hotelId
   );
 
   res.status(200).json({
@@ -96,7 +96,7 @@ const checkAlreadyReviewed = asyncHandler(async (req, res) => {
 
   const review = await reviewService.checkAlreadyReviewed(
     bookingCode,
-    parseInt(hotelId, 10)
+    hotelId
   );
 
   if (review) {

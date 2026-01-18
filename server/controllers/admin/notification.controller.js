@@ -15,7 +15,7 @@ const getNotifications = asyncHandler(async (req, res) => {
   const { hotelId, isRead, page, limit } = req.query;
 
   const result = await adminNotificationService.getNotifications(
-    parseInt(hotelId, 10),
+    hotelId,
     ownerId,
     {
       isRead: isRead === 'true' ? true : isRead === 'false' ? false : undefined,
@@ -77,7 +77,7 @@ const markAllNotificationsAsRead = asyncHandler(async (req, res) => {
   const { hotelId } = req.body;
 
   const result = await adminNotificationService.markAllNotificationsAsRead(
-    parseInt(hotelId, 10),
+    hotelId,
     ownerId
   );
 

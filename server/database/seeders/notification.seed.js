@@ -176,12 +176,12 @@ async function seedNotifications(options = {}) {
     // Get all hotels or specific hotels
     let hotelQuery = {};
     if (hotelIds && Array.isArray(hotelIds) && hotelIds.length > 0) {
-      hotelQuery = { hotel_id: hotelIds };
+      hotelQuery = { id: hotelIds };
     }
 
     const existingHotels = await hotels.findAll({
       where: hotelQuery,
-      attributes: ['hotel_id'],
+      attributes: ['id'],
     });
 
     if (existingHotels.length === 0) {
@@ -236,7 +236,7 @@ async function seedNotifications(options = {}) {
 
     // Generate notifications for each hotel
     for (const hotel of existingHotels) {
-      const hotelId = hotel.hotel_id || hotel.get?.('hotel_id');
+      const hotelId = hotel.id || hotel.get?.('id');
 
       // Get bookings for this hotel if using bookings
       const hotelBookings = useBookings

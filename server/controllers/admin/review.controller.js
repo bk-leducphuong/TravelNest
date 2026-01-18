@@ -15,7 +15,7 @@ const getAllReviews = asyncHandler(async (req, res) => {
   const { hotelId, hasReply, minRating, maxRating, page, limit } = req.query;
 
   const result = await adminReviewService.getAllReviews(
-    parseInt(hotelId, 10),
+    hotelId,
     ownerId,
     {
       hasReply:

@@ -40,11 +40,11 @@ module.exports = function (sequelize, DataTypes) {
         allowNull: false,
       },
       hotel_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.UUID,
         allowNull: false,
         references: {
           model: 'hotels',
-          key: 'hotel_id',
+          key: 'id',
         },
       },
     },

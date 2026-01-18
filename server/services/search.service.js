@@ -81,13 +81,13 @@ class SearchService {
     const hotelsWithPrices = await Promise.all(
       hotels.map(async (hotel) => {
         const lowestPrice = await searchRepository.getLowestPriceForHotel(
-          hotel.hotel_id,
+          hotel.id,
           checkInDate,
           checkOutDate
         );
 
         return {
-          hotel_id: hotel.hotel_id,
+          hotel_id: hotel.id,
           name: hotel.name,
           address: hotel.address,
           city: hotel.city,
