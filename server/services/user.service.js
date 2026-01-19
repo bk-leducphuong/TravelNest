@@ -1,6 +1,10 @@
 const bcrypt = require('bcryptjs');
 const sharp = require('sharp');
-const cloudinary = require('../config/cloudinary.config');
+const {
+  minioClient,
+  bucketName,
+  getObjectUrl,
+} = require('../config/minio.config');
 const userRepository = require('../repositories/user.repository');
 const ApiError = require('../utils/ApiError');
 
@@ -57,36 +61,28 @@ class UserService {
     // Compress image to AVIF using sharp
     const avifBuffer = await sharp(fileBuffer).avif({ quality: 50 }).toBuffer();
 
-    // Upload the AVIF image buffer to Cloudinary
-    return new Promise((resolve, reject) => {
-      cloudinary.uploader
-        .upload_stream(
-          {
-            resource_type: 'image',
-            public_id: `users/avatars/${userId}`,
-          },
-          async (error, result) => {
-            if (error) {
-              reject(
-                new ApiError(
-                  500,
-                  'UPLOAD_FAILED',
-                  'Failed to upload image to Cloudinary'
-                )
-              );
-              return;
-            }
+    // Upload the AVIF image buffer to MinIO
+    try {
+      const objectName = `users/avatars/${userId}.avif`;
 
-            const profilePictureUrl = result.secure_url;
-            await userRepository.updateById(userId, {
-              profile_picture_url: profilePictureUrl,
-            });
+      await minioClient.putObject(bucketName, objectName, avifBuffer, {
+        'Content-Type': 'image/avif',
+      });
 
-            resolve(profilePictureUrl);
-          }
-        )
-        .end(avifBuffer);
-    });
+      const profilePictureUrl = getObjectUrl(objectName);
+
+      await userRepository.updateById(userId, {
+        profile_picture_url: profilePictureUrl,
+      });
+
+      return profilePictureUrl;
+    } catch (error) {
+      throw new ApiError(
+        500,
+        'UPLOAD_FAILED',
+        'Failed to upload image to storage'
+      );
+    }
   }
 
   /**

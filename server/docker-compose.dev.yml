@@ -30,6 +30,21 @@ services:
     networks:
       - travelnest-net
 
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    ports:
+      - '9000:9000' # API
+      - '9001:9001' # Web console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    volumes:
+      - ./minio-data:/data
+    networks:
+      - travelnest-net
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
     container_name: travelnest-zookeeper

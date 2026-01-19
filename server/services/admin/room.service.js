@@ -1,6 +1,6 @@
 const adminRoomRepository = require('../../repositories/admin/room.repository');
 const ApiError = require('../../utils/ApiError');
-const cloudinary = require('../../config/cloudinary.config');
+const { minioClient, bucketName, getObjectUrl } = require('../../config/minio.config');
 const sharp = require('sharp');
 
 /**
@@ -182,7 +182,7 @@ class AdminRoomService {
       throw new ApiError(400, 'NO_FILES', 'No files provided');
     }
 
-    // Process and upload files to Cloudinary
+    // Process and upload files to MinIO
     const uploadedUrls = await Promise.all(
       files.map(async (file) => {
         const timestamp = new Date()
@@ -194,26 +194,13 @@ class AdminRoomService {
           .avif({ quality: 50 })
           .toBuffer();
 
-        // Upload to Cloudinary
-        const result = await new Promise((resolve, reject) => {
-          cloudinary.uploader
-            .upload_stream(
-              {
-                resource_type: 'image',
-                public_id: `hotels/${hotelId}/rooms/${roomId}/${timestamp}`,
-              },
-              (error, result) => {
-                if (error) {
-                  console.error('Error uploading to Cloudinary:', error);
-                  return reject(error);
-                }
-                resolve(result);
-              }
-            )
-            .end(avifBuffer);
+        const objectName = `hotels/${hotelId}/rooms/${roomId}/${timestamp}.avif`;
+
+        await minioClient.putObject(bucketName, objectName, avifBuffer, {
+          'Content-Type': 'image/avif',
         });
 
-        return result.secure_url;
+        return getObjectUrl(objectName);
       })
     );
 
@@ -255,18 +242,17 @@ class AdminRoomService {
       (url) => !photoUrls.includes(url)
     );
 
-    // Extract public IDs from Cloudinary URLs and delete from Cloudinary
-    const regex = /\/upload\/(?:v\d+\/)?(.+?)\./;
+    // Extract object names from MinIO URLs and delete from bucket
     const deletePromises = photoUrls.map(async (url) => {
-      const match = url.match(regex);
-      if (match && match[1]) {
-        try {
-          await cloudinary.uploader.destroy(match[1], {
-            resource_type: 'image',
-          });
-        } catch (error) {
-          console.error(`Failed to delete ${url} from Cloudinary:`, error);
-        }
+      try {
+        const parsed = new URL(url);
+        const parts = parsed.pathname.split('/').filter(Boolean);
+        if (!parts.length || parts[0] !== bucketName) return;
+        const objectName = parts.slice(1).join('/');
+        await minioClient.removeObject(bucketName, objectName);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(`Failed to delete ${url} from MinIO:`, error);
       }
     });
 
@@ -324,7 +310,7 @@ class AdminRoomService {
       throw new ApiError(400, 'NO_FILES', 'No files provided');
     }
 
-    // Process and upload files to Cloudinary
+    // Process and upload files to MinIO
     const uploadedUrls = await Promise.all(
       files.map(async (file) => {
         const timestamp = new Date()
@@ -336,26 +322,13 @@ class AdminRoomService {
           .avif({ quality: 50 })
           .toBuffer();
 
-        // Upload to Cloudinary
-        const result = await new Promise((resolve, reject) => {
-          cloudinary.uploader
-            .upload_stream(
-              {
-                resource_type: 'image',
-                public_id: `hotels/${hotelId}/${timestamp}`,
-              },
-              (error, result) => {
-                if (error) {
-                  console.error('Error uploading to Cloudinary:', error);
-                  return reject(error);
-                }
-                resolve(result);
-              }
-            )
-            .end(avifBuffer);
+        const objectName = `hotels/${hotelId}/${timestamp}.avif`;
+
+        await minioClient.putObject(bucketName, objectName, avifBuffer, {
+          'Content-Type': 'image/avif',
         });
 
-        return result.secure_url;
+        return getObjectUrl(objectName);
       })
     );
 
@@ -403,18 +376,17 @@ class AdminRoomService {
       (url) => !photoUrls.includes(url)
     );
 
-    // Extract public IDs from Cloudinary URLs and delete from Cloudinary
-    const regex = /\/upload\/(?:v\d+\/)?(.+?)\./;
+    // Extract object names from MinIO URLs and delete from bucket
     const deletePromises = photoUrls.map(async (url) => {
-      const match = url.match(regex);
-      if (match && match[1]) {
-        try {
-          await cloudinary.uploader.destroy(match[1], {
-            resource_type: 'image',
-          });
-        } catch (error) {
-          console.error(`Failed to delete ${url} from Cloudinary:`, error);
-        }
+      try {
+        const parsed = new URL(url);
+        const parts = parsed.pathname.split('/').filter(Boolean);
+        if (!parts.length || parts[0] !== bucketName) return;
+        const objectName = parts.slice(1).join('/');
+        await minioClient.removeObject(bucketName, objectName);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(`Failed to delete ${url} from MinIO:`, error);
       }
     });
 

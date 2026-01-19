@@ -1,27 +1,50 @@
+/*********************** External Libraries ************************/
+require('dotenv').config({
+  path:
+    process.env.NODE_ENV === 'development'
+      ? '.env.development'
+      : '.env.production',
+});
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const http = require('http');
+
+/*********************** Config ************************/
+const logger = require('./config/logger.config');
+const sequelize = require('./config/database.config');
+const { initSocket } = require('./socket/index');
+const { initBucket } = require('./config/minio.config');
+
+/*********************** Middlewares ************************/
+const errorMiddleware = require('./middlewares/error.middleware.js');
+const limiter = require('./middlewares/rate-limitter.middleware');
+const sessionMiddleware = require('./middlewares/session.middleware');
+
+/*********************** Routes ************************/
+const searchRoutes = require('./routes/search.routes.js');
+const hotelRoutes = require('./routes/hotel.routes.js');
+const authRoutes = require('./routes/auth.routes');
+const homeRoutes = require('./routes/home.routes.js');
+const joinRoutes = require('./routes/join.routes.js');
+const paymentRoutes = require('./routes/payment.routes.js');
+const userRoutes = require('./routes/user.routes.js');
+const reviewRoutes = require('./routes/review.routes.js');
+const bookingRoutes = require('./routes/booking.routes.js');
+const userNotificationRoutes = require('./routes/notification.routes.js');
+const adminRoutes = require('./routes/admin/index.js');
+
+/*********************** Init Server ************************/
 const initServer = async () => {
-  require('dotenv').config({
-    path:
-      process.env.NODE_ENV === 'development'
-        ? '.env.development'
-        : '.env.production',
-  });
-
-  // Initialize logger
-  const logger = require('./config/logger.config');
-
   // Database connection
-  const sequelize = require('./config/database.config');
   await sequelize.authenticate();
   require('./models/index.js');
   logger.info('Database connected successfully');
 
-  const express = require('express');
-  const cors = require('cors');
-  const bodyParser = require('body-parser');
-  const errorMiddleware = require('./middlewares/error.middleware.js');
-  const sessionMiddleware = require('./middlewares/session.middleware');
-
   const app = express();
+
+  // Initialize s3 bucket
+  await initBucket();
 
   // Allow nginx proxy'
   // app.set("trust proxy", 1);
@@ -33,9 +56,8 @@ const initServer = async () => {
   //   bodyParser.raw({ type: "application/json" }),
   //   webhookController,
   // );
+
   // Socket io
-  const http = require('http');
-  const { initSocket } = require('./socket/index');
   const server = http.createServer(app);
   initSocket(server);
 
@@ -61,20 +83,7 @@ const initServer = async () => {
   // app.use(passport.session());
 
   // Rate limiter
-  const limiter = require('./middlewares/rate-limitter.middleware');
   app.use(limiter);
-
-  // User Routes
-  const searchRoutes = require('./routes/search.routes.js');
-  const hotelRoutes = require('./routes/hotel.routes.js');
-  const authRoutes = require('./routes/auth.routes');
-  const homeRoutes = require('./routes/home.routes.js');
-  const joinRoutes = require('./routes/join.routes.js');
-  const paymentRoutes = require('./routes/payment.routes.js');
-  const userRoutes = require('./routes/user.routes.js');
-  const reviewRoutes = require('./routes/review.routes.js');
-  const bookingRoutes = require('./routes/booking.routes.js');
-  const userNotificationRoutes = require('./routes/notification.routes.js');
 
   app.use('/api/search', searchRoutes);
   app.use('/api/home', homeRoutes);
@@ -88,7 +97,6 @@ const initServer = async () => {
   app.use('/api/notifications', userNotificationRoutes);
 
   // Admin routes - Refactored with RESTful standards
-  const adminRoutes = require('./routes/admin/index.js');
   app.use('/api/admin', adminRoutes);
 
   app.use(errorMiddleware);

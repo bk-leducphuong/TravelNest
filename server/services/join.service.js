@@ -1,5 +1,9 @@
 const joinRepository = require('../repositories/join.repository');
-const cloudinary = require('../config/cloudinary.config');
+const {
+  minioClient,
+  bucketName,
+  getObjectUrl,
+} = require('../config/minio.config');
 const sharp = require('sharp');
 const ApiError = require('../utils/ApiError');
 
@@ -105,10 +109,7 @@ class JoinService {
 
     // Extract hotel ID from Sequelize instance
     const hotelId =
-      hotel.id ||
-      hotel.get?.('id') ||
-      hotel.dataValues?.id ||
-      hotel.hotel_id;
+      hotel.id || hotel.get?.('id') || hotel.dataValues?.id || hotel.hotel_id;
 
     // Create room
     const room = await joinRepository.createRoom({
@@ -119,10 +120,7 @@ class JoinService {
 
     // Extract room ID from Sequelize instance
     const roomId =
-      room.id ||
-      room.get?.('id') ||
-      room.dataValues?.id ||
-      room.room_id;
+      room.id || room.get?.('id') || room.dataValues?.id || room.room_id;
 
     // Create room inventory entries for next 60 days
     const inventoryEntries = Array.from({ length: 60 }, (_, i) => {
@@ -169,31 +167,19 @@ class JoinService {
       );
     }
 
-    // Process and upload images
+    // Process and upload images to MinIO
     const uploadPromises = imageBuffers.map(async (buffer, index) => {
       try {
         // Compress image to AVIF using sharp
         const avifBuffer = await sharp(buffer).avif({ quality: 50 }).toBuffer();
 
-        // Upload to Cloudinary
-        return new Promise((resolve, reject) => {
-          cloudinary.uploader
-            .upload_stream(
-              {
-                resource_type: 'image',
-                public_id: `hotels/${hotelId}/rooms/${roomId}/${Date.now()}_${index}`,
-                folder: `hotels/${hotelId}/rooms/${roomId}`,
-              },
-              (error, result) => {
-                if (error) {
-                  reject(error);
-                } else {
-                  resolve(result.secure_url);
-                }
-              }
-            )
-            .end(avifBuffer);
+        const objectName = `hotels/${hotelId}/rooms/${roomId}/${Date.now()}_${index}.avif`;
+
+        await minioClient.putObject(bucketName, objectName, avifBuffer, {
+          'Content-Type': 'image/avif',
         });
+
+        return getObjectUrl(objectName);
       } catch (error) {
         throw new ApiError(
           500,
