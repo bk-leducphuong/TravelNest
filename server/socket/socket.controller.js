@@ -1,4 +1,4 @@
-const { logger } = require('../config/logger.config');
+const { logger } = require('@config/logger.config');
 // src/socket/socketController.js
 exports.handleConnection = (io, socket) => {
   logger.info(`User ${socket.user.id} connected`);

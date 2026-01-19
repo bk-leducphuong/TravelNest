@@ -1,5 +1,5 @@
-const ApiError = require('../utils/ApiError');
-const sessionMiddleware = require('../middlewares/session.middleware');
+const ApiError = require('@utils/ApiError');
+const sessionMiddleware = require('@middlewares/session.middleware');
 // Helper to make Express middleware work with Socket.io
 const wrap = (middleware) => (socket, next) => {
   // socket.request is the underlying HTTP request object

@@ -1,4 +1,5 @@
 /*********************** External Libraries ************************/
+require('module-alias/register');
 require('dotenv').config({
   path:
     process.env.NODE_ENV === 'development'
@@ -11,34 +12,24 @@ const bodyParser = require('body-parser');
 const http = require('http');
 
 /*********************** Config ************************/
-const logger = require('./config/logger.config');
-const sequelize = require('./config/database.config');
-const { initSocket } = require('./socket/index');
-const { initBucket } = require('./config/minio.config');
+const logger = require('@config/logger.config');
+const sequelize = require('@config/database.config');
+const { initSocket } = require('@socket/index');
+const { initBucket } = require('@config/minio.config');
 
 /*********************** Middlewares ************************/
-const errorMiddleware = require('./middlewares/error.middleware.js');
-const limiter = require('./middlewares/rate-limitter.middleware');
-const sessionMiddleware = require('./middlewares/session.middleware');
+const errorMiddleware = require('@middlewares/error.middleware.js');
+const limiter = require('@middlewares/rate-limitter.middleware');
+const sessionMiddleware = require('@middlewares/session.middleware');
 
 /*********************** Routes ************************/
-const searchRoutes = require('./routes/search.routes.js');
-const hotelRoutes = require('./routes/hotel.routes.js');
-const authRoutes = require('./routes/auth.routes');
-const homeRoutes = require('./routes/home.routes.js');
-const joinRoutes = require('./routes/join.routes.js');
-const paymentRoutes = require('./routes/payment.routes.js');
-const userRoutes = require('./routes/user.routes.js');
-const reviewRoutes = require('./routes/review.routes.js');
-const bookingRoutes = require('./routes/booking.routes.js');
-const userNotificationRoutes = require('./routes/notification.routes.js');
-const adminRoutes = require('./routes/admin/index.js');
+const v1Routes = require('@routes/v1/index.js');
 
 /*********************** Init Server ************************/
 const initServer = async () => {
   // Database connection
   await sequelize.authenticate();
-  require('./models/index.js');
+  require('@models/index.js');
   logger.info('Database connected successfully');
 
   const app = express();
@@ -85,19 +76,8 @@ const initServer = async () => {
   // Rate limiter
   app.use(limiter);
 
-  app.use('/api/search', searchRoutes);
-  app.use('/api/home', homeRoutes);
-  app.use('/api/hotels', hotelRoutes);
-  app.use('/api/auth', authRoutes); // Login route
-  app.use('/api/join', joinRoutes); // Become a partner route
-  app.use('/api/payments', paymentRoutes);
-  app.use('/api/user', userRoutes);
-  app.use('/api/reviews', reviewRoutes);
-  app.use('/api/bookings', bookingRoutes);
-  app.use('/api/notifications', userNotificationRoutes);
-
-  // Admin routes - Refactored with RESTful standards
-  app.use('/api/admin', adminRoutes);
+  // API v1 routes
+  app.use('/api/v1', v1Routes);
 
   app.use(errorMiddleware);
 

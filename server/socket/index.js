@@ -1,6 +1,6 @@
 // socket.js
 const { Server } = require('socket.io');
-const { logger } = require('../config/logger.config');
+const { logger } = require('@config/logger.config');
 const { handleConnection } = require('./socket.controller');
 const {
   sessionSocketMiddleware,
