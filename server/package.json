@@ -23,7 +23,7 @@
     "migrate:create": "sequelize-cli migration:generate --name",
     "migrate:seed": "sequelize-cli db:seed:all",
     "migrate:seed:undo": "sequelize-cli db:seed:undo:all",
-    "start:consumer": "cross-env NODE_ENV=development node services/kafka/consumer.service.js"
+    "start:consumer": "cross-env NODE_ENV=development node kafka/worker.js"
   },
   "_moduleAliases": {
     "@controllers": "controllers",
@@ -37,6 +37,7 @@
     "@public": "public",
     "@repositories": "repositories",
     "@services": "services",
+    "@kafka": "kafka",
     "@socket": "socket",
     "@utils": "utils"
   },
