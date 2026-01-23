@@ -1,15 +1,5 @@
 const multer = require('multer');
 
-// // Set up storage and file naming
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, "uploads/"); // Folder to save images
-//   },
-//   filename: function (req, file, cb) {
-//     cb(null, Date.now() + "-" + file.originalname); // Unique file name
-//   },
-// });
-
 // File filter to accept only images
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image/')) {

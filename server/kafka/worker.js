@@ -21,25 +21,7 @@ const {
 async function main() {
   const consumers = [];
 
-  // Example: image processing (main + retry + dlq)
-  consumers.push(
-    createRetryingConsumer({
-      baseTopic: 'image.processing',
-      groupId:
-        process.env.KAFKA_IMAGE_PROCESSING_GROUP || 'image-processing-group',
-      retry: {
-        maxRetries: Number(process.env.KAFKA_IMAGE_PROCESSING_MAX_RETRIES || 5),
-        delayMs: Number(
-          process.env.KAFKA_IMAGE_PROCESSING_RETRY_DELAY_MS || 60_000
-        ),
-      },
-      handler: async ({ value }) => {
-        // TODO: replace with your real image processing logic
-        // Throw to trigger retry/DLQ routing.
-        if (!value) throw new Error('Empty message');
-      },
-    })
-  );
+  consumers.push();
 
   await Promise.all(consumers.map((c) => c.start()));
   logger.info('Kafka worker started');
