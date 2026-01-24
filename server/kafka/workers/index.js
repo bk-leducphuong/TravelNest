@@ -1,1 +1,3 @@
-export * from './image.worker';
+module.exports = {
+  ...require('./image.worker'),
+};

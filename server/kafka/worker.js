@@ -7,24 +7,26 @@ require('dotenv').config({
 });
 
 const logger = require('@config/logger.config');
-const {
-  createRetryingConsumer,
-  disconnectAllProducers,
-} = require('@kafka/index');
+const { disconnectAllProducers } = require('@kafka/index');
+const { imageProcessingConsumer } = require('@kafka/workers/index');
 
 /**
- * Example worker process.
+ * Kafka worker process.
  *
- * You can define multiple consumers here, each with its own groupId/topic/handler.
- * This is where you'd run image processing, email sending, etc.
+ * Runs background consumers for image processing and other tasks.
  */
 async function main() {
   const consumers = [];
 
-  consumers.push();
+  // Add image processing consumer
+  consumers.push(imageProcessingConsumer);
 
+  // Start all consumers
   await Promise.all(consumers.map((c) => c.start()));
-  logger.info('Kafka worker started');
+  logger.info('Kafka worker started with consumers', {
+    consumerCount: consumers.length,
+    topics: consumers.map((c) => c.topics),
+  });
 
   const shutdown = async (reason) => {
     try {

@@ -5,8 +5,11 @@ require('dotenv').config({
       : '.env.development',
 });
 const { createRetryingConsumer } = require('@kafka/index');
-const { minioClient } = require('@config/minio.config');
+const imageRepository = require('@repositories/image.repository');
+const { getObject, uploadObject } = require('@utils/minio.utils');
+const logger = require('@config/logger.config');
 const sharp = require('sharp');
+const { uuidv7 } = require('uuidv7');
 
 // Image variant configurations
 const IMAGE_VARIANTS = {
@@ -16,47 +19,82 @@ const IMAGE_VARIANTS = {
   large: { width: 1920, height: 1920, quality: 95 },
 };
 
-  function processImage(message) {
-    const { imageId, bucket, objectKey, mimeType } = message;
+/**
+ * Resize image using Sharp
+ * @param {Buffer} imageBuffer - Original image buffer
+ * @param {object} config - Configuration with width, height, quality
+ * @param {string} format - Output format (jpeg, webp, png)
+ * @returns {Promise<Buffer>} - Resized image buffer
+ */
+async function resizeImage(imageBuffer, config, format) {
+  return sharp(imageBuffer)
+    .resize(config.width, config.height, {
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .toFormat(format, {
+      quality: config.quality,
+      progressive: true,
+    })
+    .toBuffer();
+}
 
+/**
+ * Process image: download from MinIO, generate variants, save to database
+ * @param {object} message - Kafka message containing imageId, bucket, objectKey, etc.
+ */
+async function processImage(message) {
+  const { imageId, bucket, objectKey, mimeType, entityType, entityId } =
+    message;
+
+  logger.info(`Starting image processing for imageId: ${imageId}`, {
+    bucket,
+    objectKey,
+  });
+
+  try {
     // Download original from MinIO
-    const dataStream = await minioClient.getObject(bucket, objectKey);
-    const chunks = [];
+    const imageBuffer = await getObject(bucket, objectKey);
 
-    for await (const chunk of dataStream) {
-      chunks.push(chunk);
-    }
+    logger.info(`Downloaded image from MinIO: ${objectKey}`, {
+      size: imageBuffer.length,
+    });
 
-    const imageBuffer = Buffer.concat(chunks);
-
-    // Load image with Sharp
-    let image = sharp(imageBuffer);
-
-    // Get metadata
-    const metadata = await image.metadata();
+    // Load image with Sharp and get metadata
+    const metadata = await sharp(imageBuffer).metadata();
     const { width, height } = metadata;
 
-    // Update dimensions in database
-    await query('UPDATE images SET width = ?, height = ? WHERE id = ?', [
+    logger.info(`Image metadata extracted`, {
       width,
       height,
-      imageId,
-    ]);
+      format: metadata.format,
+    });
+
+    // Update dimensions in database
+    await imageRepository.updateImage(imageId, {
+      width,
+      height,
+    });
 
     // Generate variants
     const variantRecords = [];
 
     for (const [variantName, config] of Object.entries(IMAGE_VARIANTS)) {
+      logger.info(`Generating variant: ${variantName}`, config);
+
       // Generate JPEG variant
       const jpegKey = objectKey.replace(/\.[^.]+$/, `_${variantName}.jpg`);
-      const jpegBuffer = await this.resizeImage(imageBuffer, config, 'jpeg');
+      const jpegBuffer = await resizeImage(imageBuffer, config, 'jpeg');
 
-      await minioClient.putObject(bucket, jpegKey, jpegBuffer, {
+      await uploadObject(bucket, jpegKey, jpegBuffer, jpegBuffer.length, {
         'Content-Type': 'image/jpeg',
       });
 
       const jpegMetadata = await sharp(jpegBuffer).metadata();
-      variantRecords.push({
+      const jpegVariantId = uuidv7();
+
+      await imageRepository.createVariant({
+        id: jpegVariantId,
         imageId,
         variantType: variantName,
         bucketName: bucket,
@@ -66,16 +104,24 @@ const IMAGE_VARIANTS = {
         height: jpegMetadata.height,
       });
 
+      logger.info(`Created JPEG variant: ${variantName}`, {
+        objectKey: jpegKey,
+        size: jpegBuffer.length,
+      });
+
       // Generate WebP variant
       const webpKey = objectKey.replace(/\.[^.]+$/, `_${variantName}.webp`);
-      const webpBuffer = await this.resizeImage(imageBuffer, config, 'webp');
+      const webpBuffer = await resizeImage(imageBuffer, config, 'webp');
 
-      await minioClient.putObject(bucket, webpKey, webpBuffer, {
+      await uploadObject(bucket, webpKey, webpBuffer, webpBuffer.length, {
         'Content-Type': 'image/webp',
       });
 
       const webpMetadata = await sharp(webpBuffer).metadata();
-      variantRecords.push({
+      const webpVariantId = uuidv7();
+
+      await imageRepository.createVariant({
+        id: webpVariantId,
         imageId,
         variantType: `${variantName}_webp`,
         bucketName: bucket,
@@ -84,51 +130,40 @@ const IMAGE_VARIANTS = {
         width: webpMetadata.width,
         height: webpMetadata.height,
       });
-    }
 
-    // Save variants to database
-    for (const variant of variantRecords) {
-      await query(
-        `INSERT INTO image_variants 
-         (image_id, variant_type, bucket_name, object_key, file_size, width, height) 
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          variant.imageId,
-          variant.variantType,
-          variant.bucketName,
-          variant.objectKey,
-          variant.fileSize,
-          variant.width,
-          variant.height,
-        ]
-      );
+      logger.info(`Created WebP variant: ${variantName}_webp`, {
+        objectKey: webpKey,
+        size: webpBuffer.length,
+      });
     }
 
     // Update image status to active
-    await query(
-      `UPDATE images 
-       SET status = 'active', has_thumbnail = TRUE, has_compressed = TRUE 
-       WHERE id = ?`,
-      [imageId]
-    );
+    await imageRepository.updateImage(imageId, {
+      status: 'active',
+      has_thumbnail: true,
+      has_compressed: true,
+    });
 
-    console.log(`Successfully processed image ${message.uuid}`);
+    logger.info(`Successfully processed image ${imageId}`, {
+      variantsCreated: variantRecords.length,
+      entityType,
+      entityId,
+    });
+
+    return { success: true, imageId };
+  } catch (error) {
+    logger.error(`Error processing image ${imageId}:`, {
+      error: error.message,
+      stack: error.stack,
+    });
+    throw error;
   }
+}
 
-  function resizeImage(imageBuffer, config, format) {
-    return sharp(imageBuffer)
-      .resize(config.width, config.height, {
-        fit: 'inside',
-        withoutEnlargement: true,
-      })
-      .toFormat(format, {
-        quality: config.quality,
-        progressive: true,
-      })
-      .toBuffer();
-  }
-
-
+/**
+ * Kafka consumer for image processing
+ * Subscribes to 'image.processing' topic and processes images
+ */
 const imageProcessingConsumer = createRetryingConsumer({
   baseTopic: 'image.processing',
   groupId: process.env.KAFKA_IMAGE_PROCESSING_GROUP || 'image-processing-group',
@@ -138,14 +173,28 @@ const imageProcessingConsumer = createRetryingConsumer({
       process.env.KAFKA_IMAGE_PROCESSING_RETRY_DELAY_MS || 60_000
     ),
   },
-  handler: async ({ value, key, headers, topic, partition, offset, rawMessage }) => {
-    if (!value) throw new Error('Empty message');
-
-    try {
-      await processImage(value);
-    } catch (error) {
-      // TODO: handle retry logic here
+  handler: async ({
+    value,
+    key,
+    headers,
+    topic,
+    partition,
+    offset,
+    rawMessage,
+  }) => {
+    if (!value) {
+      logger.error('Empty message received', { topic, partition, offset });
+      throw new Error('Empty message');
     }
+
+    logger.info('Processing image from Kafka message', {
+      imageId: value.imageId,
+      topic,
+      partition,
+      offset,
+    });
+
+    await processImage(value);
   },
 });
 
