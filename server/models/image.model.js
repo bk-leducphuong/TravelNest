@@ -133,39 +133,9 @@ module.exports = function (sequelize, DataTypes) {
   );
 
   Image.associate = function (models) {
-    // Polymorphic associations - Images can belong to multiple entity types
-    // Note: Sequelize doesn't support true polymorphic associations out of the box,
-    // so we'll need to handle the relationships manually in queries using entity_type and entity_id
-
-    // However, we can define convenience associations for easier querying
-    Image.belongsTo(models.hotels, {
-      foreignKey: 'entity_id',
-      constraints: false,
-      as: 'hotel',
-    });
-
-    Image.belongsTo(models.users, {
-      foreignKey: 'entity_id',
-      constraints: false,
-      as: 'user',
-    });
-
-    Image.belongsTo(models.rooms, {
-      foreignKey: 'entity_id',
-      constraints: false,
-      as: 'room',
-    });
-
-    Image.belongsTo(models.reviews, {
-      foreignKey: 'entity_id',
-      constraints: false,
-      as: 'review',
-    });
-
     // Image variants association
     Image.hasMany(models.image_variants, {
       foreignKey: 'image_id',
-      as: 'variants',
     });
   };
 

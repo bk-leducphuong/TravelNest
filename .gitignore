@@ -37,6 +37,6 @@ client/.vscode/*
 /scrape_data/data/*.json
 /scrape_data/data/hotels/
 
-server/public/uploads/hotels/*
-!server/public/uploads/hotels/.gitkeep
+server/minio-data/*
+!server/minio-data/.gitkeep
 
